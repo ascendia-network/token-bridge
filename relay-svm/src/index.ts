@@ -3,7 +3,9 @@ import {
   Keypair,
   PublicKey,
   Transaction,
+  SystemProgram,
   sendAndConfirmTransaction,
+  TransactionSignature,
 } from "@solana/web3.js";
 import { Program, AnchorProvider, Wallet, Idl, BN } from "@coral-xyz/anchor";
 import { TOKEN_PROGRAM_ID, createTransferInstruction } from "@solana/spl-token";
@@ -12,7 +14,6 @@ import * as dotenv from "dotenv";
 import axios from "axios";
 
 dotenv.config();
-const PROGRAM_ID = new PublicKey(process.env.PROGRAM_ID);
 const CONNECTION_URL = process.env.CONNECTION_URL;
 const SOLANA_SECRET_KEY = process.env.SOLANA_SECRET_KEY;
 const AUTHORITY_PUBKEYS = process.env.AUTHORITY_PUBKEYS;
@@ -128,4 +129,31 @@ async function sendTransaction(
   }
   const txId = await sendAndConfirmTransaction(connection, tx, []);
   console.log(txId);
+}
+
+async function createNonceAccount(): Promise<{
+  nonceAccount: Keypair;
+  txSignature: TransactionSignature;
+}> {
+  const nonceAccount = Keypair.generate();
+  const ACCOUNT_SIZE = 8 + 8;
+  const lamports =
+    await provider.connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE);
+  const tx = new Transaction().add(
+    SystemProgram.createAccount({
+      fromPubkey: provider.wallet.publicKey,
+      newAccountPubkey: nonceAccount.publicKey,
+      lamports,
+      space: ACCOUNT_SIZE,
+      programId: program.programId,
+    }),
+  );
+  provider.wallet.signTransaction(tx);
+  let txSignature = await sendAndConfirmTransaction(
+    provider.connection,
+    tx,
+    [],
+  );
+  console.log(txSignature);
+  return { nonceAccount, txSignature };
 }

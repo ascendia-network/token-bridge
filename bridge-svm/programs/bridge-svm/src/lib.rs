@@ -60,6 +60,10 @@ pub mod multisig_nonce {
     }
 
     pub fn unlock(ctx: Context<Bridge>, amount: u64, nonce_value: u64) -> Result<()> {
+        if ctx.accounts.nonce_account.to_account_info().owner != ctx.program_id {
+            return Err(ErrorCode::InvalidNonce.into());
+        }
+
         let nonce = &mut ctx.accounts.nonce_account;
         if nonce_value != nonce.nonce_counter {
             return Err(ErrorCode::InvalidNonce.into());

@@ -5,32 +5,27 @@ pragma abicoder v2;
 /// @dev Flags for the bridge operations
 library BridgeFlags {
 
-  // 0-64 bits are reserved for the sender flags
-  /// @dev Sender is tx.origin (not msg.sender)
-  uint256 constant SENDER_IS_TXORIGIN = 1 << 0;
+    // 0-64 bits are reserved for the sender flags
+    /// @dev Sender is tx.origin (not msg.sender)
+    uint256 constant SENDER_IS_TXORIGIN = 1 << 0;
 
-  /// @dev Should send with permit action
-  uint256 constant SEND_WITH_PERMIT = 1 << 1;
+    /// @dev Should send with permit action
+    uint256 constant SEND_WITH_PERMIT = 1 << 1;
 
-  // 65-128 bits are reserved for the receiver flags
-  /// @dev Should unwrap the tokens after receiving
-  uint256 constant SHOULD_UNWRAP = 1 << 65;
+    // 65-128 bits are reserved for the receiver flags
+    /// @dev Should unwrap the tokens after receiving
+    uint256 constant SHOULD_UNWRAP = 1 << 65;
 
-  /// @dev Should send the additional native tokens to the receiver on the other chain in exchange of higher fee amount
-  uint256 constant SEND_NATIVE_TO_RECEIVER = 1 << 66;
-  
-  /// @dev Should restake the received tokens
-  // TODO: unused for now
-  uint256 constant SHOULD_RESTAKE = 1 << 67;
+    /// @dev Should send the additional native tokens to the receiver on the other chain in exchange of higher fee amount
+    uint256 constant SEND_NATIVE_TO_RECEIVER = 1 << 66;
+
+    /// @dev Should restake the received tokens
+    // TODO: unused for now
+    uint256 constant SHOULD_RESTAKE = 1 << 67;
+
 }
 
 interface IBridgeTypes {
-    enum ReceiptStatus {
-        Undefined, // 0
-        Locked, // 1
-        Unlocked, // 2
-        Canceled // 3
-    }
 
     /// Bridge transaction receipt structure that is used for signing and validation
     /// @param from source address
@@ -49,8 +44,9 @@ interface IBridgeTypes {
         uint256 amount; // amount of tokens sent
         uint256 chainFrom; // chain id of the source chain
         uint256 chainTo; // chain id of the destination chain
-        uint256 nonce; // transaction number (counter of outgoing transactions of source chain)
+        uint256 eventId; // transaction number
         uint256 flags; // flags for receiver
+        bytes data; // additional data of the transaction (eg. user nonce for Solana)
     }
 
     /// Fee structure that is used for signing and validation
@@ -66,6 +62,7 @@ interface IBridgeTypes {
         uint256 feeAmount; // amount of the fee
         uint256 timestamp; // timestamp of the fee was generated
         uint256 flags; // flags of the sending operation
-        bytes[] data; // additional data of the sending operation
+        bytes flagData; // additional data of the sending operation (unused for now)
     }
+
 }

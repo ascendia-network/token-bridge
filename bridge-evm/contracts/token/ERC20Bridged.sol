@@ -4,8 +4,8 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 
-
 contract ERC20Bridged is ERC20Permit {
+
     /// @dev The number of decimals for the token
     uint8 private _decimals;
     /// @dev The address of the bridge contract
@@ -16,7 +16,10 @@ contract ERC20Bridged is ERC20Permit {
         string memory symbol_,
         uint8 decimals_,
         address bridge_
-    ) ERC20(name_, symbol_) ERC20Permit(name_) {
+    )
+        ERC20(name_, symbol_)
+        ERC20Permit(name_)
+    {
         _decimals = decimals_;
         _bridgeAddress = bridge_;
     }
@@ -50,20 +53,27 @@ contract ERC20Bridged is ERC20Permit {
      *
      * Emits a {Transfer} event.
      */
-    function _update(address from, address to, uint256 value) internal override {
+    function _update(
+        address from,
+        address to,
+        uint256 value
+    )
+        internal
+        override
+    {
         // If token is sent from the bridge, mint it
         if (from == _bridgeAddress) {
-          if(to == address(0)) {
-            revert ERC20InvalidReceiver(address(0));
-          }
-          super._update(address(0), to, value);
+            if (to == address(0)) {
+                revert ERC20InvalidReceiver(address(0));
+            }
+            super._update(address(0), to, value);
         }
         // If the token is sent to the bridge, burn it
         else if (to == _bridgeAddress) {
-          super._update(from, address(0), value);
-        }
-        else {
-          super._update(from, to, value);
+            super._update(from, address(0), value);
+        } else {
+            super._update(from, to, value);
         }
     }
+
 }

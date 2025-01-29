@@ -1,13 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+import
+    "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/NoncesUpgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import "../interface/IBridge.sol";
 import "../interface/IValidation.sol";
+
 import "../utils/AddressUtils.sol";
+import "../utils/NoncesUpgradeable.sol";
 import "../utils/ReceiptUtils.sol";
+
 import "./TokenManagerUpgradeable.sol";
 
 abstract contract BridgeUpgradeable is
@@ -17,16 +22,17 @@ abstract contract BridgeUpgradeable is
     NoncesUpgradeable,
     TokenManagerUpgradeable
 {
+
     using AddressUtils for bytes32;
     using ReceiptUtils for Receipt;
+    using SafeCast for uint256;
     /// @custom:storage-location erc7201:airdao.bridge.main.storage
+
     struct BridgeStorage {
         uint256 nativeSendAmount;
         address payable feeReceiver;
         IValidation validator;
         mapping(bytes32 => bool) claimed;
-        mapping(uint256 => Receipt) receipts;
-        mapping(uint256 => uint256) receiptTimestamp;
     }
 
     // keccak256(abi.encode(uint256(keccak256("airdao.bridge.main.storage")) - 1)) & ~bytes32(uint256(0xff))
@@ -49,7 +55,10 @@ abstract contract BridgeUpgradeable is
         IValidation validator_,
         address payable feeReceiver_,
         uint256 nativeSendAmount_
-    ) internal onlyInitializing {
+    )
+        internal
+        onlyInitializing
+    {
         __AccessManaged_init(authority_);
         __Nonces_init();
         __TokenManager_init(address(this), SAMB_);
@@ -60,7 +69,10 @@ abstract contract BridgeUpgradeable is
         IValidation validator_,
         address payable feeReceiver_,
         uint256 nativeSendAmount_
-    ) internal onlyInitializing {
+    )
+        internal
+        onlyInitializing
+    {
         BridgeStorage storage $ = _getBridgeStorage();
         $.validator = validator_;
         $.feeReceiver = feeReceiver_;
@@ -69,10 +81,12 @@ abstract contract BridgeUpgradeable is
 
     // restricted functions
 
-    function setFeeReceiver(
-        address payable newFeeReceiver
-    ) public override restricted {
     /// @inheritdoc IBridge
+    function setFeeReceiver(address payable newFeeReceiver)
+        public
+        override
+        restricted
+    {
         _getBridgeStorage().feeReceiver = newFeeReceiver;
     }
     /// @inheritdoc IBridge
@@ -82,7 +96,11 @@ abstract contract BridgeUpgradeable is
     }
     /// @inheritdoc IBridge
 
-    function setValidator(IValidation newValidator) public override restricted {
+    function setValidator(IValidation newValidator)
+        public
+        override
+        restricted
+    {
         _getBridgeStorage().validator = newValidator;
     }
 
@@ -90,7 +108,12 @@ abstract contract BridgeUpgradeable is
     function addToken(
         address token,
         bytes32 externalTokenAddress
-    ) external virtual override returns (bool success) {
+    )
+        external
+        virtual
+        override
+        returns (bool success)
+    {
         return addToken(token, externalTokenAddress, true);
     }
 
@@ -98,31 +121,56 @@ abstract contract BridgeUpgradeable is
     function mapExternalToken(
         bytes32 externalTokenAddress,
         address token
-    ) public override restricted returns (bool success) {
+    )
+        public
+        override
+        restricted
+        returns (bool success)
+    {
         return super.mapExternalToken(externalTokenAddress, token);
     }
 
     /// @inheritdoc ITokenManager
+    function unmapExternalToken(bytes32 externalTokenAddress)
+        public
+        override
+        restricted
+        returns (bool success)
+    {
+        return super.unmapExternalToken(externalTokenAddress);
+    }
+
     /// @inheritdoc ITokenManager
     function addToken(
         address token,
         bytes32 externalTokenAddress,
         bool paused
-    ) public override restricted returns (bool success) {
+    )
+        public
+        override
+        restricted
+        returns (bool success)
+    {
         return super.addToken(token, externalTokenAddress, paused);
     }
 
     /// @inheritdoc ITokenManager
-    function pauseToken(
-        address token
-    ) public virtual override returns (bool success) {
+    function pauseToken(address token)
+        public
+        virtual
+        override
+        returns (bool success)
+    {
         return super.pauseToken(token);
     }
 
     /// @inheritdoc ITokenManager
-    function unpauseToken(
-        address token
-    ) public override restricted returns (bool success) {
+    function unpauseToken(address token)
+        public
+        override
+        restricted
+        returns (bool success)
+    {
         return super.unpauseToken(token);
     }
 
@@ -130,7 +178,12 @@ abstract contract BridgeUpgradeable is
     function removeToken(
         address token,
         bytes32 externalTokenAddress
-    ) public override restricted returns (bool success) {
+    )
+        public
+        override
+        restricted
+        returns (bool success)
+    {
         return super.removeToken(token, externalTokenAddress);
     }
 
@@ -140,31 +193,46 @@ abstract contract BridgeUpgradeable is
         string calldata name,
         string calldata symbol,
         uint8 decimals
-    ) public override restricted returns (address token) {
-        return
-            super.deployExternalTokenERC20(
-                externalTokenAddress,
-                name,
-                symbol,
-                decimals
-            );
+    )
+        public
+        override
+        restricted
+        returns (address token)
+    {
+        return super.deployExternalTokenERC20(
+            externalTokenAddress, name, symbol, decimals
+        );
     }
 
     // view functions
 
     /// @inheritdoc IBridge
-    function feeReceiver() public view override returns (address payable) {
+    function feeReceiver()
+        public
+        view
+        override
+        returns (address payable feeReceiver_)
+    {
         return _getBridgeStorage().feeReceiver;
     }
 
     /// @inheritdoc IBridge
-    function nativeSendAmount() public view override returns (uint256) {
+    function nativeSendAmount()
+        public
+        view
+        override
+        returns (uint256 nativeSendAmount_)
+    {
         return _getBridgeStorage().nativeSendAmount;
     }
 
     /// Fee validity window from the validator
     /// @return validityWindow fee validity window
-    function feeValidityWindow() public view returns (uint256 validityWindow) {
+    function feeValidityWindow()
+        public
+        view
+        returns (uint256 validityWindow)
+    {
         return validator().feeValidityWindow();
     }
 
@@ -174,39 +242,27 @@ abstract contract BridgeUpgradeable is
     }
 
     /// @inheritdoc IBridge
-    function lastNonce() external view override returns (uint256) {
+    function lastEventID() external view override returns (uint256 nonce) {
         return nonces(address(this));
     }
 
-    /// Get the receipt by nonce
-    /// @param nonce nonce of the receipt
-    /// @return receipt receipt data
-    function getReceipt(
-        uint256 nonce
-    ) internal view returns (Receipt memory receipt) {
-        return _getBridgeStorage().receipts[nonce];
-    }
-
-    /// Get the receipt timestamp by nonce
-    /// @param nonce nonce of the receipt
-    /// @return timestamp timestamp of the receipt
-    function getReceiptTimestamp(
-        uint256 nonce
-    ) internal view returns (uint256 timestamp) {
-        return _getBridgeStorage().receiptTimestamp[nonce];
-    }
-
     /// @inheritdoc IBridge
-    function isClaimed(
-        Receipt calldata receipt
-    ) public view override returns (bool claimed) {
+    function isClaimed(Receipt calldata receipt)
+        public
+        view
+        override
+        returns (bool claimed)
+    {
         return _getBridgeStorage().claimed[receipt.toHash()];
     }
 
     /// @inheritdoc IBridge
-    function isClaimed(
-        bytes32 receiptHash
-    ) public view override returns (bool claimed) {
+    function isClaimed(bytes32 receiptHash)
+        public
+        view
+        override
+        returns (bool claimed)
+    {
         return _getBridgeStorage().claimed[receiptHash];
     }
 
@@ -215,26 +271,26 @@ abstract contract BridgeUpgradeable is
     //  -- guards
 
     /// Guard for validate the send values
-    /// @param tokenAddress address of the token
-    /// @param amount amount of tokens to send
     /// @param chainTo destination chain id
     /// @param payload send payload
     /// @param payloadSignature signature of the payload
     function _validateSendValues(
-        address tokenAddress,
-        uint256 amount,
         uint256 chainTo,
         SendPayload calldata payload,
         bytes calldata payloadSignature
-    ) private view {
+    )
+        private
+        view
+    {
         require(
             validator().validatePayload(payload, payloadSignature),
             "Invalid payload signature"
         );
-        require(amount > 0, "Invalid amount");
-        require(amount == payload.amountToSend, "Invalid amount");
+        require(payload.amountToSend > 0, "Invalid amount");
         require(chainTo != block.chainid, "Invalid destination chain");
-        require(!pausedTokens(tokenAddress), "Token is paused");
+        require(
+            !pausedTokens(payload.tokenAddress.toAddress()), "Token is paused"
+        );
     }
 
     /// Validate the claim values
@@ -243,7 +299,10 @@ abstract contract BridgeUpgradeable is
     function _validateClaim(
         Receipt calldata receipt,
         bytes calldata signature
-    ) private view {
+    )
+        private
+        view
+    {
         require(!isClaimed(receipt), "Receipt is claimed already");
         require(validator().validate(receipt, signature), "Invalid signature");
         require(receipt.chainTo == block.chainid, "Invalid destination chain");
@@ -254,14 +313,6 @@ abstract contract BridgeUpgradeable is
     /// @param receipt receipt data
     function _markClaimed(Receipt calldata receipt) private {
         _getBridgeStorage().claimed[receipt.toHash()] = true;
-    }
-
-    /// Saves newly created receipt
-    /// @param receipt receipt data
-    function _saveReceipt(Receipt memory receipt) private {
-        BridgeStorage storage $ = _getBridgeStorage();
-        $.receipts[receipt.nonce] = receipt;
-        $.receiptTimestamp[receipt.nonce] = block.timestamp;
     }
 
     // -- transfers
@@ -275,7 +326,9 @@ abstract contract BridgeUpgradeable is
         address token,
         uint256 amount,
         SendPayload calldata payload
-    ) internal {
+    )
+        internal
+    {
         if (token == address(0)) {
             require(
                 payload.feeAmount + payload.amountToSend == msg.value,
@@ -283,11 +336,8 @@ abstract contract BridgeUpgradeable is
             );
         } else {
             require(payload.feeAmount == msg.value, "Invalid fee amount");
-            bool received = IERC20(token).transferFrom(
-                sender,
-                address(this),
-                amount
-            );
+            bool received =
+                IERC20(token).transferFrom(sender, address(this), amount);
             require(received, "Transfer failed");
         }
     }
@@ -295,7 +345,7 @@ abstract contract BridgeUpgradeable is
     /// Send the fee to the fee receiver
     /// @param amount amount of native currency to send as fee
     function _sendFee(uint256 amount) internal {
-        (bool sent, ) = feeReceiver().call{value: amount}("");
+        (bool sent,) = feeReceiver().call{value: amount}("");
         require(sent, "Native send failed");
     }
 
@@ -309,28 +359,26 @@ abstract contract BridgeUpgradeable is
         address token,
         uint256 amount,
         address receiver
-    ) private {
+    )
+        private
+    {
         require(token != address(0), "Unknown token address");
         require(!pausedTokens(token), "Token is paused");
         bool unlocked = false;
-        if (token == samb() && flags & BridgeFlags.SHOULD_UNWRAP == 0)
-            (unlocked, ) = payable(receiver).call{value: amount}("");
-        else {
+        if (token == samb() && flags & BridgeFlags.SHOULD_UNWRAP == 0) {
+            (unlocked,) = payable(receiver).call{value: amount}("");
+        } else {
             if (token == samb() && flags & BridgeFlags.SHOULD_UNWRAP != 0) {
                 _wrap(amount);
             }
-            unlocked = IERC20(token).transferFrom(
-                address(this),
-                receiver,
-                amount
-            );
+            unlocked =
+                IERC20(token).transferFrom(address(this), receiver, amount);
         }
         require(unlocked, "Transfer failed");
         BridgeStorage storage $ = _getBridgeStorage();
         if (flags & BridgeFlags.SEND_NATIVE_TO_RECEIVER != 0) {
-            (bool sent, ) = payable(receiver).call{value: $.nativeSendAmount}(
-                ""
-            );
+            (bool sent,) =
+                payable(receiver).call{value: $.nativeSendAmount}("");
             require(sent, "Native send failed");
         }
     }
@@ -343,36 +391,36 @@ abstract contract BridgeUpgradeable is
     /// @param payload send payload
     /// @param payloadSignature signature of the payload
     function _send(
-        address tokenAddress,
         bytes32 recipient,
-        uint256 amount,
         uint256 chainTo,
         SendPayload calldata payload,
         bytes calldata payloadSignature
-    ) internal returns (Receipt memory receipt) {
-        _validateSendValues(
-            tokenAddress,
-            amount,
-            chainTo,
-            payload,
-            payloadSignature
-        );
+    )
+        internal
+        returns (Receipt memory receipt)
+    {
+        _validateSendValues(chainTo, payload, payloadSignature);
         address sender = payload.flags & BridgeFlags.SENDER_IS_TXORIGIN != 0
             ? tx.origin
             : msg.sender;
-        _transferTokenToBridge(sender, tokenAddress, amount, payload);
+        _transferTokenToBridge(
+            sender,
+            payload.tokenAddress.toAddress(),
+            payload.amountToSend,
+            payload
+        );
         Receipt memory _receipt = Receipt({
-            from: bytes32(abi.encodePacked(msg.sender)),
+            from: bytes32(uint256(uint160(msg.sender))),
             to: recipient,
-            tokenAddress: bytes32(abi.encodePacked(tokenAddress)),
-            amount: amount,
+            tokenAddress: payload.tokenAddress,
+            amount: payload.amountToSend,
             chainFrom: block.chainid,
             chainTo: chainTo,
-            nonce: _useNonce(address(this)),
-            flags: payload.flags >> 64 // remove sender flags
+            eventId: _useNonce(address(this)),
+            flags: payload.flags >> 64, // remove sender flags
+            data: abi.encodePacked(_useNonce(recipient).toUint64())
         });
         _sendFee(payload.feeAmount);
-        _saveReceipt(_receipt);
         emit TokenLocked(_receipt);
         return _receipt;
     }
@@ -381,29 +429,22 @@ abstract contract BridgeUpgradeable is
 
     /// @inheritdoc IBridge
     function send(
-        address tokenAddress,
         bytes32 recipient,
-        uint256 amount,
         uint256 chainTo,
         SendPayload calldata payload,
         bytes calldata payloadSignature
-    ) external payable override returns (Receipt memory receipt) {
-        return
-            _send(
-                tokenAddress,
-                recipient,
-                amount,
-                chainTo,
-                payload,
-                payloadSignature
-            );
+    )
+        external
+        payable
+        override
+        returns (Receipt memory receipt)
+    {
+        return _send(recipient, chainTo, payload, payloadSignature);
     }
 
     /// @inheritdoc IBridge
     function send(
-        address tokenAddress,
         bytes32 recipient,
-        uint256 amount,
         uint256 chainTo,
         SendPayload calldata payload,
         bytes calldata payloadSignature,
@@ -411,36 +452,40 @@ abstract contract BridgeUpgradeable is
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) external payable override returns (Receipt memory receipt) {
+    )
+        external
+        payable
+        override
+        returns (Receipt memory receipt)
+    {
+        address tokenAddress = payload.tokenAddress.toAddress();
         if (tokenAddress != address(0)) {
-            if (payload.flags & BridgeFlags.SEND_WITH_PERMIT != 0)
+            if (payload.flags & BridgeFlags.SEND_WITH_PERMIT != 0) {
                 IERC20Permit(tokenAddress).permit(
                     msg.sender,
                     address(this),
-                    amount,
+                    payload.amountToSend,
                     _deadline,
                     v,
                     r,
                     s
                 );
-            else revert("Invalid permit flag");
+            } else {
+                revert("Invalid permit flag");
+            }
         }
-        return
-            _send(
-                tokenAddress,
-                recipient,
-                amount,
-                chainTo,
-                payload,
-                payloadSignature
-            );
+        return _send(recipient, chainTo, payload, payloadSignature);
     }
 
     /// @inheritdoc IBridge
     function claim(
         Receipt calldata receipt,
         bytes calldata signature
-    ) external override returns (bool success) {
+    )
+        external
+        override
+        returns (bool success)
+    {
         _validateClaim(receipt, signature);
         address token = external2token(receipt.tokenAddress);
         uint256 receivedFlags = receipt.flags << 64; // restore flags position
@@ -450,4 +495,5 @@ abstract contract BridgeUpgradeable is
         emit TokenUnlocked(receipt);
         return true;
     }
+
 }

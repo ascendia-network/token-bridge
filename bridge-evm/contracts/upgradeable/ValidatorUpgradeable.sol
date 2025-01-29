@@ -2,14 +2,18 @@
 pragma solidity ^0.8.20;
 pragma abicoder v2;
 
+import
+    "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "../utils/ReceiptUtils.sol";
-import "../utils/PayloadUtils.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+
 import "../interface/IValidation.sol";
 import "../interface/IValidatorV1.sol";
+
+import "../utils/PayloadUtils.sol";
+import "../utils/ReceiptUtils.sol";
 
 contract ValidatorUpgradeable is
     IValidation,
@@ -17,6 +21,7 @@ contract ValidatorUpgradeable is
     Initializable,
     AccessManagedUpgradeable
 {
+
     using EnumerableSet for EnumerableSet.AddressSet;
     using ECDSA for bytes32;
     using ReceiptUtils for Receipt;
@@ -46,12 +51,13 @@ contract ValidatorUpgradeable is
         address[] calldata validators_,
         address payloadSigner_,
         uint256 feeValidityWindow_
-    ) internal onlyInitializing {
+    )
+        internal
+        onlyInitializing
+    {
         __AccessManaged_init(authority_);
         __ValidatorUpgradeable_init_unchained(
-            validators_,
-            payloadSigner_,
-            feeValidityWindow_
+            validators_, payloadSigner_, feeValidityWindow_
         );
     }
 
@@ -59,7 +65,10 @@ contract ValidatorUpgradeable is
         address[] calldata validators_,
         address payloadSigner_,
         uint256 feeValidityWindow_
-    ) internal onlyInitializing {
+    )
+        internal
+        onlyInitializing
+    {
         ValidatorStorage storage $ = _getValidatorStorage();
         $.payloadSigner = payloadSigner_;
         $.feeValidityWindow = feeValidityWindow_;
@@ -68,35 +77,47 @@ contract ValidatorUpgradeable is
         }
     }
 
-    function addValidator(
-        address validator_
-    ) public override restricted returns (bool added) {
     /// @inheritdoc IValidatorV1
+    function addValidator(address validator_)
+        public
+        override
+        restricted
+        returns (bool added)
+    {
         ValidatorStorage storage $ = _getValidatorStorage();
         return $.validators.add(validator_);
     }
 
-    function removeValidator(
-        address validator_
-    ) public override restricted returns (bool removed) {
     /// @inheritdoc IValidatorV1
+    function removeValidator(address validator_)
+        public
+        override
+        restricted
+        returns (bool removed)
+    {
         ValidatorStorage storage $ = _getValidatorStorage();
         return $.validators.remove(validator_);
     }
 
-    function setPayloadSigner(
-        address payloadSigner_
-    ) public override restricted returns (bool success) {
     /// @inheritdoc IValidation
+    function setPayloadSigner(address payloadSigner_)
+        public
+        override
+        restricted
+        returns (bool success)
+    {
         ValidatorStorage storage $ = _getValidatorStorage();
         $.payloadSigner = payloadSigner_;
         return true;
     }
 
-    function setFeeValidityWindow(
-        uint256 feeValidityWindow_
-    ) public override restricted returns (bool success) {
     /// @inheritdoc IValidation
+    function setFeeValidityWindow(uint256 feeValidityWindow_)
+        public
+        override
+        restricted
+        returns (bool success)
+    {
         ValidatorStorage storage $ = _getValidatorStorage();
         $.feeValidityWindow = feeValidityWindow_;
         return true;
@@ -118,16 +139,19 @@ contract ValidatorUpgradeable is
     function validate(
         Receipt calldata receipt,
         bytes calldata combinedSignatures
-    ) public view override returns (bool isValid) {
+    )
+        public
+        view
+        override
+        returns (bool isValid)
+    {
         require(
-            combinedSignatures.length % 65 == 0,
-            "Invalid signature length"
+            combinedSignatures.length % 65 == 0, "Invalid signature length"
         );
         uint256 numSignatures = combinedSignatures.length / 65;
         ValidatorStorage storage $ = _getValidatorStorage();
         require(
-            numSignatures == $.validators.length(),
-            "Signature count mismatch"
+            numSignatures == $.validators.length(), "Signature count mismatch"
         );
         bytes32 hash = receipt.toHash();
         for (uint256 i = 0; i < numSignatures; i++) {
@@ -145,10 +169,16 @@ contract ValidatorUpgradeable is
     function validatePayload(
         SendPayload calldata payload,
         bytes calldata signature
-    ) public view override returns (bool isValid) {
+    )
+        public
+        view
+        override
+        returns (bool isValid)
+    {
         ValidatorStorage storage $ = _getValidatorStorage();
         bytes32 hash = payload.toHash();
         address signer = hash.recover(signature);
         return signer == $.payloadSigner;
     }
+
 }

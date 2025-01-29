@@ -2,11 +2,14 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+
 import "../interface/ITokenManager.sol";
-import "../token/ERC20Bridged.sol";
 import "../interface/IWrapped.sol";
 
+import "../token/ERC20Bridged.sol";
+
 abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
+
     /// @custom:storage-location erc7201:airdao.bridge.token-manager.storage
     struct TokenManagerStorage {
         mapping(address => bool) bridgableTokens;
@@ -33,14 +36,20 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     function __TokenManager_init(
         address bridge_,
         address SAMB
-    ) internal onlyInitializing {
+    )
+        internal
+        onlyInitializing
+    {
         __TokenManager_init_unchained(bridge_, SAMB);
     }
 
     function __TokenManager_init_unchained(
         address bridge_,
         address SAMB
-    ) internal onlyInitializing {
+    )
+        internal
+        onlyInitializing
+    {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         $.bridge = bridge_;
         $.SAMB = SAMB;
@@ -50,7 +59,12 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     function addToken(
         address token,
         bytes32 externalTokenAddress
-    ) external virtual override returns (bool success) {
+    )
+        external
+        virtual
+        override
+        returns (bool success)
+    {
         return addToken(token, externalTokenAddress, true);
     }
     /// @inheritdoc ITokenManager
@@ -59,30 +73,56 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         address token,
         bytes32 externalTokenAddress,
         bool paused
-    ) public virtual returns (bool success) {
+    )
+        public
+        virtual
+        returns (bool success)
+    {
         bool res = _addToken(token, externalTokenAddress);
-        if (paused) res = res && _pauseToken(token);
+        if (paused) {
+            res = res && _pauseToken(token);
+        }
         return res;
     }
     /// @inheritdoc ITokenManager
+
     function mapExternalToken(
         bytes32 externalTokenAddress,
         address token
-    ) public virtual returns (bool success) {
+    )
+        public
+        virtual
+        returns (bool success)
+    {
         return _mapToken(externalTokenAddress, token);
     }
 
     /// @inheritdoc ITokenManager
-    function pauseToken(
-        address token
-    ) public virtual override returns (bool success) {
+    function unmapExternalToken(bytes32 externalTokenAddress)
+        public
+        virtual
+        returns (bool success)
+    {
+        return _unmapToken(externalTokenAddress);
+    }
+
+    /// @inheritdoc ITokenManager
+    function pauseToken(address token)
+        public
+        virtual
+        override
+        returns (bool success)
+    {
         return _pauseToken(token);
     }
 
     /// @inheritdoc ITokenManager
-    function unpauseToken(
-        address token
-    ) public virtual override returns (bool success) {
+    function unpauseToken(address token)
+        public
+        virtual
+        override
+        returns (bool success)
+    {
         return _unpauseToken(token);
     }
 
@@ -90,7 +130,12 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     function removeToken(
         address token,
         bytes32 externalTokenAddress
-    ) public virtual override returns (bool success) {
+    )
+        public
+        virtual
+        override
+        returns (bool success)
+    {
         return _removeToken(token, externalTokenAddress);
     }
 
@@ -100,14 +145,15 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         string calldata name,
         string calldata symbol,
         uint8 decimals
-    ) public virtual override returns (address token) {
-        return
-            _deployExternalTokenERC20(
-                externalTokenAddress,
-                name,
-                symbol,
-                decimals
-            );
+    )
+        public
+        virtual
+        override
+        returns (address token)
+    {
+        return _deployExternalTokenERC20(
+            externalTokenAddress, name, symbol, decimals
+        );
     }
 
     /// Verify that the token is not paused
@@ -136,9 +182,12 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     receive() external payable {}
 
     /// @inheritdoc ITokenManager
-    function bridgableTokens(
-        address token
-    ) public view override returns (bool isBridgable) {
+    function bridgableTokens(address token)
+        public
+        view
+        override
+        returns (bool isBridgable)
+    {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         return $.bridgableTokens[token];
     }
@@ -152,17 +201,23 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     // }
 
     /// @inheritdoc ITokenManager
-    function external2token(
-        bytes32 externalTokenAddress
-    ) public view override returns (address token) {
+    function external2token(bytes32 externalTokenAddress)
+        public
+        view
+        override
+        returns (address token)
+    {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         return $.external2token[externalTokenAddress];
     }
 
     /// @inheritdoc ITokenManager
-    function pausedTokens(
-        address token
-    ) public view override returns (bool isPaused) {
+    function pausedTokens(address token)
+        public
+        view
+        override
+        returns (bool isPaused)
+    {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         return !$.unpausedTokens[token];
     }
@@ -180,7 +235,10 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     function _addToken(
         address token,
         bytes32 externalTokenAddress
-    ) private returns (bool success) {
+    )
+        private
+        returns (bool success)
+    {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         if ($.bridgableTokens[token]) {
             revert TokenAlreadyAdded(token);
@@ -198,7 +256,10 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     function _mapToken(
         bytes32 externalTokenAddress,
         address token
-    ) private returns (bool success) {
+    )
+        private
+        returns (bool success)
+    {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         if (!$.bridgableTokens[token]) {
             revert TokenNotAdded(token);
@@ -210,6 +271,15 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     /// Unmap external token address to token
     /// @param externalTokenAddress external token address
     /// @return success true if the token was removed
+    function _unmapToken(bytes32 externalTokenAddress)
+        private
+        returns (bool success)
+    {
+        TokenManagerStorage storage $ = _getTokenManagerStorage();
+        delete $.external2token[externalTokenAddress];
+        return true;
+    }
+
     /// Remove token from the bridge
     /// @param token address of the token
     /// @param externalTokenAddress external token address
@@ -217,7 +287,10 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     function _removeToken(
         address token,
         bytes32 externalTokenAddress
-    ) private returns (bool success) {
+    )
+        private
+        returns (bool success)
+    {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         if (!$.bridgableTokens[token]) {
             revert TokenNotAdded(token);
@@ -242,7 +315,10 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         string calldata name,
         string calldata symbol,
         uint8 decimals
-    ) private returns (address token) {
+    )
+        private
+        returns (address token)
+    {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         address bridge = $.bridge;
         token = address(new ERC20Bridged(name, symbol, decimals, bridge));
@@ -274,4 +350,5 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         $.unpausedTokens[token] = true;
         return true;
     }
+
 }

@@ -17,13 +17,13 @@ contract Bridge is BridgeUpgradeable {
         IValidation validator_,
         address payable feeReceiver_,
         uint256 nativeSendAmount_
-    ) public initializer {
+    )
+        public
+        initializer
+    {
         __Bridge_init(
-            authority_,
-            SAMB_,
-            validator_,
-            feeReceiver_,
-            nativeSendAmount_
+            authority_, SAMB_, validator_, feeReceiver_, nativeSendAmount_
         );
     }
+
 }

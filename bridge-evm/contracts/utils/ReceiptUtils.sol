@@ -1,24 +1,35 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "../interface/IBridgeTypes.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
+import "../interface/IBridgeTypes.sol";
+
 library ReceiptUtils {
+
     using MessageHashUtils for bytes32;
-    function toHash(IBridgeTypes.Receipt calldata receipt) internal pure returns (bytes32) {
+
     /// Shortcut to convert receipt to hash
     /// @dev using [toEthSignedMessageHash](https://docs.openzeppelin.com/contracts/5.x/api/utils#MessageHashUtils-toEthSignedMessageHash-bytes32-) from OpenZeppelin's MessageHashUtils
     /// @param receipt receipt to convert
     /// @return hash converted
+    function toHash(IBridgeTypes.Receipt calldata receipt)
+        internal
+        pure
+        returns (bytes32 hash)
+    {
         return toEthSignedMessageHash(receipt);
     }
 
-    function toEthSignedMessageHash(IBridgeTypes.Receipt calldata receipt) internal pure returns (bytes32) {
     /// Convert receipt to hash via toEthSignedMessageHash
     /// @dev using [toEthSignedMessageHash](https://docs.openzeppelin.com/contracts/5.x/api/utils#MessageHashUtils-toEthSignedMessageHash-bytes32-) from OpenZeppelin's MessageHashUtils
     /// @param receipt receipt to convert
     /// @return hash converted
+    function toEthSignedMessageHash(IBridgeTypes.Receipt calldata receipt)
+        internal
+        pure
+        returns (bytes32 hash)
+    {
         bytes32 messageHash = keccak256(
             abi.encode(
                 receipt.from,
@@ -27,9 +38,11 @@ library ReceiptUtils {
                 receipt.amount,
                 receipt.chainFrom,
                 receipt.chainTo,
-                receipt.nonce
+                receipt.eventId,
+                receipt.data
             )
         );
         return messageHash.toEthSignedMessageHash();
     }
+
 }

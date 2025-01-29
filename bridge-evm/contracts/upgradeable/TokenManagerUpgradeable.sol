@@ -68,7 +68,6 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         return addToken(token, externalTokenAddress, true);
     }
     /// @inheritdoc ITokenManager
-
     function addToken(
         address token,
         bytes32 externalTokenAddress,
@@ -85,7 +84,6 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         return res;
     }
     /// @inheritdoc ITokenManager
-
     function mapExternalToken(
         bytes32 externalTokenAddress,
         address token
@@ -166,7 +164,6 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     }
     /// Used to wrap AMB to SAMB
     /// @param amount amount to wrap
-
     function _wrap(uint256 amount) internal {
         return IWrapped(_getTokenManagerStorage().SAMB).deposit{value: amount}();
     }

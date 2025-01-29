@@ -42,7 +42,6 @@ contract ERC20Bridged is ERC20Permit {
      * This address is used to mint and burn tokens.
      * @return bridgeAddress the address of the bridge contract
      */
-
     function bridge() public view returns (address bridgeAddress) {
         return _bridgeAddress;
     }

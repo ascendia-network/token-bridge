@@ -12,7 +12,6 @@ library PayloadUtils {
     /// @dev using [toEthSignedMessageHash](https://docs.openzeppelin.com/contracts/5.x/api/utils#MessageHashUtils-toEthSignedMessageHash-bytes32-) from OpenZeppelin's MessageHashUtils
     /// @param payload payload to convert
     /// @return hash converted
-
     function toHash(IBridgeTypes.SendPayload calldata payload)
         internal
         pure
@@ -24,7 +23,6 @@ library PayloadUtils {
     /// @dev using [toEthSignedMessageHash](https://docs.openzeppelin.com/contracts/5.x/api/utils#MessageHashUtils-toEthSignedMessageHash-bytes32-) from OpenZeppelin's MessageHashUtils
     /// @param payload payload to convert
     /// @return hash converted
-
     function toEthSignedMessageHash(IBridgeTypes.SendPayload calldata payload)
         internal
         pure

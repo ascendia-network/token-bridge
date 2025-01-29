@@ -10,7 +10,6 @@ library AddressUtils {
     /// @dev example: `0x111122223333444455556666777788889999AAAABBBBCCCCDDDDEEEEFFFFCC` -> `0x777788889999AaAAbBbbCcccddDdeeeEfFFfCcCc`
     /// @param value address value to convert
     /// @return converted address
-
     function toAddressBE(bytes32 value)
         internal
         pure

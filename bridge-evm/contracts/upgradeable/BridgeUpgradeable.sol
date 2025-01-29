@@ -89,13 +89,13 @@ abstract contract BridgeUpgradeable is
     {
         _getBridgeStorage().feeReceiver = newFeeReceiver;
     }
-    /// @inheritdoc IBridge
 
+    /// @inheritdoc IBridge
     function setNativeSendAmount(uint256 amount) public override restricted {
         _getBridgeStorage().nativeSendAmount = amount;
     }
-    /// @inheritdoc IBridge
 
+    /// @inheritdoc IBridge
     function setValidator(IValidation newValidator)
         public
         override

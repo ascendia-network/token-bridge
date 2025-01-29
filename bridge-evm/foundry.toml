@@ -3,12 +3,14 @@ ffi = true
 ast = true
 build_info = true
 extra_output = ["storageLayout"]
+extra_output_files = ["metadata"]
 src = 'contracts'
 out = 'out'
 libs = ['node_modules', 'lib']
 test = 'test'
 cache_path  = 'cache_forge'
 evm_version = 'istanbul'
+optimizer = true
 [fmt]
 single_line_statement_blocks = "multi"
 multiline_func_header = "all"
@@ -18,4 +20,4 @@ override_spacing = true
 line_length = 80
 tab_width = 4
 [doc]
-repository = 'https://github.com/ambrosus/token-bridge'
+repository = "https://github.com/ambrosus/token-bridge"

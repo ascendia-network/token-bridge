@@ -53,12 +53,8 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     ) external virtual override returns (bool success) {
         return addToken(token, externalTokenAddress, true);
     }
+    /// @inheritdoc ITokenManager
 
-    /// Add token to the bridge
-    /// @param token address of the token
-    /// @param externalTokenAddress external token address
-    /// @param paused true if the token should be paused at the start
-    /// @return success true if the token was added successfully
     function addToken(
         address token,
         bytes32 externalTokenAddress,
@@ -114,18 +110,24 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
             );
     }
 
+    /// Verify that the token is not paused
+    /// @param token address of the token
     modifier isNotPaused(address token) {
         if (pausedTokens(token)) {
             revert TokenIsPaused(token);
         }
         _;
     }
+    /// Used to wrap AMB to SAMB
+    /// @param amount amount to wrap
 
     function _wrap(uint256 amount) internal {
         return
             IWrapped(_getTokenManagerStorage().SAMB).deposit{value: amount}();
     }
 
+    /// Used to unwrap SAMB to AMB
+    /// @param amount amount to unwrap
     function _unwrap(uint256 amount) internal {
         return IWrapped(_getTokenManagerStorage().SAMB).withdraw(amount);
     }
@@ -165,10 +167,16 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         return !$.unpausedTokens[token];
     }
 
+    /// SAMB address
+    /// @return SAMB address of wrapped token
     function samb() public view returns (address SAMB) {
         return _getTokenManagerStorage().SAMB;
     }
 
+    /// Adds token to the bridge
+    /// @param token address of the token
+    /// @param externalTokenAddress external token address
+    /// @return success true if the token was added
     function _addToken(
         address token,
         bytes32 externalTokenAddress
@@ -183,6 +191,10 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         return true;
     }
 
+    /// Map external token address to token
+    /// @param externalTokenAddress external token address
+    /// @param token address of the token
+    /// @return success true if the token was added
     function _mapToken(
         bytes32 externalTokenAddress,
         address token
@@ -195,6 +207,13 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         return true;
     }
 
+    /// Unmap external token address to token
+    /// @param externalTokenAddress external token address
+    /// @return success true if the token was removed
+    /// Remove token from the bridge
+    /// @param token address of the token
+    /// @param externalTokenAddress external token address
+    /// @return success true if the token was removed
     function _removeToken(
         address token,
         bytes32 externalTokenAddress
@@ -210,6 +229,14 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         return true;
     }
 
+    /// Deploy external ERC20 token to chain
+    /// @dev This function should be called by admin to deploy external token to the chain.
+    /// @dev This token will be used for bridging as minting and burning. For more details see `ERC20Bridged` contract.
+    /// @param externalTokenAddress external token address
+    /// @param name name of the token
+    /// @param symbol symbol of the token
+    /// @param decimals decimals of the token
+    /// @return token address of the token
     function _deployExternalTokenERC20(
         bytes32 externalTokenAddress,
         string calldata name,
@@ -224,6 +251,9 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         return token;
     }
 
+    /// Pause token bridging
+    /// @param token address of the token
+    /// @return success true if the token was paused
     function _pauseToken(address token) private returns (bool success) {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         if (!$.unpausedTokens[token]) {
@@ -233,6 +263,9 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         return true;
     }
 
+    /// Unpause token bridging
+    /// @param token address of the token
+    /// @return success true if the token was unpaused
     function _unpauseToken(address token) private returns (bool success) {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         if ($.unpausedTokens[token]) {

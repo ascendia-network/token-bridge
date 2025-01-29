@@ -71,6 +71,7 @@ contract ValidatorUpgradeable is
     function addValidator(
         address validator_
     ) public override restricted returns (bool added) {
+    /// @inheritdoc IValidatorV1
         ValidatorStorage storage $ = _getValidatorStorage();
         return $.validators.add(validator_);
     }
@@ -78,6 +79,7 @@ contract ValidatorUpgradeable is
     function removeValidator(
         address validator_
     ) public override restricted returns (bool removed) {
+    /// @inheritdoc IValidatorV1
         ValidatorStorage storage $ = _getValidatorStorage();
         return $.validators.remove(validator_);
     }
@@ -85,6 +87,7 @@ contract ValidatorUpgradeable is
     function setPayloadSigner(
         address payloadSigner_
     ) public override restricted returns (bool success) {
+    /// @inheritdoc IValidation
         ValidatorStorage storage $ = _getValidatorStorage();
         $.payloadSigner = payloadSigner_;
         return true;
@@ -93,21 +96,25 @@ contract ValidatorUpgradeable is
     function setFeeValidityWindow(
         uint256 feeValidityWindow_
     ) public override restricted returns (bool success) {
+    /// @inheritdoc IValidation
         ValidatorStorage storage $ = _getValidatorStorage();
         $.feeValidityWindow = feeValidityWindow_;
         return true;
     }
 
+    /// @inheritdoc IValidation
     function payloadSigner() public view override returns (address) {
         ValidatorStorage storage $ = _getValidatorStorage();
         return $.payloadSigner;
     }
 
+    /// @inheritdoc IValidation
     function feeValidityWindow() public view override returns (uint256) {
         ValidatorStorage storage $ = _getValidatorStorage();
         return $.feeValidityWindow;
     }
 
+    /// @inheritdoc IValidation
     function validate(
         Receipt calldata receipt,
         bytes calldata combinedSignatures
@@ -134,6 +141,7 @@ contract ValidatorUpgradeable is
         return true;
     }
 
+    /// @inheritdoc IValidation
     function validatePayload(
         SendPayload calldata payload,
         bytes calldata signature

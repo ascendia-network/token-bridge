@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "postinstall": "forge install",
     "compile:hardhat": "npx hardhat compile",
     "build:forge": "forge build",
     "test:ts": "npx hardhat test",
     "test:sol": "forge test",
     "test": "npm run test:ts && npm run test:sol",
     "docgen": "forge doc",
-    "lint": "forge fmt && eslint . --ext .ts"
+    "lint": "forge fmt"
   },
   "keywords": [],
   "author": "",

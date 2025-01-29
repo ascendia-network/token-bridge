@@ -72,12 +72,15 @@ abstract contract BridgeUpgradeable is
     function setFeeReceiver(
         address payable newFeeReceiver
     ) public override restricted {
+    /// @inheritdoc IBridge
         _getBridgeStorage().feeReceiver = newFeeReceiver;
     }
+    /// @inheritdoc IBridge
 
     function setNativeSendAmount(uint256 amount) public override restricted {
         _getBridgeStorage().nativeSendAmount = amount;
     }
+    /// @inheritdoc IBridge
 
     function setValidator(IValidation newValidator) public override restricted {
         _getBridgeStorage().validator = newValidator;
@@ -99,11 +102,8 @@ abstract contract BridgeUpgradeable is
         return super.mapExternalToken(externalTokenAddress, token);
     }
 
-    /// Add token to the bridge
-    /// @param token address of the token
-    /// @param externalTokenAddress external token address
-    /// @param paused true if the token should be paused at the start
-    /// @return success true if the token was added successfully
+    /// @inheritdoc ITokenManager
+    /// @inheritdoc ITokenManager
     function addToken(
         address token,
         bytes32 externalTokenAddress,
@@ -337,6 +337,11 @@ abstract contract BridgeUpgradeable is
 
     // -- common internals
 
+    /// Perform the send operation (receive tokens and save receipt)
+    /// @param recipient address of the recipient on the other chain
+    /// @param chainTo destination chain id
+    /// @param payload send payload
+    /// @param payloadSignature signature of the payload
     function _send(
         address tokenAddress,
         bytes32 recipient,

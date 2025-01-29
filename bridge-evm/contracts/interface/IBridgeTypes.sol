@@ -33,6 +33,15 @@ interface IBridgeTypes {
     }
 
     /// Bridge transaction receipt structure that is used for signing and validation
+    /// @param from source address
+    /// @param to destination address
+    /// @param tokenAddress source token address
+    /// @param amount amount of tokens sent
+    /// @param chainFrom chain id of the source chain
+    /// @param chainTo chain id of the destination chain
+    /// @param eventId transaction number
+    /// @param flags flags for receiver
+    /// @param data additional data of the transaction (eg. user nonce for Solana)
     struct Receipt {
         bytes32 from; // source address (bytes32 because of cross-chain compatibility)
         bytes32 to; // destination address (bytes32 because of cross-chain compatibility)
@@ -45,6 +54,12 @@ interface IBridgeTypes {
     }
 
     /// Fee structure that is used for signing and validation
+    /// @param tokenAddress address of the token contract
+    /// @param amountToSend amount of the tokens to be sent
+    /// @param feeAmount amount of the fee
+    /// @param timestamp timestamp of the fee was generated
+    /// @param flags flags of the sending operation
+    /// @param data additional data of the sending operation
     struct SendPayload {
         bytes32 tokenAddress; // address of the token contract
         uint256 amountToSend; // amount of the tokens to be sent

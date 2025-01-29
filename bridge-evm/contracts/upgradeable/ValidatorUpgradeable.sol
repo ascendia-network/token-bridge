@@ -145,9 +145,7 @@ contract ValidatorUpgradeable is
         override
         returns (bool isValid)
     {
-        require(
-            combinedSignatures.length % 65 == 0, "Invalid signature length"
-        );
+        require(combinedSignatures.length % 65 == 0, "Invalid signature length");
         uint256 numSignatures = combinedSignatures.length / 65;
         ValidatorStorage storage $ = _getValidatorStorage();
         require(

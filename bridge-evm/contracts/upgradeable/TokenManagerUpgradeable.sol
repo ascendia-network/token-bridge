@@ -168,8 +168,7 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     /// @param amount amount to wrap
 
     function _wrap(uint256 amount) internal {
-        return
-            IWrapped(_getTokenManagerStorage().SAMB).deposit{value: amount}();
+        return IWrapped(_getTokenManagerStorage().SAMB).deposit{value: amount}();
     }
 
     /// Used to unwrap SAMB to AMB

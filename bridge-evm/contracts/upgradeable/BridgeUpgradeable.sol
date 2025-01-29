@@ -228,11 +228,7 @@ abstract contract BridgeUpgradeable is
 
     /// Fee validity window from the validator
     /// @return validityWindow fee validity window
-    function feeValidityWindow()
-        public
-        view
-        returns (uint256 validityWindow)
-    {
+    function feeValidityWindow() public view returns (uint256 validityWindow) {
         return validator().feeValidityWindow();
     }
 
@@ -377,8 +373,7 @@ abstract contract BridgeUpgradeable is
         require(unlocked, "Transfer failed");
         BridgeStorage storage $ = _getBridgeStorage();
         if (flags & BridgeFlags.SEND_NATIVE_TO_RECEIVER != 0) {
-            (bool sent,) =
-                payable(receiver).call{value: $.nativeSendAmount}("");
+            (bool sent,) = payable(receiver).call{value: $.nativeSendAmount}("");
             require(sent, "Native send failed");
         }
     }

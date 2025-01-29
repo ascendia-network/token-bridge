@@ -2,31 +2,31 @@
 pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/NoncesUpgradeable.sol";
-import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "../interface/IBridge.sol";
+import "../interface/IValidation.sol";
 import "../utils/AddressUtils.sol";
+import "../utils/ReceiptUtils.sol";
 import "./TokenManagerUpgradeable.sol";
 
 abstract contract BridgeUpgradeable is
     IBridge,
     Initializable,
-    OwnableUpgradeable,
+    AccessManagedUpgradeable,
     NoncesUpgradeable,
     TokenManagerUpgradeable
 {
     using AddressUtils for bytes32;
+    using ReceiptUtils for Receipt;
     /// @custom:storage-location erc7201:airdao.bridge.main.storage
     struct BridgeStorage {
-        address MPCAddress;
-        address feeSigner;
+        uint256 nativeSendAmount;
         address payable feeReceiver;
-        uint256 feeValidityWindow;
-        uint256 submissionWindow;
-        mapping(bool => mapping(uint256 => Receipt)) receipts;
-        mapping(bool => mapping(uint256 => ReceiptStatus)) receiptStatus;
-        mapping(bool => mapping(uint256 => uint256)) receiptTimestamp;
+        IValidation validator;
+        mapping(bytes32 => bool) claimed;
+        mapping(uint256 => Receipt) receipts;
+        mapping(uint256 => uint256) receiptTimestamp;
     }
 
     // keccak256(abi.encode(uint256(keccak256("airdao.bridge.main.storage")) - 1)) & ~bytes32(uint256(0xff))
@@ -44,315 +44,404 @@ abstract contract BridgeUpgradeable is
     }
 
     function __Bridge_init(
-        address owner_,
+        address authority_,
         address SAMB_,
-        address MPCAddress_,
-        address feeSigner_,
+        IValidation validator_,
         address payable feeReceiver_,
-        uint256 feeValidityWindow_,
-        uint256 submissionWindow_
+        uint256 nativeSendAmount_
     ) internal onlyInitializing {
-        __Ownable_init(owner_);
+        __AccessManaged_init(authority_);
         __Nonces_init();
         __TokenManager_init(address(this), SAMB_);
-        __Bridge_init_unchained(
-            MPCAddress_,
-            feeSigner_,
-            feeReceiver_,
-            feeValidityWindow_,
-            submissionWindow_
-        );
+        __Bridge_init_unchained(validator_, feeReceiver_, nativeSendAmount_);
     }
 
     function __Bridge_init_unchained(
-        address MPCAddress_,
-        address feeSigner_,
+        IValidation validator_,
         address payable feeReceiver_,
-        uint256 feeValidityWindow_,
-        uint256 submissionWindow_
+        uint256 nativeSendAmount_
     ) internal onlyInitializing {
         BridgeStorage storage $ = _getBridgeStorage();
-        $.MPCAddress = MPCAddress_;
-        $.feeSigner = feeSigner_;
+        $.validator = validator_;
         $.feeReceiver = feeReceiver_;
-        $.feeValidityWindow = feeValidityWindow_;
-        $.submissionWindow = submissionWindow_;
+        $.nativeSendAmount = nativeSendAmount_;
     }
 
-    function MPCAddress() public view override returns (address mpcAddress) {
-        return _getBridgeStorage().MPCAddress;
+    // restricted functions
+
+    function setFeeReceiver(
+        address payable newFeeReceiver
+    ) public override restricted {
+        _getBridgeStorage().feeReceiver = newFeeReceiver;
     }
 
-    function setMPCAddress(address MPCAddress_) external override onlyOwner {
-        _getBridgeStorage().MPCAddress = MPCAddress_;
+    function setNativeSendAmount(uint256 amount) public override restricted {
+        _getBridgeStorage().nativeSendAmount = amount;
     }
 
-    function feeSigner() public view override returns (address FeeSigner) {
-        return _getBridgeStorage().feeSigner;
+    function setValidator(IValidation newValidator) public override restricted {
+        _getBridgeStorage().validator = newValidator;
     }
 
-    function setFeeSigner(address feeSigner_) external override onlyOwner {
-        _getBridgeStorage().feeSigner = feeSigner_;
+    /// @inheritdoc ITokenManager
+    function addToken(
+        address token,
+        bytes32 externalTokenAddress
+    ) external virtual override returns (bool success) {
+        return addToken(token, externalTokenAddress, true);
     }
 
-    function feeReceiver() public view returns (address payable) {
-        return _getBridgeStorage().feeReceiver;
+    /// @inheritdoc ITokenManager
+    function mapExternalToken(
+        bytes32 externalTokenAddress,
+        address token
+    ) public override restricted returns (bool success) {
+        return super.mapExternalToken(externalTokenAddress, token);
     }
 
-    function setFeeReceiver(address payable feeReceiver_) external onlyOwner {
-        _getBridgeStorage().feeReceiver = feeReceiver_;
+    /// Add token to the bridge
+    /// @param token address of the token
+    /// @param externalTokenAddress external token address
+    /// @param paused true if the token should be paused at the start
+    /// @return success true if the token was added successfully
+    function addToken(
+        address token,
+        bytes32 externalTokenAddress,
+        bool paused
+    ) public override restricted returns (bool success) {
+        return super.addToken(token, externalTokenAddress, paused);
     }
 
-    function feeValidityWindow()
-        public
-        view
-        override
-        returns (uint256 validityWindow)
-    {
-        return _getBridgeStorage().feeValidityWindow;
+    /// @inheritdoc ITokenManager
+    function pauseToken(
+        address token
+    ) public virtual override returns (bool success) {
+        return super.pauseToken(token);
     }
 
-    function setFeeValidityWindow(
-        uint256 feeValidityWindow_
-    ) external onlyOwner {
-        _getBridgeStorage().feeValidityWindow = feeValidityWindow_;
+    /// @inheritdoc ITokenManager
+    function unpauseToken(
+        address token
+    ) public override restricted returns (bool success) {
+        return super.unpauseToken(token);
     }
 
-    function submissionWindow() public view returns (uint256) {
-        return _getBridgeStorage().submissionWindow;
+    /// @inheritdoc ITokenManager
+    function removeToken(
+        address token,
+        bytes32 externalTokenAddress
+    ) public override restricted returns (bool success) {
+        return super.removeToken(token, externalTokenAddress);
     }
 
-    function setSubmissionWindow(uint256 submissionWindow_) external onlyOwner {
-        _getBridgeStorage().submissionWindow = submissionWindow_;
-    }
-
-    function isValidFee(
-        Fee calldata fee,
-        bytes calldata signature
-    ) public view override returns (bool) {
-        require(
-            block.timestamp - fee.timestamp <= feeValidityWindow(),
-            "Fee expired"
-        );
-        bytes32 messageHash = keccak256(
-            abi.encodePacked(
-                fee.tokenAddress,
-                fee.amountToSend,
-                fee.amount,
-                fee.timestamp
-            )
-        );
+    /// @inheritdoc ITokenManager
+    function deployExternalTokenERC20(
+        bytes32 externalTokenAddress,
+        string calldata name,
+        string calldata symbol,
+        uint8 decimals
+    ) public override restricted returns (address token) {
         return
-            SignatureChecker.isValidSignatureNow(
-                feeSigner(),
-                messageHash,
-                signature
+            super.deployExternalTokenERC20(
+                externalTokenAddress,
+                name,
+                symbol,
+                decimals
             );
     }
 
+    // view functions
+
+    /// @inheritdoc IBridge
+    function feeReceiver() public view override returns (address payable) {
+        return _getBridgeStorage().feeReceiver;
+    }
+
+    /// @inheritdoc IBridge
+    function nativeSendAmount() public view override returns (uint256) {
+        return _getBridgeStorage().nativeSendAmount;
+    }
+
+    /// Fee validity window from the validator
+    /// @return validityWindow fee validity window
+    function feeValidityWindow() public view returns (uint256 validityWindow) {
+        return validator().feeValidityWindow();
+    }
+
+    /// @inheritdoc IBridge
+    function validator() public view returns (IValidation) {
+        return _getBridgeStorage().validator;
+    }
+
+    /// @inheritdoc IBridge
     function lastNonce() external view override returns (uint256) {
         return nonces(address(this));
     }
 
+    /// Get the receipt by nonce
+    /// @param nonce nonce of the receipt
+    /// @return receipt receipt data
     function getReceipt(
-        uint256 nonce,
-        bool isOut
+        uint256 nonce
     ) internal view returns (Receipt memory receipt) {
-        return _getBridgeStorage().receipts[isOut][nonce];
+        return _getBridgeStorage().receipts[nonce];
     }
 
+    /// Get the receipt timestamp by nonce
+    /// @param nonce nonce of the receipt
+    /// @return timestamp timestamp of the receipt
     function getReceiptTimestamp(
-        uint256 nonce,
-        bool isOut
+        uint256 nonce
     ) internal view returns (uint256 timestamp) {
-        return _getBridgeStorage().receiptTimestamp[isOut][nonce];
+        return _getBridgeStorage().receiptTimestamp[nonce];
     }
 
-    function getReceiptStatus(
-        uint256 nonce,
-        bool isOut
-    ) internal view returns (ReceiptStatus status) {
-        return _getBridgeStorage().receiptStatus[isOut][nonce];
+    /// @inheritdoc IBridge
+    function isClaimed(
+        Receipt calldata receipt
+    ) public view override returns (bool claimed) {
+        return _getBridgeStorage().claimed[receipt.toHash()];
     }
 
-    function send(
-        bytes32 tokenAddress,
-        bytes32 recipient,
+    /// @inheritdoc IBridge
+    function isClaimed(
+        bytes32 receiptHash
+    ) public view override returns (bool claimed) {
+        return _getBridgeStorage().claimed[receiptHash];
+    }
+
+    // internal functions
+
+    //  -- guards
+
+    /// Guard for validate the send values
+    /// @param tokenAddress address of the token
+    /// @param amount amount of tokens to send
+    /// @param chainTo destination chain id
+    /// @param payload send payload
+    /// @param payloadSignature signature of the payload
+    function _validateSendValues(
+        address tokenAddress,
         uint256 amount,
         uint256 chainTo,
-        Fee calldata fee,
-        bytes calldata feeSignature
-    ) external payable override returns (Receipt memory receipt) {
-        require(isValidFee(fee, feeSignature), "Invalid fee signature");
+        SendPayload calldata payload,
+        bytes calldata payloadSignature
+    ) private view {
+        require(
+            validator().validatePayload(payload, payloadSignature),
+            "Invalid payload signature"
+        );
         require(amount > 0, "Invalid amount");
-        require(amount == fee.amountToSend, "Invalid amount");
-        address token = tokenAddress.toAddress();
+        require(amount == payload.amountToSend, "Invalid amount");
+        require(chainTo != block.chainid, "Invalid destination chain");
+        require(!pausedTokens(tokenAddress), "Token is paused");
+    }
+
+    /// Validate the claim values
+    /// @param receipt receipt data
+    /// @param signature signature of the receipt
+    function _validateClaim(
+        Receipt calldata receipt,
+        bytes calldata signature
+    ) private view {
+        require(!isClaimed(receipt), "Receipt is claimed already");
+        require(validator().validate(receipt, signature), "Invalid signature");
+        require(receipt.chainTo == block.chainid, "Invalid destination chain");
+    }
+
+    // -- savers
+    /// Mark the receipt as claimed
+    /// @param receipt receipt data
+    function _markClaimed(Receipt calldata receipt) private {
+        _getBridgeStorage().claimed[receipt.toHash()] = true;
+    }
+
+    /// Saves newly created receipt
+    /// @param receipt receipt data
+    function _saveReceipt(Receipt memory receipt) private {
+        BridgeStorage storage $ = _getBridgeStorage();
+        $.receipts[receipt.nonce] = receipt;
+        $.receiptTimestamp[receipt.nonce] = block.timestamp;
+    }
+
+    // -- transfers
+    /// Manages the transfer of the token to the bridge
+    /// @param sender address of the sender
+    /// @param token address of the token
+    /// @param amount amount of tokens to send
+    /// @param payload send payload
+    function _transferTokenToBridge(
+        address sender,
+        address token,
+        uint256 amount,
+        SendPayload calldata payload
+    ) internal {
         if (token == address(0)) {
             require(
-                fee.amount + fee.amountToSend == msg.value,
+                payload.feeAmount + payload.amountToSend == msg.value,
                 "Invalid value amount sent"
             );
-            _wrap(fee.amountToSend);
-            token = samb();
         } else {
-            require(fee.amount == msg.value, "Invalid fee amount");
+            require(payload.feeAmount == msg.value, "Invalid fee amount");
             bool received = IERC20(token).transferFrom(
-                msg.sender,
+                sender,
                 address(this),
                 amount
             );
             require(received, "Transfer failed");
         }
-        tokenAddress = bytes32(abi.encodePacked(token));
+    }
+
+    /// Send the fee to the fee receiver
+    /// @param amount amount of native currency to send as fee
+    function _sendFee(uint256 amount) internal {
+        (bool sent, ) = feeReceiver().call{value: amount}("");
+        require(sent, "Native send failed");
+    }
+
+    /// Transfer the claimed token to the receiver
+    /// @param flags flags of the claim
+    /// @param token address of the token
+    /// @param amount amount of tokens to send
+    /// @param receiver address of the receiver
+    function _transferClaim(
+        uint256 flags,
+        address token,
+        uint256 amount,
+        address receiver
+    ) private {
+        require(token != address(0), "Unknown token address");
         require(!pausedTokens(token), "Token is paused");
-        require(
-            token2external(token) != bytes32(0),
-            "Unknown destination token address"
+        bool unlocked = false;
+        if (token == samb() && flags & BridgeFlags.SHOULD_UNWRAP == 0)
+            (unlocked, ) = payable(receiver).call{value: amount}("");
+        else {
+            if (token == samb() && flags & BridgeFlags.SHOULD_UNWRAP != 0) {
+                _wrap(amount);
+            }
+            unlocked = IERC20(token).transferFrom(
+                address(this),
+                receiver,
+                amount
+            );
+        }
+        require(unlocked, "Transfer failed");
+        BridgeStorage storage $ = _getBridgeStorage();
+        if (flags & BridgeFlags.SEND_NATIVE_TO_RECEIVER != 0) {
+            (bool sent, ) = payable(receiver).call{value: $.nativeSendAmount}(
+                ""
+            );
+            require(sent, "Native send failed");
+        }
+    }
+
+    // -- common internals
+
+    function _send(
+        address tokenAddress,
+        bytes32 recipient,
+        uint256 amount,
+        uint256 chainTo,
+        SendPayload calldata payload,
+        bytes calldata payloadSignature
+    ) internal returns (Receipt memory receipt) {
+        _validateSendValues(
+            tokenAddress,
+            amount,
+            chainTo,
+            payload,
+            payloadSignature
         );
+        address sender = payload.flags & BridgeFlags.SENDER_IS_TXORIGIN != 0
+            ? tx.origin
+            : msg.sender;
+        _transferTokenToBridge(sender, tokenAddress, amount, payload);
         Receipt memory _receipt = Receipt({
             from: bytes32(abi.encodePacked(msg.sender)),
             to: recipient,
-            tokenAddress: tokenAddress,
+            tokenAddress: bytes32(abi.encodePacked(tokenAddress)),
             amount: amount,
             chainFrom: block.chainid,
             chainTo: chainTo,
-            nonce: _useNonce(address(this))
+            nonce: _useNonce(address(this)),
+            flags: payload.flags >> 64 // remove sender flags
         });
-        BridgeStorage storage $ = _getBridgeStorage();
-        $.receipts[true][_receipt.nonce] = _receipt;
-        $.receiptTimestamp[true][_receipt.nonce] = block.timestamp;
-        $.receiptStatus[true][_receipt.nonce] = ReceiptStatus.Locked;
+        _sendFee(payload.feeAmount);
+        _saveReceipt(_receipt);
         emit TokenLocked(_receipt);
         return _receipt;
     }
 
-    function cancel(
-        uint256 nonce,
-        bytes calldata signature
-    ) external override returns (bool success) {
-        require(
-            getReceiptStatus(nonce, true) == ReceiptStatus.Locked,
-            "Invalid receipt status"
-        );
-        Receipt memory receipt = getReceipt(nonce, true);
-        bytes32 messageHash = keccak256(
-            abi.encodePacked(
-                receipt.from,
-                receipt.to,
-                receipt.tokenAddress,
-                receipt.amount,
-                receipt.chainFrom,
-                receipt.chainTo,
-                receipt.nonce,
-                ReceiptStatus.Canceled
-            )
-        );
-        if (msg.sender != owner()) {
-            require(
-                block.timestamp - getReceiptTimestamp(nonce, true) >
-                    submissionWindow() * 5,
-                "Submission window is not passed"
+    // user functions
+
+    /// @inheritdoc IBridge
+    function send(
+        address tokenAddress,
+        bytes32 recipient,
+        uint256 amount,
+        uint256 chainTo,
+        SendPayload calldata payload,
+        bytes calldata payloadSignature
+    ) external payable override returns (Receipt memory receipt) {
+        return
+            _send(
+                tokenAddress,
+                recipient,
+                amount,
+                chainTo,
+                payload,
+                payloadSignature
             );
-            require(
-                SignatureChecker.isValidSignatureNow(
-                    MPCAddress(),
-                    messageHash,
-                    signature
-                ),
-                "Invalid signature"
-            );
-        }
-        address token = receipt.tokenAddress.toAddress();
-        address withdrawTo = receipt.from.toAddress();
-        bool unlocked = false;
-        if (token == samb()) {
-            _unwrap(receipt.amount);
-            (unlocked, ) = payable(withdrawTo).call{value: receipt.amount}("");
-        } else {
-            unlocked = IERC20(token).transferFrom(
-                address(this),
-                withdrawTo,
-                receipt.amount
-            );
-        }
-        require(unlocked, "Transfer failed");
-        BridgeStorage storage $ = _getBridgeStorage();
-        $.receiptStatus[true][nonce] = ReceiptStatus.Canceled;
-        emit TokenLockCanceled(receipt);
-        return true;
     }
 
-    function validateClaims(
-        uint256[] calldata receipt_nonces,
-        bytes calldata signature
-    ) external override returns (bool success) {
-        require(
-            SignatureChecker.isValidSignatureNow(
-                MPCAddress(),
-                keccak256(abi.encodePacked(receipt_nonces)),
-                signature
-            ),
-            "Invalid signature"
-        );
-        BridgeStorage storage $ = _getBridgeStorage();
-        for (uint256 i = 0; i < receipt_nonces.length; i++) {
-            require(
-                getReceiptStatus(receipt_nonces[i], true) ==
-                    ReceiptStatus.Locked,
-                "Invalid receipt status"
-            );
-            $.receiptStatus[true][receipt_nonces[i]] = ReceiptStatus.Unlocked;
+    /// @inheritdoc IBridge
+    function send(
+        address tokenAddress,
+        bytes32 recipient,
+        uint256 amount,
+        uint256 chainTo,
+        SendPayload calldata payload,
+        bytes calldata payloadSignature,
+        uint256 _deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external payable override returns (Receipt memory receipt) {
+        if (tokenAddress != address(0)) {
+            if (payload.flags & BridgeFlags.SEND_WITH_PERMIT != 0)
+                IERC20Permit(tokenAddress).permit(
+                    msg.sender,
+                    address(this),
+                    amount,
+                    _deadline,
+                    v,
+                    r,
+                    s
+                );
+            else revert("Invalid permit flag");
         }
-        return true;
+        return
+            _send(
+                tokenAddress,
+                recipient,
+                amount,
+                chainTo,
+                payload,
+                payloadSignature
+            );
     }
 
+    /// @inheritdoc IBridge
     function claim(
         Receipt calldata receipt,
         bytes calldata signature
     ) external override returns (bool success) {
-        require(
-            getReceiptStatus(receipt.nonce, false) != ReceiptStatus.Unlocked,
-            "Invalid receipt status"
-        );
-        require(receipt.chainTo == block.chainid, "Invalid destination chain");
+        _validateClaim(receipt, signature);
         address token = external2token(receipt.tokenAddress);
-        require(token != address(0), "Unknown token address");
-        bytes32 messageHash = keccak256(
-            abi.encodePacked(
-                receipt.from,
-                receipt.to,
-                receipt.tokenAddress,
-                receipt.amount,
-                receipt.chainFrom,
-                receipt.chainTo,
-                receipt.nonce
-            )
-        );
-        require(
-            SignatureChecker.isValidSignatureNow(
-                MPCAddress(),
-                messageHash,
-                signature
-            ),
-            "Invalid signature"
-        );
-        require(!pausedTokens(token), "Token is paused");
-        bool unlocked = false;
+        uint256 receivedFlags = receipt.flags << 64; // restore flags position
         address receiver = receipt.to.toAddress();
-        if (token == samb()) {
-            _unwrap(receipt.amount);
-            (unlocked, ) = payable(receiver).call{value: receipt.amount}("");
-            require(unlocked, "Transfer failed");
-        } else {
-            unlocked = IERC20(token).transferFrom(
-                address(this),
-                receiver,
-                receipt.amount
-            );
-        }
-        require(unlocked, "Transfer failed");
-        BridgeStorage storage $ = _getBridgeStorage();
-        $.receiptStatus[false][receipt.nonce] = ReceiptStatus.Unlocked;
+        _transferClaim(receivedFlags, token, receipt.amount, receiver);
+        _markClaimed(receipt);
         emit TokenUnlocked(receipt);
         return true;
     }

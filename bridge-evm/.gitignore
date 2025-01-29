@@ -9,6 +9,10 @@ typechain-types
 cache
 artifacts
 
+# Foundry files
+out
+cache_forge
+
 # Depyloments
 ## Ucomment if you want to save deployments
 deployments/*

@@ -4,7 +4,11 @@ on:
   push:
     branches:
       - main
+    paths:
+        - "bridge-evm/**"
   pull_request:
+    paths:
+        - "bridge-evm/**"
 
 env:
   FOUNDRY_PROFILE: ci

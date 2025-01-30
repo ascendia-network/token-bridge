@@ -22,4 +22,4 @@ if (process.argv.length < 7) {
   console.log('Usage: node payload2Hash.js <tokenAddress> <amountToSend> <feeAmount> <timestamp> <flags> <flagData>');
   process.exit(1);
 }
-console.log(payload2hash(process.argv[2], process.argv[3], process.argv[4], process.argv[5], process.argv[6], process.argv[7]));
+process.stdout.write(payload2hash(process.argv[2], process.argv[3], process.argv[4], process.argv[5], process.argv[6], process.argv[7]));

@@ -25,4 +25,4 @@ if (process.argv.length < 10) {
   console.log('Usage: node receipt2Hash.js <from> <to> <tokenAddress> <amount> <chainFrom> <chainTo> <eventId> <flags> <data>');
   process.exit(1);
 }
-console.log(receipt2hash(process.argv[2], process.argv[3], process.argv[4], process.argv[5], process.argv[6], process.argv[7], process.argv[8], process.argv[9], process.argv[10]));
+process.stdout.write(receipt2hash(process.argv[2], process.argv[3], process.argv[4], process.argv[5], process.argv[6], process.argv[7], process.argv[8], process.argv[9], process.argv[10]));

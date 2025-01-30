@@ -8,7 +8,7 @@
     "pretest:sol": "npm run build:forge",
     "clean:forge": "forge clean",
     "clean:hardhat": "npx hardhat clean",
-    "coverage": "npm run pretest:sol && FOUNDRY_PROFILE=coverage forge coverage",
+    "coverage": "npm run pretest:sol && FOUNDRY_PROFILE=coverage forge coverage --report lcov --report-file='coverage/lcov.info' --report summary",
     "compile:hardhat": "npx hardhat compile",
     "build:forge": "forge build",
     "test": "forge test",

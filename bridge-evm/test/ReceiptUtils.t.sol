@@ -53,7 +53,7 @@ contract ReceiptUtilsTest is Test {
 
         // Build ffi command string
         runJsInputs[0] = "node";
-        runJsInputs[1] = "./test/diff_test/receipt2hash.js";
+        runJsInputs[1] = "./test/differential_testing/receipt2hash.js";
         runJsInputs[2] = Strings.toHexString(uint256(from), 32);
         runJsInputs[3] = Strings.toHexString(uint256(to), 32);
         runJsInputs[4] = Strings.toHexString(uint256(tokenAddress), 32);

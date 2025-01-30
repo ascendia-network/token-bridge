@@ -47,7 +47,7 @@ contract PayloadUtilsTest is Test {
 
         // Build ffi command string
         runJsInputs[0] = "node";
-        runJsInputs[1] = "./test/diff_test/payload2hash.js";
+        runJsInputs[1] = "./test/differential_testing/payload2hash.js";
         runJsInputs[2] = Strings.toHexString(uint256(tokenAddress), 32);
         runJsInputs[3] = Strings.toHexString(amountToSend, 32);
         runJsInputs[4] = Strings.toHexString(feeAmount, 32);

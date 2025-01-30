@@ -60,6 +60,7 @@ contract NoncesTest is Test {
     )
         public
     {
+        vm.assume(keyBytes != bytes32(keyUint) && keyUint != uint256(uint160(owner)));
         uint256 currentNonceAddress = mockNonce.nonces(owner);
         uint256 currentNonceBytes = mockNonce.nonces(keyBytes);
         uint256 currentNonceUint = mockNonce.nonces(keyUint);

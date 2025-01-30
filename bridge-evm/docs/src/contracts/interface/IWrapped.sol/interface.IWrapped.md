@@ -1,5 +1,5 @@
 # IWrapped
-[Git Source](https://github.com/ambrosus/token-bridge/blob/08ecfb54703230310910522cefe4e0786efed918/contracts/interface/IWrapped.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/993622e8c41d2a383e3259906b546417f92b844e/contracts/interface/IWrapped.sol)
 
 **Inherits:**
 IERC20
@@ -33,4 +33,17 @@ function withdraw(uint256 amount) external;
 |----|----|-----------|
 |`amount`|`uint256`|amount of tokens to withdraw|
 
+
+## Events
+### Deposit
+
+```solidity
+event Deposit(address indexed dst, uint256 amount);
+```
+
+### Withdrawal
+
+```solidity
+event Withdrawal(address indexed src, uint256 amount);
+```
 

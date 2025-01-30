@@ -1,5 +1,5 @@
 # ValidatorUpgradeable
-[Git Source](https://github.com/ambrosus/token-bridge/blob/08ecfb54703230310910522cefe4e0786efed918/contracts/upgradeable/ValidatorUpgradeable.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/993622e8c41d2a383e3259906b546417f92b844e/contracts/upgradeable/ValidatorUpgradeable.sol)
 
 **Inherits:**
 [IValidation](/contracts/interface/IValidation.sol/interface.IValidation.md), [IValidatorV1](/contracts/interface/IValidatorV1.sol/interface.IValidatorV1.md), Initializable, AccessManagedUpgradeable
@@ -25,11 +25,11 @@ function _getValidatorStorage()
     returns (ValidatorStorage storage $);
 ```
 
-### __ValidatorUpgradeable_init
+### __Validator_init
 
 
 ```solidity
-function __ValidatorUpgradeable_init(
+function __Validator_init(
     address authority_,
     address[] calldata validators_,
     address payloadSigner_,
@@ -39,11 +39,12 @@ function __ValidatorUpgradeable_init(
     onlyInitializing;
 ```
 
-### __ValidatorUpgradeable_init_unchained
+### __Validator_init_unchained
 
 
 ```solidity
-function __ValidatorUpgradeable_init_unchained(
+function __Validator_init_unchained(
+    address authority_,
     address[] calldata validators_,
     address payloadSigner_,
     uint256 feeValidityWindow_
@@ -51,6 +52,31 @@ function __ValidatorUpgradeable_init_unchained(
     internal
     onlyInitializing;
 ```
+
+### isValidator
+
+Check if an address is a validator
+
+
+```solidity
+function isValidator(address validator_)
+    public
+    view
+    override
+    returns (bool isValidator_);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`validator_`|`address`||
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`isValidator_`|`bool`|isValidator true if the address is a validator|
+
 
 ### addValidator
 

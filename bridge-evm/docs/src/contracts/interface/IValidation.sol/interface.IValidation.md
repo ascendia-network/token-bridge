@@ -1,5 +1,5 @@
 # IValidation
-[Git Source](https://github.com/ambrosus/token-bridge/blob/08ecfb54703230310910522cefe4e0786efed918/contracts/interface/IValidation.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/993622e8c41d2a383e3259906b546417f92b844e/contracts/interface/IValidation.sol)
 
 **Inherits:**
 [IBridgeTypes](/contracts/interface/IBridgeTypes.sol/interface.IBridgeTypes.md)
@@ -137,4 +137,11 @@ function validatePayload(
 |----|----|-----------|
 |`isValid`|`bool`|true if the payload is valid|
 
+
+## Errors
+### UnknownSigner
+
+```solidity
+error UnknownSigner(address signer);
+```
 

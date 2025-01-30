@@ -1,18 +1,18 @@
 # IBridge
-[Git Source](https://github.com/ambrosus/token-bridge/blob/08ecfb54703230310910522cefe4e0786efed918/contracts/interface/IBridge.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/993622e8c41d2a383e3259906b546417f92b844e/contracts/interface/IBridge.sol)
 
 **Inherits:**
 [IBridgeTypes](/contracts/interface/IBridgeTypes.sol/interface.IBridgeTypes.md)
 
 
 ## Functions
-### lastEventID
+### nextEventID
 
 Get the last nonce of the chain transactions
 
 
 ```solidity
-function lastEventID() external view returns (uint256 nonce);
+function nextEventID() external view returns (uint256 nonce);
 ```
 **Returns**
 

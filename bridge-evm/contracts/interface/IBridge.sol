@@ -15,7 +15,7 @@ interface IBridge is IBridgeTypes {
 
     /// Get the last nonce of the chain transactions
     /// @return nonce last nonce that was used
-    function lastEventID() external view returns (uint256 nonce);
+    function nextEventID() external view returns (uint256 nonce);
 
     /// Send tokens to another chain
     /// @dev This function should be called by the user who wants to send tokens to another chain.

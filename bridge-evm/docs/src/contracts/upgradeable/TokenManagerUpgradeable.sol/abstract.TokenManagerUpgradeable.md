@@ -1,5 +1,5 @@
 # TokenManagerUpgradeable
-[Git Source](https://github.com/ambrosus/token-bridge/blob/08ecfb54703230310910522cefe4e0786efed918/contracts/upgradeable/TokenManagerUpgradeable.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/993622e8c41d2a383e3259906b546417f92b844e/contracts/upgradeable/TokenManagerUpgradeable.sol)
 
 **Inherits:**
 [ITokenManager](/contracts/interface/ITokenManager.sol/interface.ITokenManager.md), Initializable
@@ -48,35 +48,6 @@ function __TokenManager_init_unchained(
     internal
     onlyInitializing;
 ```
-
-### addToken
-
-Add token to the bridge
-
-
-```solidity
-function addToken(
-    address token,
-    bytes32 externalTokenAddress
-)
-    external
-    virtual
-    override
-    returns (bool success);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`token`|`address`|address of the token|
-|`externalTokenAddress`|`bytes32`|external token address|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`success`|`bool`|true if the token was added successfully|
-
 
 ### addToken
 
@@ -274,21 +245,6 @@ function deployExternalTokenERC20(
 |`token`|`address`|address of the token|
 
 
-### isNotPaused
-
-Verify that the token is not paused
-
-
-```solidity
-modifier isNotPaused(address token);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`token`|`address`|address of the token|
-
-
 ### _wrap
 
 Used to wrap AMB to SAMB
@@ -424,7 +380,8 @@ Adds token to the bridge
 ```solidity
 function _addToken(
     address token,
-    bytes32 externalTokenAddress
+    bytes32 externalTokenAddress,
+    bool paused
 )
     private
     returns (bool success);
@@ -435,6 +392,7 @@ function _addToken(
 |----|----|-----------|
 |`token`|`address`|address of the token|
 |`externalTokenAddress`|`bytes32`|external token address|
+|`paused`|`bool`||
 
 **Returns**
 
@@ -599,6 +557,9 @@ function _unpauseToken(address token) private returns (bool success);
 
 ## Structs
 ### TokenManagerStorage
+**Note:**
+storage-location: erc7201:airdao.bridge.token-manager.storage
+
 
 ```solidity
 struct TokenManagerStorage {

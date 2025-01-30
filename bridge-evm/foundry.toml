@@ -23,8 +23,11 @@ tab_width = 4
 repository = "https://github.com/ambrosus/token-bridge"
 [profile.coverage]
 no-match-coverage="test/.*.sol"
+report-file="./coverage/lcov.info"
 [profile.ci]
 verbosity=3
 ffi=true
 force=true
+no-match-coverage="test/.*.sol"
+report-file="./coverage/lcov.info"
 

@@ -118,7 +118,7 @@ abstract contract BridgeUpgradeable is
     )
         external
         virtual
-        override
+        restricted
         returns (bool success)
     {
         return addToken(token, externalTokenAddress, true);
@@ -164,8 +164,8 @@ abstract contract BridgeUpgradeable is
     /// @inheritdoc ITokenManager
     function pauseToken(address token)
         public
-        virtual
         override
+        restricted
         returns (bool success)
     {
         return super.pauseToken(token);
@@ -245,7 +245,7 @@ abstract contract BridgeUpgradeable is
     }
 
     /// @inheritdoc IBridge
-    function lastEventID() external view override returns (uint256 nonce) {
+    function nextEventID() external view override returns (uint256 nonce) {
         return nonces(address(this));
     }
 
@@ -330,7 +330,7 @@ abstract contract BridgeUpgradeable is
         uint256 amount,
         SendPayload calldata payload
     )
-        internal
+        private
     {
         if (token == address(0)) {
             require(
@@ -347,7 +347,7 @@ abstract contract BridgeUpgradeable is
 
     /// Send the fee to the fee receiver
     /// @param amount amount of native currency to send as fee
-    function _sendFee(uint256 amount) internal {
+    function _sendFee(uint256 amount) private {
         (bool sent,) = feeReceiver().call{value: amount}("");
         require(sent, "Native send failed");
     }
@@ -398,7 +398,7 @@ abstract contract BridgeUpgradeable is
         SendPayload calldata payload,
         bytes calldata payloadSignature
     )
-        internal
+        private
         returns (Receipt memory receipt)
     {
         _validateSendValues(chainTo, payload, payloadSignature);

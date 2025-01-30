@@ -1,5 +1,5 @@
 # ITokenManager
-[Git Source](https://github.com/ambrosus/token-bridge/blob/08ecfb54703230310910522cefe4e0786efed918/contracts/interface/ITokenManager.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/993622e8c41d2a383e3259906b546417f92b844e/contracts/interface/ITokenManager.sol)
 
 
 ## Functions
@@ -314,16 +314,34 @@ event TokenDeployed(address token, bytes32 externalTokenAddress);
 ```
 
 ## Errors
+### TokenZeroAddress
+
+```solidity
+error TokenZeroAddress();
+```
+
 ### TokenAlreadyAdded
 
 ```solidity
 error TokenAlreadyAdded(address token);
 ```
 
+### TokenAlreadyMapped
+
+```solidity
+error TokenAlreadyMapped(bytes32 externalTokenAddress);
+```
+
 ### TokenNotAdded
 
 ```solidity
 error TokenNotAdded(address token);
+```
+
+### TokenNotMapped
+
+```solidity
+error TokenNotMapped(bytes32 externalTokenAddress);
 ```
 
 ### TokenNotBridgable

@@ -1,5 +1,5 @@
 # ReceiptUtils
-[Git Source](https://github.com/ambrosus/token-bridge/blob/08ecfb54703230310910522cefe4e0786efed918/contracts/utils/ReceiptUtils.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/993622e8c41d2a383e3259906b546417f92b844e/contracts/utils/ReceiptUtils.sol)
 
 
 ## Functions
@@ -11,7 +11,7 @@ Shortcut to convert receipt to hash
 
 
 ```solidity
-function toHash(IBridgeTypes.Receipt calldata receipt)
+function toHash(IBridgeTypes.Receipt memory receipt)
     internal
     pure
     returns (bytes32 hash);
@@ -37,7 +37,7 @@ Convert receipt to hash via toEthSignedMessageHash
 
 
 ```solidity
-function toEthSignedMessageHash(IBridgeTypes.Receipt calldata receipt)
+function toEthSignedMessageHash(IBridgeTypes.Receipt memory receipt)
     internal
     pure
     returns (bytes32 hash);

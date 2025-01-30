@@ -133,7 +133,7 @@ contract ValidatorTest is Test {
     }
 
     function test_fuzz_addValidator(address newValidator) public {
-        vm.assume(newValidator != address(0));
+        vm.assume(newValidator != address(0) && newValidator != alice);
         assertTrue(validatorInstance.addValidator(newValidator));
         assertTrue(validatorInstance.isValidator(newValidator));
     }

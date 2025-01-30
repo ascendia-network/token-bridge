@@ -1,5 +1,5 @@
 # BridgeUpgradeable
-[Git Source](https://github.com/ambrosus/token-bridge/blob/08ecfb54703230310910522cefe4e0786efed918/contracts/upgradeable/BridgeUpgradeable.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/993622e8c41d2a383e3259906b546417f92b844e/contracts/upgradeable/BridgeUpgradeable.sol)
 
 **Inherits:**
 [IBridge](/contracts/interface/IBridge.sol/interface.IBridge.md), Initializable, AccessManagedUpgradeable, [NoncesUpgradeable](/contracts/utils/NoncesUpgradeable.sol/abstract.NoncesUpgradeable.md), [TokenManagerUpgradeable](/contracts/upgradeable/TokenManagerUpgradeable.sol/abstract.TokenManagerUpgradeable.md)
@@ -110,7 +110,7 @@ function addToken(
 )
     external
     virtual
-    override
+    restricted
     returns (bool success);
 ```
 **Parameters**
@@ -220,8 +220,8 @@ Pause token bridging
 ```solidity
 function pauseToken(address token)
     public
-    virtual
     override
+    restricted
     returns (bool success);
 ```
 **Parameters**
@@ -394,13 +394,13 @@ function validator() public view returns (IValidation);
 |`<none>`|`IValidation`|validator address of the validator contract|
 
 
-### lastEventID
+### nextEventID
 
 Get the last nonce of the chain transactions
 
 
 ```solidity
-function lastEventID() external view override returns (uint256 nonce);
+function nextEventID() external view override returns (uint256 nonce);
 ```
 **Returns**
 
@@ -530,7 +530,7 @@ function _transferTokenToBridge(
     uint256 amount,
     SendPayload calldata payload
 )
-    internal;
+    private;
 ```
 **Parameters**
 
@@ -548,7 +548,7 @@ Send the fee to the fee receiver
 
 
 ```solidity
-function _sendFee(uint256 amount) internal;
+function _sendFee(uint256 amount) private;
 ```
 **Parameters**
 
@@ -593,7 +593,7 @@ function _send(
     SendPayload calldata payload,
     bytes calldata payloadSignature
 )
-    internal
+    private
     returns (Receipt memory receipt);
 ```
 **Parameters**
@@ -721,6 +721,9 @@ function claim(
 
 ## Structs
 ### BridgeStorage
+**Note:**
+storage-location: erc7201:airdao.bridge.main.storage
+
 
 ```solidity
 struct BridgeStorage {

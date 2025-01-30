@@ -21,3 +21,4 @@
     - [PayloadUtils](contracts/utils/PayloadUtils.sol/library.PayloadUtils.md)
     - [ReceiptUtils](contracts/utils/ReceiptUtils.sol/library.ReceiptUtils.md)
   - [Bridge](contracts/Bridge.sol/contract.Bridge.md)
+  - [Validator](contracts/Validator.sol/contract.Validator.md)

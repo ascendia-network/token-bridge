@@ -1,5 +1,5 @@
 # BridgeFlags
-[Git Source](https://github.com/ambrosus/token-bridge/blob/993622e8c41d2a383e3259906b546417f92b844e/contracts/interface/IBridgeTypes.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/10f59ea190fc43bfb0f853686355f2209f880702/contracts/interface/IBridgeTypes.sol)
 
 *Flags for the bridge operations*
 
@@ -20,6 +20,15 @@ uint256 constant SENDER_IS_TXORIGIN = 1 << 0;
 
 ```solidity
 uint256 constant SEND_WITH_PERMIT = 1 << 1;
+```
+
+
+### SHOULD_WRAP
+*Should wrap the tokens before sending*
+
+
+```solidity
+uint256 constant SHOULD_WRAP = 1 << 2;
 ```
 
 

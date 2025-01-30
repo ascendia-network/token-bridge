@@ -21,7 +21,6 @@ jobs:
   check:
     strategy:
       fail-fast: true
-
     defaults:
       run:
         working-directory: bridge-evm
@@ -54,7 +53,7 @@ jobs:
 
       - name: Run Forge tests with gas snapshot
         run: |
-          NO_COLOR=1 forge snapshot --check .gas_snapshot --tolerance 5 >> $GITHUB_STEP_SUMMARY
+          NO_COLOR=1 forge snapshot --check .gas-snapshot --tolerance 5 >> $GITHUB_STEP_SUMMARY
         id: test
 
       - name: Run Forge coverage

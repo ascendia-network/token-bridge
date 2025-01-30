@@ -1,5 +1,5 @@
 # BridgeUpgradeable
-[Git Source](https://github.com/ambrosus/token-bridge/blob/993622e8c41d2a383e3259906b546417f92b844e/contracts/upgradeable/BridgeUpgradeable.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/10f59ea190fc43bfb0f853686355f2209f880702/contracts/upgradeable/BridgeUpgradeable.sol)
 
 **Inherits:**
 [IBridge](/contracts/interface/IBridge.sol/interface.IBridge.md), Initializable, AccessManagedUpgradeable, [NoncesUpgradeable](/contracts/utils/NoncesUpgradeable.sol/abstract.NoncesUpgradeable.md), [TokenManagerUpgradeable](/contracts/upgradeable/TokenManagerUpgradeable.sol/abstract.TokenManagerUpgradeable.md)
@@ -527,7 +527,6 @@ Manages the transfer of the token to the bridge
 function _transferTokenToBridge(
     address sender,
     address token,
-    uint256 amount,
     SendPayload calldata payload
 )
     private;
@@ -538,7 +537,6 @@ function _transferTokenToBridge(
 |----|----|-----------|
 |`sender`|`address`|address of the sender|
 |`token`|`address`|address of the token|
-|`amount`|`uint256`|amount of tokens to send|
 |`payload`|`SendPayload`|send payload|
 
 

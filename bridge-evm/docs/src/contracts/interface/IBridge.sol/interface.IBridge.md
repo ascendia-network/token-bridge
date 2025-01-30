@@ -1,5 +1,5 @@
 # IBridge
-[Git Source](https://github.com/ambrosus/token-bridge/blob/993622e8c41d2a383e3259906b546417f92b844e/contracts/interface/IBridge.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/10f59ea190fc43bfb0f853686355f2209f880702/contracts/interface/IBridge.sol)
 
 **Inherits:**
 [IBridgeTypes](/contracts/interface/IBridgeTypes.sol/interface.IBridgeTypes.md)
@@ -281,5 +281,48 @@ Emits when tokens are claimed from the contract
 
 ```solidity
 event TokenUnlocked(Receipt receipt);
+```
+
+## Errors
+### InvalidPermitFlag
+
+```solidity
+error InvalidPermitFlag();
+```
+
+### Claimed
+
+```solidity
+error Claimed(bytes32 hash);
+```
+
+### InvalidChain
+
+```solidity
+error InvalidChain();
+```
+
+### TransferFailed
+
+```solidity
+error TransferFailed();
+```
+
+### SendFailed
+
+```solidity
+error SendFailed();
+```
+
+### InvalidValueSent
+
+```solidity
+error InvalidValueSent(uint256 value, uint256 expectedValue);
+```
+
+### InvalidAmount
+
+```solidity
+error InvalidAmount();
 ```
 

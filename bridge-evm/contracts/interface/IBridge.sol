@@ -7,12 +7,22 @@ import {IValidation} from "./IValidation.sol";
 
 interface IBridge is IBridgeTypes {
 
+    /// Reverts if passed permit signature without permit flag
     error InvalidPermitFlag();
+    /// Reverts if receipt is already claimed
+    /// @param hash hash of the receipt
     error Claimed(bytes32 hash);
+    /// Reverts when the chain ID is invalid
     error InvalidChain();
+    /// Reverts failed transfer of tokens
     error TransferFailed();
+    /// Reverts failed send of native currency
     error SendFailed();
+    /// Reverts when the value sent is invalid
+    /// @param value sent value
+    /// @param expectedValue expected value
     error InvalidValueSent(uint256 value, uint256 expectedValue);
+    /// Reverts when the amount is invalid (e.g. zero)
     error InvalidAmount();
 
     /// Emits when tokens are locked in the contract

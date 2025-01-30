@@ -1,5 +1,5 @@
 # IBridge
-[Git Source](https://github.com/ambrosus/token-bridge/blob/10f59ea190fc43bfb0f853686355f2209f880702/contracts/interface/IBridge.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/1d5f7952fbb3e2e1a2ce109d93ab3ad11876d0b1/contracts/interface/IBridge.sol)
 
 **Inherits:**
 [IBridgeTypes](/contracts/interface/IBridgeTypes.sol/interface.IBridgeTypes.md)
@@ -285,42 +285,69 @@ event TokenUnlocked(Receipt receipt);
 
 ## Errors
 ### InvalidPermitFlag
+Reverts if passed permit signature without permit flag
+
 
 ```solidity
 error InvalidPermitFlag();
 ```
 
 ### Claimed
+Reverts if receipt is already claimed
+
 
 ```solidity
 error Claimed(bytes32 hash);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`hash`|`bytes32`|hash of the receipt|
+
 ### InvalidChain
+Reverts when the chain ID is invalid
+
 
 ```solidity
 error InvalidChain();
 ```
 
 ### TransferFailed
+Reverts failed transfer of tokens
+
 
 ```solidity
 error TransferFailed();
 ```
 
 ### SendFailed
+Reverts failed send of native currency
+
 
 ```solidity
 error SendFailed();
 ```
 
 ### InvalidValueSent
+Reverts when the value sent is invalid
+
 
 ```solidity
 error InvalidValueSent(uint256 value, uint256 expectedValue);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`value`|`uint256`|sent value|
+|`expectedValue`|`uint256`|expected value|
+
 ### InvalidAmount
+Reverts when the amount is invalid (e.g. zero)
+
 
 ```solidity
 error InvalidAmount();

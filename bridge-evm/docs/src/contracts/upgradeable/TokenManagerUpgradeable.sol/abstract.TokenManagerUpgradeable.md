@@ -1,5 +1,5 @@
 # TokenManagerUpgradeable
-[Git Source](https://github.com/ambrosus/token-bridge/blob/10f59ea190fc43bfb0f853686355f2209f880702/contracts/upgradeable/TokenManagerUpgradeable.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/1d5f7952fbb3e2e1a2ce109d93ab3ad11876d0b1/contracts/upgradeable/TokenManagerUpgradeable.sol)
 
 **Inherits:**
 [ITokenManager](/contracts/interface/ITokenManager.sol/interface.ITokenManager.md), Initializable

@@ -17,6 +17,10 @@ export interface Config {
 export const stage = env.STAGE || "prod";
 export const apiPort = env.PORT || 8080;
 
+
+export const sendSignerPK = env.SEND_SIGNER_PK!;
+
+
 export const ponderGraphQlUrl = "http://localhost:42069/graphql";
 
 export const stageConfig: Config = require(path.resolve(__dirname, `../configs/${stage}.json`));

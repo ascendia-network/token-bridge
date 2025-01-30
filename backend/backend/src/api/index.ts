@@ -2,14 +2,7 @@ import Fastify from "fastify";
 import websocket from "@fastify/websocket";
 import cors from "@fastify/cors";
 
-import {
-  relayFeeEndpoint,
-  relayFeeSchema,
-  relayGetEventEndpoint,
-  relayGetEventSchema,
-  relayWaitEventEndpoint,
-  relayWaitEventSchema,
-} from "./relay/api";
+import { relayGetEventSchema, relayGetEventsToSign, } from "./relay/api";
 import {
   backofficeEndpoint,
   backofficeSchema,
@@ -20,9 +13,8 @@ import {
 } from "./front";
 
 import { allowedOrigins, apiPort } from "../configs/config";
+import { getSendSignatureEndpoint, getSendSignatureSchema } from "./send";
 
-import { logger } from "../utils/logger";
-import { BridgeConstants } from "../utils/bridgeConstants";
 
 export async function serve() {
     const fastify = Fastify({
@@ -34,11 +26,9 @@ export async function serve() {
     fastify.get("/backoffice", { schema: backofficeSchema }, backofficeEndpoint);
     fastify.get("/txHistory", { schema: txHistorySchema }, txHistoryEndpoint);
     fastify.get("/txStatus", { websocket: true, schema: txStatusSchema }, txStatusEndpoint);
-    fastify.get("/relay/getEvent", { schema: relayGetEventSchema }, relayGetEventEndpoint);
-    fastify.get("/relay/waitEvent", { websocket: true, schema: relayWaitEventSchema }, relayWaitEventEndpoint);
-    fastify.get("/relay/fee", { schema: relayFeeSchema }, relayFeeEndpoint);
-    fastify.get("/die", () => process.exit(69));
+    fastify.get("/relay/getEvent", { schema: relayGetEventSchema }, relayGetEventsToSign);
+    fastify.get("/send", { schema: getSendSignatureSchema }, getSendSignatureEndpoint);
 
-    logger.info("starting api server on port %s", apiPort);
+    console.log("starting api server on port %s", apiPort);
     await fastify.listen({ host: "0.0.0.0", port: +apiPort });
 }

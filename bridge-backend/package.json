@@ -1,0 +1,22 @@
+{
+  "name": "bridge-backend",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ambrosus/token-bridge.git"
+  },
+  "keywords": [
+    "bridge"
+  ],
+  "author": "AirDAO",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ambrosus/token-bridge/issues"
+  },
+  "homepage": "https://github.com/ambrosus/token-bridge#readme",
+  "description": ""
+}

@@ -285,15 +285,16 @@ abstract contract BridgeUpgradeable is
         private
         view
     {
-        require(
-            validator().validatePayload(payload, payloadSignature),
-            "Invalid payload signature"
-        );
-        require(payload.amountToSend > 0, "Invalid amount");
-        require(chainTo != block.chainid, "Invalid destination chain");
-        require(
-            !pausedTokens(payload.tokenAddress.toAddress()), "Token is paused"
-        );
+        validator().validatePayload(payload, payloadSignature);
+        if (payload.amountToSend == 0) {
+            revert InvalidAmount();
+        }
+        if (chainTo == block.chainid) {
+            revert InvalidChain();
+        }
+        if (pausedTokens(payload.tokenAddress.toAddress())) {
+            revert TokenIsPaused(payload.tokenAddress.toAddress());
+        }
     }
 
     /// Validate the claim values
@@ -306,9 +307,13 @@ abstract contract BridgeUpgradeable is
         private
         view
     {
-        require(!isClaimed(receipt), "Receipt is claimed already");
-        require(validator().validate(receipt, signature), "Invalid signature");
-        require(receipt.chainTo == block.chainid, "Invalid destination chain");
+        validator().validate(receipt, signature);
+        if (isClaimed(receipt)) {
+            revert Claimed(receipt.toHash());
+        }
+        if (receipt.chainTo != block.chainid) {
+            revert InvalidChain();
+        }
     }
 
     // -- savers
@@ -322,26 +327,31 @@ abstract contract BridgeUpgradeable is
     /// Manages the transfer of the token to the bridge
     /// @param sender address of the sender
     /// @param token address of the token
-    /// @param amount amount of tokens to send
     /// @param payload send payload
     function _transferTokenToBridge(
         address sender,
         address token,
-        uint256 amount,
         SendPayload calldata payload
     )
         private
     {
-        if (token == address(0)) {
-            require(
-                payload.feeAmount + payload.amountToSend == msg.value,
-                "Invalid value amount sent"
-            );
+        if (token == samb() && payload.flags & BridgeFlags.SHOULD_WRAP != 0) {
+            if (payload.feeAmount + payload.amountToSend != msg.value) {
+                revert InvalidValueSent(
+                    msg.value, payload.feeAmount + payload.amountToSend
+                );
+            }
+            _wrap(payload.amountToSend);
         } else {
-            require(payload.feeAmount == msg.value, "Invalid fee amount");
-            bool received =
-                IERC20(token).transferFrom(sender, address(this), amount);
-            require(received, "Transfer failed");
+            if (payload.feeAmount != msg.value) {
+                revert InvalidValueSent(msg.value, payload.feeAmount);
+            }
+            bool received = IERC20(token).transferFrom(
+                sender, address(this), payload.amountToSend
+            );
+            if (!received) {
+                revert TransferFailed();
+            }
         }
     }
 
@@ -349,7 +359,9 @@ abstract contract BridgeUpgradeable is
     /// @param amount amount of native currency to send as fee
     function _sendFee(uint256 amount) private {
         (bool sent,) = feeReceiver().call{value: amount}("");
-        require(sent, "Native send failed");
+        if(!sent) {
+            revert SendFailed();
+        }
     }
 
     /// Transfer the claimed token to the receiver
@@ -365,23 +377,25 @@ abstract contract BridgeUpgradeable is
     )
         private
     {
-        require(token != address(0), "Unknown token address");
-        require(!pausedTokens(token), "Token is paused");
+        if (pausedTokens(token)) {
+            revert TokenIsPaused(token);
+        }
         bool unlocked = false;
-        if (token == samb() && flags & BridgeFlags.SHOULD_UNWRAP == 0) {
+        if (token == samb() && flags & BridgeFlags.SHOULD_UNWRAP != 0) {
+            _unwrap(amount);
             (unlocked,) = payable(receiver).call{value: amount}("");
         } else {
-            if (token == samb() && flags & BridgeFlags.SHOULD_UNWRAP != 0) {
-                _wrap(amount);
-            }
-            unlocked =
-                IERC20(token).transferFrom(address(this), receiver, amount);
+            unlocked = IERC20(token).transfer(receiver, amount);
         }
-        require(unlocked, "Transfer failed");
+        if (!unlocked) {
+            revert TransferFailed();
+        }
         BridgeStorage storage $ = _getBridgeStorage();
         if (flags & BridgeFlags.SEND_NATIVE_TO_RECEIVER != 0) {
             (bool sent,) = payable(receiver).call{value: $.nativeSendAmount}("");
-            require(sent, "Native send failed");
+            if (!sent) {
+                revert SendFailed();
+            }
         }
     }
 
@@ -406,20 +420,17 @@ abstract contract BridgeUpgradeable is
             ? tx.origin
             : msg.sender;
         _transferTokenToBridge(
-            sender,
-            payload.tokenAddress.toAddress(),
-            payload.amountToSend,
-            payload
+            sender, payload.tokenAddress.toAddress(), payload
         );
         Receipt memory _receipt = Receipt({
-            from: bytes32(uint256(uint160(msg.sender))),
+            from: bytes32(uint256(uint160(sender))),
             to: recipient,
             tokenAddress: payload.tokenAddress,
             amount: payload.amountToSend,
             chainFrom: block.chainid,
             chainTo: chainTo,
             eventId: _useNonce(address(this)),
-            flags: payload.flags >> 64, // remove sender flags
+            flags: payload.flags >> 65, // remove sender flags
             data: abi.encodePacked(_useNonce(recipient).toUint64())
         });
         _sendFee(payload.feeAmount);
@@ -464,7 +475,9 @@ abstract contract BridgeUpgradeable is
         if (tokenAddress != address(0)) {
             if (payload.flags & BridgeFlags.SEND_WITH_PERMIT != 0) {
                 IERC20Permit(tokenAddress).permit(
-                    msg.sender,
+                    payload.flags & BridgeFlags.SENDER_IS_TXORIGIN != 0
+                        ? tx.origin
+                        : msg.sender,
                     address(this),
                     payload.amountToSend,
                     _deadline,
@@ -473,7 +486,7 @@ abstract contract BridgeUpgradeable is
                     s
                 );
             } else {
-                revert("Invalid permit flag");
+                revert InvalidPermitFlag();
             }
         }
         return _send(recipient, chainTo, payload, payloadSignature);
@@ -493,7 +506,7 @@ abstract contract BridgeUpgradeable is
         if (token == address(0)) {
             revert TokenNotMapped(receipt.tokenAddress);
         }
-        uint256 receivedFlags = receipt.flags << 64; // restore flags position
+        uint256 receivedFlags = receipt.flags << 65; // restore flags position
         address receiver = receipt.to.toAddress();
         _transferClaim(receivedFlags, token, receipt.amount, receiver);
         _markClaimed(receipt);

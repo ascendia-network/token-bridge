@@ -1,4 +1,5 @@
 [profile.default]
+via-ir=true
 ffi = true
 ast = true
 build_info = true
@@ -11,6 +12,7 @@ test = 'test'
 cache_path  = 'cache_forge'
 evm_version = 'istanbul'
 optimizer = true
+runs = 1000
 [fmt]
 single_line_statement_blocks = "multi"
 multiline_func_header = "all"
@@ -22,9 +24,11 @@ tab_width = 4
 [doc]
 repository = "https://github.com/ambrosus/token-bridge"
 [profile.coverage]
+via-ir=true
 no-match-coverage="test/.*.sol"
 report-file="./coverage/lcov.info"
 [profile.ci]
+via-ir=true
 verbosity=3
 ffi=true
 force=true

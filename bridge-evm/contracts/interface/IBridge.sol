@@ -7,6 +7,14 @@ import {IValidation} from "./IValidation.sol";
 
 interface IBridge is IBridgeTypes {
 
+    error InvalidPermitFlag();
+    error Claimed(bytes32 hash);
+    error InvalidChain();
+    error TransferFailed();
+    error SendFailed();
+    error InvalidValueSent(uint256 value, uint256 expectedValue);
+    error InvalidAmount();
+
     /// Emits when tokens are locked in the contract
     event TokenLocked(Receipt receipt);
 

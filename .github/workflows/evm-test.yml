@@ -52,13 +52,10 @@ jobs:
           forge build --sizes
         id: build
 
-      - name: Run Forge tests
+      - name: Run Forge tests with gas snapshot
         run: |
-          forge test
+          NO_COLOR=1 forge snapshot --check .gas_snapshot --tolerance 5 >> $GITHUB_STEP_SUMMARY
         id: test
-
-      - name: Run snapshot
-        run: NO_COLOR=1 forge snapshot >> $GITHUB_STEP_SUMMARY
 
       - name: Run Forge coverage
         run: 

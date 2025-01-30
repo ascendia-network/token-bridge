@@ -3,15 +3,19 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {IAccessManaged} from "@openzeppelin/contracts/access/manager/IAccessManaged.sol";
-import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import {Initializable} from
+    "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {IAccessManaged} from
+    "@openzeppelin/contracts/access/manager/IAccessManaged.sol";
+import {EnumerableSet} from
+    "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 import {ITokenManager} from "../../contracts/interface/ITokenManager.sol";
 import {IValidation} from "../../contracts/interface/IValidation.sol";
 import {IWrapped} from "../../contracts/interface/IWrapped.sol";
 
-import {BridgeUpgradeable} from "../../contracts/upgradeable/BridgeUpgradeable.sol";
+import {BridgeUpgradeable} from
+    "../../contracts/upgradeable/BridgeUpgradeable.sol";
 
 import {Bridge} from "../../contracts/Bridge.sol";
 import {Validator} from "../../contracts/Validator.sol";
@@ -22,15 +26,13 @@ import {sAMB} from "../mocks/sAMB.sol";
 import {BridgeTestBase} from "./BridgeBase.t.sol";
 
 abstract contract BridgeRestrictedTest is BridgeTestBase {
+
     using EnumerableSet for EnumerableSet.AddressSet;
 
     function test_revertWhen_initialize_twice() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         validatorInstance.initialize(
-            address(authority),
-            validatorSet.values(),
-            deadBeef,
-            100
+            address(authority), validatorSet.values(), deadBeef, 100
         );
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         bridgeInstance.initialize(
@@ -53,8 +55,7 @@ abstract contract BridgeRestrictedTest is BridgeTestBase {
         vm.startPrank(bob);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IAccessManaged.AccessManagedUnauthorized.selector,
-                bob
+                IAccessManaged.AccessManagedUnauthorized.selector, bob
             )
         );
         bridgeInstance.setFeeReceiver(payable(alice));
@@ -72,8 +73,7 @@ abstract contract BridgeRestrictedTest is BridgeTestBase {
         vm.startPrank(bob);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IAccessManaged.AccessManagedUnauthorized.selector,
-                bob
+                IAccessManaged.AccessManagedUnauthorized.selector, bob
             )
         );
         bridgeInstance.setNativeSendAmount(2 ether);
@@ -86,8 +86,7 @@ abstract contract BridgeRestrictedTest is BridgeTestBase {
         assertEq(address(bridgeInstance.validator()), address(newValidator));
         bridgeInstance.setValidator(validatorInstance);
         assertEq(
-            address(bridgeInstance.validator()),
-            address(validatorInstance)
+            address(bridgeInstance.validator()), address(validatorInstance)
         );
     }
 
@@ -95,8 +94,7 @@ abstract contract BridgeRestrictedTest is BridgeTestBase {
         vm.startPrank(bob);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IAccessManaged.AccessManagedUnauthorized.selector,
-                bob
+                IAccessManaged.AccessManagedUnauthorized.selector, bob
             )
         );
         Validator newValidator = Validator(address(0x0));
@@ -111,9 +109,7 @@ abstract contract BridgeRestrictedTest is BridgeTestBase {
         selectors[1] = BridgeUpgradeable.setNativeSendAmount.selector;
         selectors[2] = BridgeUpgradeable.setValidator.selector;
         authority.setTargetFunctionRole(
-            address(bridgeInstance),
-            selectors,
-            bridgeRoleID
+            address(bridgeInstance), selectors, bridgeRoleID
         );
         authority.grantRole(bridgeRoleID, bob, 0);
         vm.startPrank(bob);
@@ -124,23 +120,22 @@ abstract contract BridgeRestrictedTest is BridgeTestBase {
         bridgeInstance.setValidator(Validator(address(0x0)));
         vm.expectRevert(
             abi.encodeWithSelector(
-                IAccessManaged.AccessManagedUnauthorized.selector,
-                bob
+                IAccessManaged.AccessManagedUnauthorized.selector, bob
             ),
             7
         );
         bridgeInstance.addToken(address(wrappedToken), bytes32("sAMB"));
         bridgeInstance.removeToken(address(wrappedToken), bytes32("sAMB"));
         bridgeInstance.deployExternalTokenERC20(
-            bytes32("SOLANA"),
-            "Wrapped Solana",
-            "wSOL",
-            18
+            bytes32("SOLANA"), "Wrapped Solana", "wSOL", 18
         );
         bridgeInstance.pauseToken(address(wrappedToken));
         bridgeInstance.unpauseToken(address(wrappedToken));
-        bridgeInstance.mapExternalToken(bytes32("SOLANA"), address(wrappedToken));
+        bridgeInstance.mapExternalToken(
+            bytes32("SOLANA"), address(wrappedToken)
+        );
         bridgeInstance.unmapExternalToken(bytes32("SOLANA"));
         vm.stopPrank();
     }
+
 }

@@ -3,11 +3,19 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 
-import {UnsafeUpgrades, Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
+import {
+    UnsafeUpgrades,
+    Upgrades
+} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 
-import {AccessManager} from "@openzeppelin/contracts/access/manager/AccessManager.sol";
-import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import {AccessManager} from
+    "@openzeppelin/contracts/access/manager/AccessManager.sol";
+
+import {ERC20Permit} from
+    "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {EnumerableSet} from
+    "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 import {IValidation} from "../../contracts/interface/IValidation.sol";
 import {IWrapped} from "../../contracts/interface/IWrapped.sol";
@@ -15,18 +23,20 @@ import {IWrapped} from "../../contracts/interface/IWrapped.sol";
 import {Bridge} from "../../contracts/Bridge.sol";
 import {Validator} from "../../contracts/Validator.sol";
 
+import {MockBadNativeReceiver} from "../mocks/MockBadNativeReceiver.sol";
+import {MockERC20Permit} from "../mocks/MockERC20.sol";
 import {sAMB} from "../mocks/sAMB.sol";
 
 abstract contract BridgeTestBase is Test {
+
     using EnumerableSet for EnumerableSet.AddressSet;
 
     bytes32 constant coverageProfile = keccak256(abi.encodePacked("coverage"));
 
     function isCoverage() internal view returns (bool) {
-        return
-            keccak256(
-                abi.encodePacked(vm.envOr("FOUNDRY_PROFILE", string("default")))
-            ) == coverageProfile;
+        return keccak256(
+            abi.encodePacked(vm.envOr("FOUNDRY_PROFILE", string("default")))
+        ) == coverageProfile;
     }
 
     uint256 constant nativeSendAmount = 1 ether;
@@ -34,6 +44,9 @@ abstract contract BridgeTestBase is Test {
     Validator validatorInstance;
     Bridge bridgeInstance;
     IWrapped wrappedToken;
+    MockBadNativeReceiver badReceiver;
+
+    ERC20Permit permittableToken;
 
     address alice = address(0xA11ce);
     address bob = address(0xB0b);
@@ -52,11 +65,14 @@ abstract contract BridgeTestBase is Test {
     EnumerableSet.AddressSet validatorSet;
 
     function setUpWrappedToken() public virtual returns (IWrapped) {
-        address wrappedTokenAddress = address(
-            new sAMB("Wrapped Amber", "sAMB")
-        );
+        address wrappedTokenAddress = address(new sAMB("Wrapped Amber", "sAMB"));
         wrappedToken = IWrapped(wrappedTokenAddress);
         return wrappedToken;
+    }
+
+    function setUpPermittable() public virtual returns (ERC20Permit) {
+        permittableToken = new MockERC20Permit();
+        return permittableToken;
     }
 
     function setUpValidator(
@@ -64,7 +80,11 @@ abstract contract BridgeTestBase is Test {
         address[] memory validators,
         address pldSigner,
         uint256 feeValidityWindow
-    ) public virtual returns (Validator) {
+    )
+        public
+        virtual
+        returns (Validator)
+    {
         address proxy;
         if (isCoverage()) {
             address validator = address(new Validator());
@@ -108,7 +128,11 @@ abstract contract BridgeTestBase is Test {
         IValidation validation,
         address payable feeReceiver,
         uint256 nsa
-    ) public virtual returns (Bridge) {
+    )
+        public
+        virtual
+        returns (Bridge)
+    {
         address payable proxy;
         if (isCoverage()) {
             address bridge = address(new Bridge());
@@ -153,21 +177,19 @@ abstract contract BridgeTestBase is Test {
     }
 
     function setUp() public {
+        badReceiver = new MockBadNativeReceiver();
         authority = new AccessManager(address(this));
 
-        for(uint i = 0; i < 3; i++) {
-            (address signer, uint256 signerPk) = makeAddrAndKey(string.concat("relayer", Strings.toString(i+1)));
-            signers.push(Signer({
-                Address: signer,
-                PK: signerPk
-            }));
+        for (uint256 i = 0; i < 3; i++) {
+            (address signer, uint256 signerPk) = makeAddrAndKey(
+                string.concat("relayer", Strings.toString(i + 1))
+            );
+            signers.push(Signer({Address: signer, PK: signerPk}));
             validatorSet.add(signer);
         }
         (address signerP, uint256 signerPPk) = makeAddrAndKey("payloadSigner");
-        payloadSigner = Signer({
-            Address: signerP,
-            PK: signerPPk
-        });
+        payloadSigner = Signer({Address: signerP, PK: signerPPk});
+        setUpPermittable();
         setUpWrappedToken();
         setUpValidator(
             address(authority),
@@ -183,4 +205,9 @@ abstract contract BridgeTestBase is Test {
             nativeSendAmount
         );
     }
+
+    function setFeeReceiver(address payable receiver) public {
+        bridgeInstance.setFeeReceiver(receiver);
+    }
+
 }

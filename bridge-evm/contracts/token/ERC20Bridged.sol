@@ -65,8 +65,8 @@ contract ERC20Bridged is ERC20Permit {
     {
         // If token is sent from the bridge, mint it
         if (from == _bridgeAddress) {
-            if (to == address(0)) {
-                revert ERC20InvalidReceiver(address(0));
+            if (to == address(0) || to == address(_bridgeAddress)) {
+                revert ERC20InvalidReceiver(address(to));
             }
             super._update(address(0), to, value);
         }

@@ -332,12 +332,11 @@ contract ValidatorTest is Test {
             flags: 0,
             data: bytes("SOME_USEFUL_DATA")
         });
-
+        bytes32 digest = receipt.toHash();
         for (uint256 i = 0; i < signersNumber; i++) {
             (address signer, uint256 signerPk) = makeAddrAndKey(signers[i]);
             validatorInstance.addValidator(signer);
             vm.startPrank(signer);
-            bytes32 digest = receipt.toHash();
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
             bytes memory signerSignature = abi.encodePacked(r, s, v); // note the order here is different from line above.
             signature = bytes.concat(signature, signerSignature);

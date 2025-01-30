@@ -12,6 +12,9 @@ library BridgeFlags {
     /// @dev Should send with permit action
     uint256 constant SEND_WITH_PERMIT = 1 << 1;
 
+    /// @dev Should wrap the tokens before sending
+    uint256 constant SHOULD_WRAP = 1 << 2;
+
     // 65-128 bits are reserved for the receiver flags
     /// @dev Should unwrap the tokens after receiving
     uint256 constant SHOULD_UNWRAP = 1 << 65;

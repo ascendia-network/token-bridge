@@ -62,7 +62,7 @@ jobs:
 
       - name: Run Forge coverage
         run: 
-          forge coverage --report lcov
+          forge coverage --report lcov --output coverage/lcov.info
         id: coverage
       
       - name: LCOV Summary

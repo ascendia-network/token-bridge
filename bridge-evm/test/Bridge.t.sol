@@ -24,7 +24,7 @@ import {Bridge} from "../contracts/Bridge.sol";
 import {Validator} from "../contracts/Validator.sol";
 import {ERC20Bridged} from "../contracts/token/ERC20Bridged.sol";
 
-import {sAMB} from "./mocks/SAMB.sol";
+import {sAMB} from "./mocks/sAMB.sol";
 
 contract BridgeTest is Test {
 

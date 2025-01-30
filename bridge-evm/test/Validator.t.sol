@@ -29,7 +29,7 @@ import {ReceiptUtils} from "../contracts/utils/ReceiptUtils.sol";
 
 import {Validator} from "../contracts/Validator.sol";
 
-import {sAMB} from "./mocks/SAMB.sol";
+import {sAMB} from "./mocks/sAMB.sol";
 
 contract ValidatorTest is Test {
 

@@ -2,18 +2,20 @@
 pragma solidity ^0.8.20;
 pragma abicoder v2;
 
-import
+import {AccessManagedUpgradeable} from
     "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {Initializable} from
+    "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import {EnumerableSet} from
+    "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-import "../interface/IValidation.sol";
-import "../interface/IValidatorV1.sol";
+import {IValidation} from "../interface/IValidation.sol";
+import {IValidatorV1} from "../interface/IValidatorV1.sol";
 
-import "../utils/PayloadUtils.sol";
-import "../utils/ReceiptUtils.sol";
+import {PayloadUtils} from "../utils/PayloadUtils.sol";
+import {ReceiptUtils} from "../utils/ReceiptUtils.sol";
 
 contract ValidatorUpgradeable is
     IValidation,
@@ -46,7 +48,7 @@ contract ValidatorUpgradeable is
         }
     }
 
-    function __ValidatorUpgradeable_init(
+    function __Validator_init(
         address authority_,
         address[] calldata validators_,
         address payloadSigner_,
@@ -55,13 +57,13 @@ contract ValidatorUpgradeable is
         internal
         onlyInitializing
     {
-        __AccessManaged_init(authority_);
-        __ValidatorUpgradeable_init_unchained(
-            validators_, payloadSigner_, feeValidityWindow_
+        __Validator_init_unchained(
+            authority_, validators_, payloadSigner_, feeValidityWindow_
         );
     }
 
-    function __ValidatorUpgradeable_init_unchained(
+    function __Validator_init_unchained(
+        address authority_,
         address[] calldata validators_,
         address payloadSigner_,
         uint256 feeValidityWindow_
@@ -69,6 +71,9 @@ contract ValidatorUpgradeable is
         internal
         onlyInitializing
     {
+        // Dont know why it should be called here, according to docs it should be called in __Validator_init ...
+        __AccessManaged_init(authority_);
+
         ValidatorStorage storage $ = _getValidatorStorage();
         $.payloadSigner = payloadSigner_;
         $.feeValidityWindow = feeValidityWindow_;
@@ -78,12 +83,26 @@ contract ValidatorUpgradeable is
     }
 
     /// @inheritdoc IValidatorV1
+    function isValidator(address validator_)
+        public
+        view
+        override
+        returns (bool isValidator_)
+    {
+        ValidatorStorage storage $ = _getValidatorStorage();
+        return $.validators.contains(validator_);
+    }
+
+    /// @inheritdoc IValidatorV1
     function addValidator(address validator_)
         public
         override
         restricted
         returns (bool added)
     {
+        if (validator_ == address(0)) {
+            return false;
+        }
         ValidatorStorage storage $ = _getValidatorStorage();
         return $.validators.add(validator_);
     }
@@ -145,12 +164,14 @@ contract ValidatorUpgradeable is
         override
         returns (bool isValid)
     {
-        require(combinedSignatures.length % 65 == 0, "Invalid signature length");
+        if (combinedSignatures.length % 65 != 0) {
+            revert InvalidSignatureLength(combinedSignatures.length);
+        }
         uint256 numSignatures = combinedSignatures.length / 65;
         ValidatorStorage storage $ = _getValidatorStorage();
-        require(
-            numSignatures == $.validators.length(), "Signature count mismatch"
-        );
+        if (numSignatures != $.validators.length()) {
+            revert SignatureCountMismatch(numSignatures, $.validators.length());
+        }
         bytes32 hash = receipt.toHash();
         for (uint256 i = 0; i < numSignatures; i++) {
             bytes memory signature = new bytes(65);
@@ -158,7 +179,9 @@ contract ValidatorUpgradeable is
                 signature[j] = combinedSignatures[i * 65 + j];
             }
             address signer = hash.recover(signature);
-            require($.validators.contains(signer), "Invalid signature");
+            if (!$.validators.contains(signer)) {
+                revert UnknownSigner(signer);
+            }
         }
         return true;
     }
@@ -176,7 +199,10 @@ contract ValidatorUpgradeable is
         ValidatorStorage storage $ = _getValidatorStorage();
         bytes32 hash = payload.toHash();
         address signer = hash.recover(signature);
-        return signer == $.payloadSigner;
+        if (signer != $.payloadSigner) {
+            revert UnknownSigner(signer);
+        }
+        return true;
     }
 
 }

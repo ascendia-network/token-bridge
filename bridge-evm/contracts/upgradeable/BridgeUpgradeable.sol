@@ -1,19 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import
+import {AccessManagedUpgradeable} from
     "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Initializable} from
+    "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-import "../interface/IBridge.sol";
-import "../interface/IValidation.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20Permit} from
+    "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
-import "../utils/AddressUtils.sol";
-import "../utils/NoncesUpgradeable.sol";
-import "../utils/ReceiptUtils.sol";
+import {IBridge} from "../interface/IBridge.sol";
+import {BridgeFlags} from "../interface/IBridgeTypes.sol";
+import {ITokenManager} from "../interface/ITokenManager.sol";
+import {IValidation} from "../interface/IValidation.sol";
 
-import "./TokenManagerUpgradeable.sol";
+import {AddressUtils} from "../utils/AddressUtils.sol";
+import {NoncesUpgradeable} from "../utils/NoncesUpgradeable.sol";
+import {ReceiptUtils} from "../utils/ReceiptUtils.sol";
+
+import {TokenManagerUpgradeable} from "./TokenManagerUpgradeable.sol";
 
 abstract contract BridgeUpgradeable is
     IBridge,
@@ -483,6 +490,9 @@ abstract contract BridgeUpgradeable is
     {
         _validateClaim(receipt, signature);
         address token = external2token(receipt.tokenAddress);
+        if (token == address(0)) {
+            revert TokenNotMapped(receipt.tokenAddress);
+        }
         uint256 receivedFlags = receipt.flags << 64; // restore flags position
         address receiver = receipt.to.toAddress();
         _transferClaim(receivedFlags, token, receipt.amount, receiver);

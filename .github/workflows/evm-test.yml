@@ -1,0 +1,73 @@
+name: Forge Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+env:
+  FOUNDRY_PROFILE: ci
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check:
+    strategy:
+      fail-fast: true
+
+    defaults:
+      run:
+        working-directory: bridge-evm
+    name: Foundry project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+    # Must Insall node modules for forge to reference in remappings
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          registry-url: https://registry.npmjs.org
+          cache: 'npm'
+          cache-dependency-path: 'bridge-evm/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+    # End of node module support
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Run Forge build
+        run: |
+          forge --version
+          forge build --sizes
+        id: build
+
+      - name: Run Forge tests
+        run: |
+          forge test -vvv
+        id: test
+
+      - name: Run snapshot
+        run: NO_COLOR=1 forge snapshot >> $GITHUB_STEP_SUMMARY
+
+      - name: Run Forge coverage
+        run: 
+          forge coverage --report lcov
+        id: coverage
+      
+      - name: LCOV Summary
+        uses: pre-history/lcov-summary-action@v0.4.1
+        with:
+          title: 'Contracts coverage summary'
+          lcov-file: ./lcov.info
+          working-directory: bridge-evm
+          comment-on-pr: true

@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import {MessageHashUtils} from
+    "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
-import "../interface/IBridgeTypes.sol";
+import {IBridgeTypes} from "../interface/IBridgeTypes.sol";
 
 library ReceiptUtils {
 
@@ -13,7 +14,7 @@ library ReceiptUtils {
     /// @dev using [toEthSignedMessageHash](https://docs.openzeppelin.com/contracts/5.x/api/utils#MessageHashUtils-toEthSignedMessageHash-bytes32-) from OpenZeppelin's MessageHashUtils
     /// @param receipt receipt to convert
     /// @return hash converted
-    function toHash(IBridgeTypes.Receipt calldata receipt)
+    function toHash(IBridgeTypes.Receipt memory receipt)
         internal
         pure
         returns (bytes32 hash)
@@ -25,7 +26,7 @@ library ReceiptUtils {
     /// @dev using [toEthSignedMessageHash](https://docs.openzeppelin.com/contracts/5.x/api/utils#MessageHashUtils-toEthSignedMessageHash-bytes32-) from OpenZeppelin's MessageHashUtils
     /// @param receipt receipt to convert
     /// @return hash converted
-    function toEthSignedMessageHash(IBridgeTypes.Receipt calldata receipt)
+    function toEthSignedMessageHash(IBridgeTypes.Receipt memory receipt)
         internal
         pure
         returns (bytes32 hash)
@@ -39,6 +40,7 @@ library ReceiptUtils {
                 receipt.chainFrom,
                 receipt.chainTo,
                 receipt.eventId,
+                receipt.flags,
                 receipt.data
             )
         );

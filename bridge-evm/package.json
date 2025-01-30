@@ -3,14 +3,18 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "postinstall": "forge install",
+    "prebuild:forge": "npm run clean:forge",
+    "precompile:hardhat": "npm run clean:hardhat",
+    "pretest:sol": "npm run build:forge",
+    "clean:forge": "forge clean",
+    "clean:hardhat": "npx hardhat clean",
+    "coverage": "npm run pretest:sol && FOUNDRY_PROFILE=coverage forge coverage",
     "compile:hardhat": "npx hardhat compile",
     "build:forge": "forge build",
-    "test:ts": "npx hardhat test",
-    "test:sol": "forge test",
-    "test": "npm run test:ts && npm run test:sol",
+    "test": "forge test",
     "docgen": "forge doc",
-    "lint": "forge fmt"
+    "lint": "forge fmt",
+    "postinstall": "forge install"
   },
   "keywords": [],
   "author": "",

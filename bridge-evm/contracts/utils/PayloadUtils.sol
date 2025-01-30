@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import {MessageHashUtils} from
+    "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
-import "../interface/IBridgeTypes.sol";
+import {IBridgeTypes} from "../interface/IBridgeTypes.sol";
 
 library PayloadUtils {
 
@@ -12,7 +13,8 @@ library PayloadUtils {
     /// @dev using [toEthSignedMessageHash](https://docs.openzeppelin.com/contracts/5.x/api/utils#MessageHashUtils-toEthSignedMessageHash-bytes32-) from OpenZeppelin's MessageHashUtils
     /// @param payload payload to convert
     /// @return hash converted
-    function toHash(IBridgeTypes.SendPayload calldata payload)
+
+    function toHash(IBridgeTypes.SendPayload memory payload)
         internal
         pure
         returns (bytes32 hash)
@@ -23,7 +25,8 @@ library PayloadUtils {
     /// @dev using [toEthSignedMessageHash](https://docs.openzeppelin.com/contracts/5.x/api/utils#MessageHashUtils-toEthSignedMessageHash-bytes32-) from OpenZeppelin's MessageHashUtils
     /// @param payload payload to convert
     /// @return hash converted
-    function toEthSignedMessageHash(IBridgeTypes.SendPayload calldata payload)
+
+    function toEthSignedMessageHash(IBridgeTypes.SendPayload memory payload)
         internal
         pure
         returns (bytes32 hash)

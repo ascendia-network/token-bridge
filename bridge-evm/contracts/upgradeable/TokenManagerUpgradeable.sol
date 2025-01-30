@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {Initializable} from
+    "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-import "../interface/ITokenManager.sol";
-import "../interface/IWrapped.sol";
+import {ITokenManager} from "../interface/ITokenManager.sol";
+import {IWrapped} from "../interface/IWrapped.sol";
 
-import "../token/ERC20Bridged.sol";
+import {ERC20Bridged} from "../token/ERC20Bridged.sol";
 
 abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
 
@@ -54,20 +55,8 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         $.bridge = bridge_;
         $.SAMB = SAMB;
     }
+    /// @inheritdoc ITokenManager
 
-    /// @inheritdoc ITokenManager
-    function addToken(
-        address token,
-        bytes32 externalTokenAddress
-    )
-        external
-        virtual
-        override
-        returns (bool success)
-    {
-        return addToken(token, externalTokenAddress, true);
-    }
-    /// @inheritdoc ITokenManager
     function addToken(
         address token,
         bytes32 externalTokenAddress,
@@ -77,13 +66,11 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         virtual
         returns (bool success)
     {
-        bool res = _addToken(token, externalTokenAddress);
-        if (paused) {
-            res = res && _pauseToken(token);
-        }
+        bool res = _addToken(token, externalTokenAddress, paused);
         return res;
     }
     /// @inheritdoc ITokenManager
+
     function mapExternalToken(
         bytes32 externalTokenAddress,
         address token
@@ -153,17 +140,9 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
             externalTokenAddress, name, symbol, decimals
         );
     }
-
-    /// Verify that the token is not paused
-    /// @param token address of the token
-    modifier isNotPaused(address token) {
-        if (pausedTokens(token)) {
-            revert TokenIsPaused(token);
-        }
-        _;
-    }
     /// Used to wrap AMB to SAMB
     /// @param amount amount to wrap
+
     function _wrap(uint256 amount) internal {
         return IWrapped(_getTokenManagerStorage().SAMB).deposit{value: amount}();
     }
@@ -230,18 +209,26 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     /// @return success true if the token was added
     function _addToken(
         address token,
-        bytes32 externalTokenAddress
+        bytes32 externalTokenAddress,
+        bool paused
     )
         private
         returns (bool success)
     {
+        if (token == address(0)) {
+            revert TokenZeroAddress();
+        }
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         if ($.bridgableTokens[token]) {
             revert TokenAlreadyAdded(token);
         }
+        if ($.external2token[externalTokenAddress] != address(0)) {
+            revert TokenAlreadyMapped(externalTokenAddress);
+        }
         $.bridgableTokens[token] = true;
         // $.token2external[token] = externalTokenAddress;
         $.external2token[externalTokenAddress] = token;
+        $.unpausedTokens[token] = !paused;
         return true;
     }
 
@@ -258,7 +245,10 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         if (!$.bridgableTokens[token]) {
-            revert TokenNotAdded(token);
+            revert TokenNotBridgable(token);
+        }
+        if ($.external2token[externalTokenAddress] != address(0)) {
+            revert TokenAlreadyMapped(externalTokenAddress);
         }
         $.external2token[externalTokenAddress] = token;
         return true;
@@ -272,6 +262,9 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         returns (bool success)
     {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
+        if ($.external2token[externalTokenAddress] == address(0)) {
+            revert TokenNotMapped(externalTokenAddress);
+        }
         delete $.external2token[externalTokenAddress];
         return true;
     }
@@ -318,8 +311,7 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         address bridge = $.bridge;
         token = address(new ERC20Bridged(name, symbol, decimals, bridge));
-        _addToken(token, externalTokenAddress);
-        _pauseToken(token);
+        _addToken(token, externalTokenAddress, true);
         return token;
     }
 

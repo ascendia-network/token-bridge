@@ -21,3 +21,5 @@ line_length = 80
 tab_width = 4
 [doc]
 repository = "https://github.com/ambrosus/token-bridge"
+[profile.coverage]
+no-match-coverage="test/.*.sol"

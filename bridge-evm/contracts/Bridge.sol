@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "./upgradeable/BridgeUpgradeable.sol";
+import {IValidation} from "./interface/IValidation.sol";
+
+import {BridgeUpgradeable} from "./upgradeable/BridgeUpgradeable.sol";
 
 contract Bridge is BridgeUpgradeable {
 

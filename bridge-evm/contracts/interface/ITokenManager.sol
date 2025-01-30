@@ -14,8 +14,11 @@ interface ITokenManager {
 
     event TokenDeployed(address token, bytes32 externalTokenAddress);
 
+    error TokenZeroAddress();
     error TokenAlreadyAdded(address token);
+    error TokenAlreadyMapped(bytes32 externalTokenAddress);
     error TokenNotAdded(address token);
+    error TokenNotMapped(bytes32 externalTokenAddress);
     error TokenNotBridgable(address token);
     error TokenNotPaused(address token);
     error TokenIsPaused(address token);

@@ -2,7 +2,9 @@
 
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {ERC20Permit} from
+    "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 
 contract ERC20Bridged is ERC20Permit {
 
@@ -42,6 +44,7 @@ contract ERC20Bridged is ERC20Permit {
      * This address is used to mint and burn tokens.
      * @return bridgeAddress the address of the bridge contract
      */
+
     function bridge() public view returns (address bridgeAddress) {
         return _bridgeAddress;
     }

@@ -2,9 +2,11 @@
 pragma solidity ^0.8.20;
 pragma abicoder v2;
 
-import "./IBridgeTypes.sol";
+import {IBridgeTypes} from "./IBridgeTypes.sol";
 
 interface IValidation is IBridgeTypes {
+
+    error UnknownSigner(address signer);
 
     /// Set the address of the payload signer
     /// @param _payloadSigner address of the payload signer

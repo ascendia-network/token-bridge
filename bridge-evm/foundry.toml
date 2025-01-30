@@ -26,4 +26,5 @@ no-match-coverage="test/.*.sol"
 [profile.ci]
 verbosity=3
 ffi=true
+force=true
 

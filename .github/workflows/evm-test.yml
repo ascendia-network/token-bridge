@@ -54,7 +54,7 @@ jobs:
 
       - name: Run Forge tests
         run: |
-          forge test -vvv --ffi
+          forge test
         id: test
 
       - name: Run snapshot

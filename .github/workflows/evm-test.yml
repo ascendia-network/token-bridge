@@ -31,7 +31,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+            version: stable
     # Must Insall node modules for forge to reference in remappings
       - uses: actions/setup-node@v4
         with:
@@ -42,12 +45,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-    # End of node module support
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: stable
 
       - name: Run Forge build
         run: |

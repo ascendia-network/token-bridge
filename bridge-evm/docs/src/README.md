@@ -17,7 +17,6 @@ This project contains the Ethereum Virtual Machine (EVM) contracts for the Bridg
 ## Stack
 
 Project utilizes the following stack:
- - [Hardhat](https://hardhat.org/)
  - [Foundry](https://book.getfoundry.sh/)
  - [Solidity](https://soliditylang.org/)
 
@@ -37,12 +36,6 @@ Project utilizes the following stack:
 npm run build:forge
 ```
 
-#### Hardhat
-
-```shell
-npm run compile:hardhat
-```
-
 ### Testing
 #### Foundry tests
 
@@ -54,18 +47,6 @@ or
 
 ```shell
 forge test
-```
-
-#### Hardhat tests
-
-```shell
-npm run test:ts
-```
-
-or
-
-```shell
-npx hardhat test
 ```
 
 #### Run all tests with NPM:

@@ -1,5 +1,5 @@
 # Validator
-[Git Source](https://github.com/ambrosus/token-bridge/blob/f7df5b81ee6a756200c1bfb81fcd6b81d13f850e/contracts/Validator.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/feca847ded93a058080932a4b6dbb25928c5534c/contracts/Validator.sol)
 
 **Inherits:**
 [ValidatorUpgradeable](/contracts/upgradeable/ValidatorUpgradeable.sol/contract.ValidatorUpgradeable.md)

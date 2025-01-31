@@ -1,5 +1,5 @@
 # Bridge
-[Git Source](https://github.com/ambrosus/token-bridge/blob/f7df5b81ee6a756200c1bfb81fcd6b81d13f850e/contracts/Bridge.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/feca847ded93a058080932a4b6dbb25928c5534c/contracts/Bridge.sol)
 
 **Inherits:**
 [BridgeUpgradeable](/contracts/upgradeable/BridgeUpgradeable.sol/abstract.BridgeUpgradeable.md)

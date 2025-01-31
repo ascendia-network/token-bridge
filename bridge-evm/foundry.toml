@@ -36,6 +36,6 @@ via-ir=true
 verbosity=3
 ffi=true
 force=true
-no-match-coverage="test/.*.sol"
+no-match-coverage="test|script/.*.sol"
 report-file="./coverage/lcov.info"
 

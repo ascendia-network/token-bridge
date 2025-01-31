@@ -46,6 +46,11 @@ contract ValidatorTest is Test {
         ) == coverageProfile;
     }
 
+    struct Signer {
+        address Address;
+        uint256 PK;
+    }
+
     AccessManager private authority;
     Validator private validatorInstance;
     IWrapped private wrappedToken;
@@ -55,7 +60,14 @@ contract ValidatorTest is Test {
     address chris = address(0xC14);
     address deadBeef = address(0xDeadBeef);
     address payable fee = payable(address(0xFee));
+
+    Signer[] signers;
+    Signer payloadSigner;
     EnumerableSet.AddressSet validatorSet;
+
+    IBridgeTypes.SendPayload payloadCommon;
+
+    IBridgeTypes.Receipt receiptCommon;
 
     function setUpWrappedToken() public virtual returns (IWrapped) {
         address wrappedTokenAddress = address(new sAMB("Wrapped Amber", "sAMB"));
@@ -66,7 +78,7 @@ contract ValidatorTest is Test {
     function setUpValidator(
         address authorityAddress,
         address[] memory validators,
-        address payloadSigner,
+        address pldSigner,
         uint256 feeValidityWindow
     )
         public
@@ -84,7 +96,7 @@ contract ValidatorTest is Test {
                         (
                             authorityAddress,
                             validators,
-                            payloadSigner,
+                            pldSigner,
                             feeValidityWindow
                         )
                     )
@@ -99,7 +111,7 @@ contract ValidatorTest is Test {
                         (
                             authorityAddress,
                             validators,
-                            payloadSigner,
+                            pldSigner,
                             feeValidityWindow
                         )
                     )
@@ -110,12 +122,108 @@ contract ValidatorTest is Test {
         return validatorInstance;
     }
 
+    function beforeTestSetup(bytes4 testSelector)
+        public
+        pure
+        returns (bytes[] memory beforeTestCalldata)
+    {
+        if (
+            testSelector == this.test_validate.selector
+                || testSelector
+                    == this.test_revertWhen_validate_InvalidSignatureLength.selector
+                || testSelector
+                    == this.test_revertWhen_validate_EmptyValidatorSet.selector
+                || testSelector
+                    == this.test_revertWhen_validatePayload_EmptyValidatorSet.selector
+        ) {
+            beforeTestCalldata = new bytes[](1);
+            beforeTestCalldata[0] =
+                abi.encode(this.clearPredefinedValidators.selector);
+        } else if (
+            testSelector
+                == this.test_revertWhen_validate_NoPayloadSigner.selector
+                || testSelector
+                    == this.test_revertWhen_validatePayload_NoPayloadSigner.selector
+        ) {
+            beforeTestCalldata = new bytes[](1);
+            beforeTestCalldata[0] = abi.encode(this.clearPayloadSigner.selector);
+        } else if (
+            testSelector
+                == this.test_revertWhen_validatePayload_ZeroValidityWindow.selector
+                || testSelector
+                    == this.test_revertWhen_validate_ZeroValidityWindow.selector
+        ) {
+            beforeTestCalldata = new bytes[](1);
+            beforeTestCalldata[0] =
+                abi.encode(this.setUpZeroFeeValidityWindow.selector);
+        }
+    }
+
+    function clearPredefinedValidators() public {
+        while (validatorSet.length() > 0) {
+            validatorInstance.removeValidator(validatorSet.at(0));
+            validatorSet.remove(validatorSet.at(0));
+        }
+    }
+
+    function clearPayloadSigner() public {
+        validatorInstance.setPayloadSigner(address(0));
+    }
+
+    function setUpZeroFeeValidityWindow() public {
+        validatorInstance = setUpValidator(
+            address(authority), validatorSet.values(), payloadSigner.Address, 0
+        );
+    }
+
     function setUp() public {
         authority = new AccessManager(address(this));
+
+        (address psigner, uint256 psignerPk) = makeAddrAndKey("paylodSigner");
+        payloadSigner = Signer(psigner, psignerPk);
+
+        string[] memory signersKeys = new string[](5);
+        signersKeys[0] = "alice";
+        signersKeys[1] = "bob";
+        signersKeys[2] = "chris";
+        signersKeys[3] = "dave";
+        signersKeys[4] = "fred";
+
+        for (uint256 i = 0; i < signersKeys.length; i++) {
+            (address signer, uint256 signerPk) = makeAddrAndKey(signersKeys[i]);
+            signers.push(Signer(signer, signerPk));
+        }
+
         validatorSet.add(alice);
 
         setUpWrappedToken();
-        setUpValidator(address(authority), validatorSet.values(), deadBeef, 100);
+        setUpValidator(
+            address(authority),
+            validatorSet.values(),
+            payloadSigner.Address,
+            100
+        );
+
+        payloadCommon = IBridgeTypes.SendPayload({
+            tokenAddress: bytes32("SOLANA"),
+            amountToSend: 100 ether,
+            feeAmount: 1 ether,
+            timestamp: block.timestamp,
+            flags: 0,
+            flagData: bytes("SOME_USEFUL_DATA")
+        });
+
+        receiptCommon = IBridgeTypes.Receipt({
+            from: bytes32("GOOD_SENDER"),
+            to: bytes32("GOOD_RECEIVER"),
+            tokenAddress: bytes32("SOLANA"),
+            amount: 100 ether,
+            chainFrom: 1,
+            chainTo: 2,
+            eventId: 1,
+            flags: 0,
+            data: bytes("SOME_USEFUL_DATA")
+        });
     }
 
     function test_addValidator() public {
@@ -215,44 +323,47 @@ contract ValidatorTest is Test {
         vm.stopPrank();
     }
 
-    function test_validatePayload() public {
-        (address signer, uint256 signerPk) = makeAddrAndKey("signer");
-        validatorInstance.setPayloadSigner(signer);
-        IBridgeTypes.SendPayload memory payload = IBridgeTypes.SendPayload({
-            tokenAddress: bytes32("SOLANA"),
-            amountToSend: 100 ether,
-            feeAmount: 1 ether,
-            timestamp: block.timestamp,
-            flags: 0,
-            flagData: bytes("SOME_USEFUL_DATA")
-        });
-        vm.startPrank(signer);
+    function test_revertIf_setFeeValidityWindow_set_to_zero() public {
+        vm.expectRevert("Fee validity window must be greater than 0");
+        validatorInstance.setFeeValidityWindow(0);
+    }
+
+    function signPayload(
+        IBridgeTypes.SendPayload memory payload,
+        Signer memory signer
+    )
+        internal
+        pure
+        returns (bytes memory signature)
+    {
         bytes32 digest = payload.toHash();
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
-        bytes memory signature = abi.encodePacked(r, s, v); // note the order here is different from line above.
-        vm.stopPrank();
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signer.PK, digest);
+        signature = abi.encodePacked(r, s, v);
+        return signature;
+    }
+
+    function test_validatePayload() public view {
+        bytes memory signature = signPayload(payloadCommon, payloadSigner);
         assertTrue(
-            validatorInstance.validatePayload(payload, signature),
+            validatorInstance.validatePayload(payloadCommon, signature),
             "Payload validation failed"
         );
     }
 
-    function test_revertIf_validatePayload_invalid_signature() public {
+    function test_revertIf_validatePayload_InvalidSignature() public {
         (address signer, uint256 signerPk) = makeAddrAndKey("signer");
-        IBridgeTypes.SendPayload memory payload = IBridgeTypes.SendPayload({
-            tokenAddress: bytes32("SOLANA"),
-            amountToSend: 100 ether,
-            feeAmount: 1 ether,
-            timestamp: block.timestamp,
-            flags: 0,
-            flagData: bytes("SOME_USEFUL_DATA")
-        });
-        vm.startPrank(signer);
-        bytes32 digest = payload.toHash();
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
-        bytes memory signature = abi.encodePacked(v, r, s); // note the order here is different from line above.
-        vm.stopPrank();
+        bytes memory signature =
+            signPayload(payloadCommon, Signer(signer, signerPk));
         // Unpack back values from signature (but in correct order)
+        uint8 v;
+        bytes32 r;
+        bytes32 s;
+        assembly ("memory-safe") {
+            r := mload(add(signature, 0x20))
+            s := mload(add(signature, 0x40))
+            v := byte(0, mload(add(signature, 0x60)))
+        }
+        signature = abi.encodePacked(v, r, s);
         assembly ("memory-safe") {
             r := mload(add(signature, 0x20))
             s := mload(add(signature, 0x40))
@@ -261,132 +372,82 @@ contract ValidatorTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(ECDSA.ECDSAInvalidSignatureS.selector, s)
         );
-        validatorInstance.validatePayload(payload, signature);
+        validatorInstance.validatePayload(payloadCommon, signature);
     }
 
     function test_revertWhen_validatePayload_UnknownSigner() public {
         (address signer, uint256 signerPk) = makeAddrAndKey("signer");
-        IBridgeTypes.SendPayload memory payload = IBridgeTypes.SendPayload({
-            tokenAddress: bytes32("SOLANA"),
-            amountToSend: 100 ether,
-            feeAmount: 1 ether,
-            timestamp: block.timestamp,
-            flags: 0,
-            flagData: bytes("SOME_USEFUL_DATA")
-        });
-        vm.startPrank(signer);
-        bytes32 digest = payload.toHash();
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
-        bytes memory signature = abi.encodePacked(r, s, v); // note the order here is different from line above.
-        vm.stopPrank();
-        vm.startPrank(alice);
+        bytes memory signature =
+            signPayload(payloadCommon, Signer(signer, signerPk));
         vm.expectRevert(
             abi.encodeWithSelector(IValidation.UnknownSigner.selector, signer)
         );
-        validatorInstance.validatePayload(payload, signature);
+        validatorInstance.validatePayload(payloadCommon, signature);
+    }
+
+    function test_revertWhen_validatePayload_NoPayloadSigner() public {
+        bytes memory signature = signPayload(payloadCommon, payloadSigner); // note the order here is different from line above.
+        vm.expectRevert(IValidatorV1.NoPayloadSigner.selector);
+        vm.startPrank(alice);
+        validatorInstance.validatePayload(payloadCommon, signature);
         vm.stopPrank();
     }
 
-    function beforeTestSetup(bytes4 testSelector)
-        public
-        pure
-        returns (bytes[] memory beforeTestCalldata)
-    {
-        if (
-            testSelector == this.test_validate.selector
-                || testSelector
-                    == this.test_revertWhen_validate_InvalidSignatureLength.selector
-        ) {
-            beforeTestCalldata = new bytes[](1);
-            beforeTestCalldata[0] =
-                abi.encode(this.clearPredefinedValidators.selector);
-        }
+    function test_revertWhen_validatePayload_EmptyValidatorSet() public {
+        bytes memory signature = signPayload(payloadCommon, payloadSigner);
+        vm.startPrank(alice);
+        vm.expectRevert(IValidatorV1.NoValidators.selector);
+        validatorInstance.validatePayload(payloadCommon, signature);
+        vm.stopPrank();
     }
 
-    function clearPredefinedValidators() public {
-        while (validatorSet.length() > 0) {
-            validatorInstance.removeValidator(validatorSet.at(0));
-            validatorSet.remove(validatorSet.at(0));
+    function test_revertWhen_validatePayload_ZeroValidityWindow() public {
+        bytes memory signature = signPayload(payloadCommon, payloadSigner);
+        vm.startPrank(alice);
+        vm.expectRevert(IValidatorV1.NoFeeValidityWindow.selector);
+        validatorInstance.validatePayload(payloadCommon, signature);
+        vm.stopPrank();
+    }
+
+    function signReceipt(IBridgeTypes.Receipt memory receipt)
+        internal
+        returns (bytes memory signature)
+    {
+        bytes32 digest = receipt.toHash();
+        for (uint256 i = 0; i < signers.length; i++) {
+            validatorInstance.addValidator(signers[i].Address);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(signers[i].PK, digest);
+            bytes memory signerSignature = abi.encodePacked(r, s, v); // note the order here is different from line above.
+            signature = bytes.concat(signature, signerSignature);
         }
+        return signature;
     }
 
     function test_validate() public {
-        string[] memory signers = new string[](5);
-        signers[0] = "alice";
-        signers[1] = "bob";
-        signers[2] = "chris";
-        signers[3] = "dave";
-        signers[4] = "fred";
-        uint256 signersNumber = signers.length;
-
-        bytes memory signature;
-
-        IBridgeTypes.Receipt memory receipt = IBridgeTypes.Receipt({
-            from: bytes32("GOOD_SENDER"),
-            to: bytes32("GOOD_RECEIVER"),
-            tokenAddress: bytes32("SOLANA"),
-            amount: 100 ether,
-            chainFrom: 1,
-            chainTo: 2,
-            eventId: 1,
-            flags: 0,
-            data: bytes("SOME_USEFUL_DATA")
-        });
-        bytes32 digest = receipt.toHash();
-        for (uint256 i = 0; i < signersNumber; i++) {
-            (address signer, uint256 signerPk) = makeAddrAndKey(signers[i]);
-            validatorInstance.addValidator(signer);
-            vm.startPrank(signer);
-            (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
-            bytes memory signerSignature = abi.encodePacked(r, s, v); // note the order here is different from line above.
-            signature = bytes.concat(signature, signerSignature);
-            vm.stopPrank();
-        }
+        bytes memory signature = signReceipt(receiptCommon);
         assertTrue(
-            validatorInstance.validate(receipt, signature),
+            validatorInstance.validate(receiptCommon, signature),
             "Receipt validation failed"
         );
     }
 
     function test_revertWhen_validate_UnknownSigner() public {
-        string[] memory signers = new string[](5);
-        signers[0] = "alice";
-        signers[1] = "bob";
-        signers[2] = "chris";
-        signers[3] = "dave";
-        signers[4] = "fred";
-        uint256 signersNumber = signers.length;
-
         bytes memory signature;
-
-        IBridgeTypes.Receipt memory receipt = IBridgeTypes.Receipt({
-            from: bytes32("GOOD_SENDER"),
-            to: bytes32("GOOD_RECEIVER"),
-            tokenAddress: bytes32("SOLANA"),
-            amount: 100 ether,
-            chainFrom: 1,
-            chainTo: 2,
-            eventId: 1,
-            flags: 0,
-            data: bytes("SOME_USEFUL_DATA")
-        });
         address unknownSignerAddress;
-        for (uint256 i = 0; i < signersNumber; i++) {
-            (address signer, uint256 signerPk) = makeAddrAndKey(signers[i]);
+        bytes32 digest = receiptCommon.toHash();
+        for (uint256 i = 0; i < signers.length; i++) {
             if (i != 0) {
                 // We don't add the first signer to the validator set
                 // to simulate an unknown signer
                 // P.S. another alice is already in the validator set
-                validatorInstance.addValidator(signer);
+                validatorInstance.addValidator(signers[i].Address);
             } else {
-                unknownSignerAddress = signer;
+                unknownSignerAddress = signers[i].Address;
             }
-            vm.startPrank(signer);
-            bytes32 digest = receipt.toHash();
-            (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
+
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(signers[i].PK, digest);
             bytes memory signerSignature = abi.encodePacked(r, s, v); // note the order here is different from line above.
             signature = bytes.concat(signature, signerSignature);
-            vm.stopPrank();
         }
 
         vm.expectRevert(
@@ -394,86 +455,24 @@ contract ValidatorTest is Test {
                 IValidation.UnknownSigner.selector, unknownSignerAddress
             )
         );
-        validatorInstance.validate(receipt, signature);
+        validatorInstance.validate(receiptCommon, signature);
     }
 
     function test_revertWhen_validate_SignatureCountMismatch() public {
-        string[] memory signers = new string[](5);
-        signers[0] = "alice";
-        signers[1] = "bob";
-        signers[2] = "chris";
-        signers[3] = "dave";
-        signers[4] = "fred";
-        uint256 signersNumber = signers.length;
-
-        bytes memory signature;
-
-        IBridgeTypes.Receipt memory receipt = IBridgeTypes.Receipt({
-            from: bytes32("GOOD_SENDER"),
-            to: bytes32("GOOD_RECEIVER"),
-            tokenAddress: bytes32("SOLANA"),
-            amount: 100 ether,
-            chainFrom: 1,
-            chainTo: 2,
-            eventId: 1,
-            flags: 0,
-            data: bytes("SOME_USEFUL_DATA")
-        });
-
-        for (uint256 i = 0; i < signersNumber; i++) {
-            (address signer, uint256 signerPk) = makeAddrAndKey(signers[i]);
-            validatorInstance.addValidator(signer);
-            vm.startPrank(signer);
-            bytes32 digest = receipt.toHash();
-            (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
-            bytes memory signerSignature = abi.encodePacked(r, s, v); // note the order here is different from line above.
-            signature = bytes.concat(signature, signerSignature);
-            vm.stopPrank();
-        }
+        bytes memory signature = signReceipt(receiptCommon);
         // Another alice in the validator set, so the signature count is different
         vm.expectRevert(
             abi.encodeWithSelector(
                 IValidatorV1.SignatureCountMismatch.selector,
-                signersNumber,
-                signersNumber + 1
+                signers.length,
+                signers.length + 1
             )
         );
-        validatorInstance.validate(receipt, signature);
+        validatorInstance.validate(receiptCommon, signature);
     }
 
     function test_revertWhen_validate_InvalidSignatureLength() public {
-        string[] memory signers = new string[](5);
-        signers[0] = "alice";
-        signers[1] = "bob";
-        signers[2] = "chris";
-        signers[3] = "dave";
-        signers[4] = "fred";
-        uint256 signersNumber = signers.length;
-
-        bytes memory signature;
-
-        IBridgeTypes.Receipt memory receipt = IBridgeTypes.Receipt({
-            from: bytes32("GOOD_SENDER"),
-            to: bytes32("GOOD_RECEIVER"),
-            tokenAddress: bytes32("SOLANA"),
-            amount: 100 ether,
-            chainFrom: 1,
-            chainTo: 2,
-            eventId: 1,
-            flags: 0,
-            data: bytes("SOME_USEFUL_DATA")
-        });
-
-        for (uint256 i = 0; i < signersNumber; i++) {
-            (address signer, uint256 signerPk) = makeAddrAndKey(signers[i]);
-            validatorInstance.addValidator(signer);
-            vm.startPrank(signer);
-            bytes32 digest = receipt.toHash();
-            (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
-            bytes memory signerSignature = abi.encodePacked(r, s, v); // note the order here is different from line above.
-            signature = bytes.concat(signature, signerSignature);
-            vm.stopPrank();
-        }
+        bytes memory signature = signReceipt(receiptCommon);
         // Change the signature length to simulate an invalid signature
         signature = bytes.concat(signature, bytes("GARBAGE"));
         vm.expectRevert(
@@ -481,7 +480,43 @@ contract ValidatorTest is Test {
                 IValidatorV1.InvalidSignatureLength.selector, signature.length
             )
         );
+        validatorInstance.validate(receiptCommon, signature);
+    }
+
+    function test_revertWhen_validate_EmptyValidatorSet() public {
+        bytes memory signature;
+        IBridgeTypes.Receipt memory receipt = IBridgeTypes.Receipt({
+            from: bytes32("GOOD_SENDER"),
+            to: bytes32("GOOD_RECEIVER"),
+            tokenAddress: bytes32("SOLANA"),
+            amount: 100 ether,
+            chainFrom: 1,
+            chainTo: 2,
+            eventId: 1,
+            flags: 0,
+            data: bytes("SOME_USEFUL_DATA")
+        });
+
+        bytes32 digest = receipt.toHash();
+        for (uint256 i = 0; i < signers.length; i++) {
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(signers[i].PK, digest);
+            bytes memory signerSignature = abi.encodePacked(r, s, v); // note the order here is different from line above.
+            signature = bytes.concat(signature, signerSignature);
+        }
+        vm.expectRevert(IValidatorV1.NoValidators.selector);
         validatorInstance.validate(receipt, signature);
+    }
+
+    function test_revertWhen_validate_NoPayloadSigner() public {
+        bytes memory signature = signReceipt(receiptCommon);
+        vm.expectRevert(IValidatorV1.NoPayloadSigner.selector);
+        validatorInstance.validate(receiptCommon, signature);
+    }
+
+    function test_revertWhen_validate_ZeroValidityWindow() public {
+        bytes memory signature = signReceipt(receiptCommon);
+        vm.expectRevert(IValidatorV1.NoFeeValidityWindow.selector);
+        validatorInstance.validate(receiptCommon, signature);
     }
 
 }

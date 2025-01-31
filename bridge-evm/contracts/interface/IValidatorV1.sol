@@ -4,7 +4,19 @@ pragma abicoder v2;
 
 interface IValidatorV1 {
 
+    /// Reverts if no validators are set
+    error NoValidators();
+
+    /// Reverts if the payload signer is not set
+    error NoPayloadSigner();
+
+    /// Reverts if the fee validity window is not set
+    error NoFeeValidityWindow();
+
+    /// Reverts if the signature length is invalid
     error InvalidSignatureLength(uint256 length);
+
+    /// Reverts if the number of signatures is invalid
     error SignatureCountMismatch(uint256 count, uint256 required);
 
     /// Add a new validator to the list

@@ -359,7 +359,7 @@ abstract contract BridgeUpgradeable is
     /// @param amount amount of native currency to send as fee
     function _sendFee(uint256 amount) private {
         (bool sent,) = feeReceiver().call{value: amount}("");
-        if(!sent) {
+        if (!sent) {
             revert SendFailed();
         }
     }

@@ -82,6 +82,20 @@ contract ValidatorUpgradeable is
         }
     }
 
+    modifier readyToValidate() {
+        ValidatorStorage storage $ = _getValidatorStorage();
+        if ($.validators.length() == 0) {
+            revert NoValidators();
+        }
+        if ($.payloadSigner == address(0)) {
+            revert NoPayloadSigner();
+        }
+        if ($.feeValidityWindow == 0) {
+            revert NoFeeValidityWindow();
+        }
+        _;
+    }
+
     /// @inheritdoc IValidatorV1
     function isValidator(address validator_)
         public
@@ -137,6 +151,9 @@ contract ValidatorUpgradeable is
         restricted
         returns (bool success)
     {
+        require(
+            feeValidityWindow_ > 0, "Fee validity window must be greater than 0"
+        );
         ValidatorStorage storage $ = _getValidatorStorage();
         $.feeValidityWindow = feeValidityWindow_;
         return true;
@@ -162,6 +179,7 @@ contract ValidatorUpgradeable is
         public
         view
         override
+        readyToValidate
         returns (bool isValid)
     {
         if (combinedSignatures.length % 65 != 0) {
@@ -194,6 +212,7 @@ contract ValidatorUpgradeable is
         public
         view
         override
+        readyToValidate
         returns (bool isValid)
     {
         ValidatorStorage storage $ = _getValidatorStorage();

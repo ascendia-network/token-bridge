@@ -1,5 +1,5 @@
 # IValidatorV1
-[Git Source](https://github.com/ambrosus/token-bridge/blob/1d5f7952fbb3e2e1a2ce109d93ab3ad11876d0b1/contracts/interface/IValidatorV1.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/f7df5b81ee6a756200c1bfb81fcd6b81d13f850e/contracts/interface/IValidatorV1.sol)
 
 
 ## Functions
@@ -70,13 +70,41 @@ function isValidator(address validator)
 
 
 ## Errors
+### NoValidators
+Reverts if no validators are set
+
+
+```solidity
+error NoValidators();
+```
+
+### NoPayloadSigner
+Reverts if the payload signer is not set
+
+
+```solidity
+error NoPayloadSigner();
+```
+
+### NoFeeValidityWindow
+Reverts if the fee validity window is not set
+
+
+```solidity
+error NoFeeValidityWindow();
+```
+
 ### InvalidSignatureLength
+Reverts if the signature length is invalid
+
 
 ```solidity
 error InvalidSignatureLength(uint256 length);
 ```
 
 ### SignatureCountMismatch
+Reverts if the number of signatures is invalid
+
 
 ```solidity
 error SignatureCountMismatch(uint256 count, uint256 required);

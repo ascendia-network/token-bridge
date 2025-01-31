@@ -1,5 +1,5 @@
 # ERC20Bridged
-[Git Source](https://github.com/ambrosus/token-bridge/blob/1d5f7952fbb3e2e1a2ce109d93ab3ad11876d0b1/contracts/token/ERC20Bridged.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/f7df5b81ee6a756200c1bfb81fcd6b81d13f850e/contracts/token/ERC20Bridged.sol)
 
 **Inherits:**
 ERC20Permit

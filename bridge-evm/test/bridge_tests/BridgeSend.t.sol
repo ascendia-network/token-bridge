@@ -90,7 +90,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
             chainTo: chainDest,
             eventId: bridgeInstance.nextEventID(),
             flags: 0,
-            data: abi.encodePacked(uint64(0))
+            data: abi.encodePacked(uint64(bridgeInstance.nonces(recipient)))
         });
         payloadSignature = signPayload(payload, payloadSigner.PK);
     }
@@ -152,6 +152,34 @@ abstract contract BridgeSendTest is BridgeTestBase {
         return signer;
     }
 
+    function prepareSend(
+        uint256 tokenAmount,
+        Signer memory signer
+    )
+        public
+        returns (Signer memory)
+    {
+        vm.warp(1000);
+        try bridgeInstance.addToken(
+            address(permittableToken), bytes32("PMT_EXT"), false
+        ) {} catch (bytes memory lowLevelData) {
+            if (
+                bytes4(
+                    abi.encodeWithSelector(
+                        ITokenManager.TokenAlreadyAdded.selector,
+                        address(permittableToken)
+                    )
+                ) == bytes4(lowLevelData)
+            ) {
+                console.log("Token already added");
+            }
+        }
+        vm.startPrank(signer.Address);
+        vm.deal(signer.Address, 100 ether);
+        deal(address(permittableToken), signer.Address, tokenAmount);
+        return signer;
+    }
+
     function prepareSendNative(uint256 amount) public returns (Signer memory) {
         Signer memory signer = getSigner("sender");
         vm.warp(1000);
@@ -178,7 +206,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
         vm.expectEmit(address(bridgeInstance));
         emit IBridge.TokenLocked(receipt);
         bridgeInstance.send{value: payload.feeAmount}(
-            bytes32("SOLANA_ADDRESS"),
+            receipt.to,
             destinationChain,
             payload,
             payloadSignature
@@ -194,7 +222,8 @@ abstract contract BridgeSendTest is BridgeTestBase {
             0.01e18
         );
         // Next event ID incremented
-        assertEq(bridgeInstance.nextEventID(), 1);
+        assertEq(bridgeInstance.nextEventID(), receipt.eventId + 1);
+        assertEq(bridgeInstance.nonces(receipt.to), bytesToUint(receipt.data) + 1);
     }
 
     function sendNative(
@@ -306,6 +335,78 @@ abstract contract BridgeSendTest is BridgeTestBase {
                 rP,
                 sP
             );
+    }
+
+    function test_sendingToBridge_multiple(uint256 amountToSend) public {
+        bool isPermit = false;
+        vm.assume(amountToSend > 0 && amountToSend < type(uint256).max / 2);
+        Signer memory signer = prepareSend(amountToSend * 2);
+        approveOrPermit(
+            !isPermit,
+            address(permittableToken),
+            signer,
+            amountToSend * 2,
+            address(bridgeInstance)
+        );
+        uint256 destinationChain = 1;
+        uint256 feeAmount = 1000 wei;
+        (
+            IBridgeTypes.SendPayload memory payload,
+            IBridgeTypes.Receipt memory receipt,
+            bytes memory payloadSignature
+        ) = generateSendingValues(
+            address(permittableToken),
+            amountToSend,
+            feeAmount,
+            0,
+            signer.Address,
+            bytes32("SOLANA_ADDRESS"),
+            destinationChain
+        );
+        send(signer, payload, receipt, payloadSignature, destinationChain);
+        // User nonce and contract nonce was incremented after the first send
+        (payload, receipt, payloadSignature) = generateSendingValues(
+            address(permittableToken),
+            amountToSend,
+            feeAmount,
+            0,
+            signer.Address,
+            bytes32("SOLANA_ADDRESS"),
+            destinationChain
+        );
+        send(signer, payload, receipt, payloadSignature, destinationChain);
+        vm.stopPrank();
+        // Other User nonce will be 2 here (same recepient) but contract nonce will be 3 after the second send
+        signer = getSigner("singer2");
+        prepareSend(amountToSend * 2, signer);
+        approveOrPermit(
+            !isPermit,
+            address(permittableToken),
+            signer,
+            amountToSend * 2,
+            address(bridgeInstance)
+        );
+        (payload, receipt, payloadSignature) = generateSendingValues(
+            address(permittableToken),
+            amountToSend,
+            feeAmount,
+            0,
+            signer.Address,
+            bytes32("SOLANA_ADDRESS"),
+            destinationChain
+        );
+        send(signer, payload, receipt, payloadSignature, destinationChain);
+        // Other User nonce will be 0 here (other recepient) but contract nonce will be 4 after the third send
+        (payload, receipt, payloadSignature) = generateSendingValues(
+            address(permittableToken),
+            amountToSend,
+            feeAmount,
+            0,
+            signer.Address,
+            bytes32("SOLANA_ADDRESS2"),
+            destinationChain
+        );
+        send(signer, payload, receipt, payloadSignature, destinationChain);
     }
 
     function test_sendingToBridge_native(uint256 amountToSend) public {

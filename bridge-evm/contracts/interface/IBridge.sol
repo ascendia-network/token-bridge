@@ -31,6 +31,21 @@ interface IBridge is IBridgeTypes {
     /// Emits when tokens are claimed from the contract
     event TokenUnlocked(Receipt receipt);
 
+    /// Emits when the fee receiver is changed
+    /// @param changer Who changed the fee receiver
+    /// @param newFeeReceiver New fee receiver address
+    event FeeReceiverChanged(address indexed changer, address indexed newFeeReceiver);
+
+    /// Emits when the native send amount is changed
+    /// @param changer Who changed the native send amount
+    /// @param newNativeSendAmount New native send amount
+    event NativeSendAmountChanged(address indexed changer, uint256 newNativeSendAmount);
+
+    /// Emits when the validator contract is changed
+    /// @param changer Who changed the validator contract
+    /// @param newValidator New validator contract address
+    event ValidatorChanged(address indexed changer, address indexed newValidator);
+
     /// Get the last nonce of the chain transactions
     /// @return nonce last nonce that was used
     function nextEventID() external view returns (uint256 nonce);

@@ -4,23 +4,67 @@ pragma abicoder v2;
 
 interface ITokenManager {
 
-    event TokenAdded(address token, bytes32 externalTokenAddress);
+    /// Emits when token is added to the bridge
+    /// @param token address of the token
+    /// @param externalTokenAddress external token address
+    event TokenAdded(address indexed token, bytes32 indexed externalTokenAddress);
 
-    event TokenRemoved(address token);
+    /// Emits when external token is mapped to the bridge
+    /// @param token address of the token
+    /// @param externalTokenAddress external token address
+    event TokenMapped(address indexed token, bytes32 indexed externalTokenAddress);
 
-    event TokenPaused(address token);
+    /// Emits when external token is unmapped from the bridge
+    /// @param externalTokenAddress external token address
+    event TokenUnmapped(bytes32 indexed externalTokenAddress);
 
-    event TokenUnpaused(address token);
+    /// Emits when token is deployed from the bridge
+    /// @param token address of the token
+    /// @param externalTokenAddress external token address
+    event TokenDeployed(bytes32 indexed externalTokenAddress, string name, string symbol, uint8 decimals, address token);
+    
+    /// Emits when token is removed from the bridge
+    /// @param token address of the token
+    /// @param externalTokenAddress external token address
+    event TokenRemoved(address indexed token, bytes32 indexed externalTokenAddress);
 
-    event TokenDeployed(address token, bytes32 externalTokenAddress);
+    /// Emits when token is paused
+    /// @param token address of the token
+    event TokenPaused(address indexed token);
 
+    /// Emits when token is unpaused
+    /// @param token address of the token
+    event TokenUnpaused(address indexed token);
+
+    /// Reverts if the token address is zero
     error TokenZeroAddress();
+
+    /// Reverts if token already added
+    /// @param token address of the token
     error TokenAlreadyAdded(address token);
+
+    /// Reverts if token already mapped
+    /// @param externalTokenAddress external token address
     error TokenAlreadyMapped(bytes32 externalTokenAddress);
+
+    /// Reverts if token not added
+    /// @param token address of the token
     error TokenNotAdded(address token);
+
+    /// Reverts if token not mapped
+    /// @param externalTokenAddress external token address
     error TokenNotMapped(bytes32 externalTokenAddress);
+
+    /// Reverts if token not bridgable
+    /// @param token address of the token
     error TokenNotBridgable(address token);
+
+    /// Reverts if token is not paused
+    /// @param token address of the token
     error TokenNotPaused(address token);
+
+    /// Reverts if token is paused
+    /// @param token address of the token
     error TokenIsPaused(address token);
 
     /// Check if the token is bridgable

@@ -25,6 +25,8 @@ abstract contract TokenManagerTest is BridgeTestBase {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     function addToken(address token, bytes32 externalTokenAddress) public {
+        vm.expectEmit(address(bridgeInstance));
+        emit ITokenManager.TokenAdded(token, externalTokenAddress);
         bridgeInstance.addToken(token, externalTokenAddress);
         assertEq(bridgeInstance.bridgableTokens(token), true);
         assertEq(bridgeInstance.external2token(externalTokenAddress), token);
@@ -38,15 +40,46 @@ abstract contract TokenManagerTest is BridgeTestBase {
     )
         public
     {
+        vm.expectEmit(address(bridgeInstance));
+        emit ITokenManager.TokenAdded(token, externalTokenAddress);
+      vm.expectEmit(address(bridgeInstance));
+        if (paused) {
+            emit ITokenManager.TokenPaused(token);
+        } else {
+            emit ITokenManager.TokenUnpaused(token);
+        }
         bridgeInstance.addToken(token, externalTokenAddress, paused);
         assertEq(bridgeInstance.bridgableTokens(token), true);
         assertEq(bridgeInstance.external2token(externalTokenAddress), token);
         assertEq(bridgeInstance.pausedTokens(token), paused);
     }
 
+    function removeToken(address token, bytes32 externalTokenAddress) public {
+        vm.expectEmit(address(bridgeInstance));
+        emit ITokenManager.TokenRemoved(token, externalTokenAddress);
+        bridgeInstance.removeToken(token, externalTokenAddress);
+        assertEq(bridgeInstance.bridgableTokens(token), false);
+        assertEq(
+            bridgeInstance.external2token(externalTokenAddress), address(0x0)
+        );
+        assertEq(bridgeInstance.pausedTokens(token), true);
+    }
+
+
     function mapToken(address token, bytes32 externalTokenAddress) public {
+        vm.expectEmit(address(bridgeInstance));
+        emit ITokenManager.TokenMapped(token, externalTokenAddress);
         bridgeInstance.mapExternalToken(externalTokenAddress, token);
         assertEq(bridgeInstance.external2token(externalTokenAddress), token);
+    }
+
+    function unmapToken(bytes32 externalTokenAddress) public {
+        vm.expectEmit(address(bridgeInstance));
+        emit ITokenManager.TokenUnmapped(externalTokenAddress);
+        bridgeInstance.unmapExternalToken(externalTokenAddress);
+        assertEq(
+            bridgeInstance.external2token(externalTokenAddress), address(0x0)
+        );
     }
 
     function deployBridgedToken(
@@ -58,6 +91,10 @@ abstract contract TokenManagerTest is BridgeTestBase {
         public
         returns (ERC20Bridged)
     {
+        vm.expectEmit(false, true, false, false, address(bridgeInstance));
+        emit ITokenManager.TokenAdded(address(0), externalTokenAddress);
+        vm.expectEmit(true, true, true, false, address(bridgeInstance));
+        emit ITokenManager.TokenDeployed(externalTokenAddress, name, symbol, decimals, address(0));
         address bridgedToken = bridgeInstance.deployExternalTokenERC20(
             externalTokenAddress, name, symbol, decimals
         );
@@ -121,12 +158,7 @@ abstract contract TokenManagerTest is BridgeTestBase {
         address token = address(wrappedToken);
         bytes32 externalTokenAddress = bytes32("sAMB");
         addToken(token, externalTokenAddress);
-        bridgeInstance.removeToken(token, externalTokenAddress);
-        assertEq(bridgeInstance.bridgableTokens(token), false);
-        assertEq(
-            bridgeInstance.external2token(externalTokenAddress), address(0x0)
-        );
-        assertEq(bridgeInstance.pausedTokens(token), true);
+        removeToken(token, externalTokenAddress);
     }
 
     function test_fuzz_removeToken(
@@ -137,12 +169,7 @@ abstract contract TokenManagerTest is BridgeTestBase {
     {
         vm.assume(token != address(0));
         addToken(token, externalTokenAddress);
-        bridgeInstance.removeToken(token, externalTokenAddress);
-        assertEq(bridgeInstance.bridgableTokens(token), false);
-        assertEq(
-            bridgeInstance.external2token(externalTokenAddress), address(0x0)
-        );
-        assertEq(bridgeInstance.pausedTokens(token), true);
+        removeToken(token, externalTokenAddress);
     }
 
     function test_revertIf_removeToken_not_authority() public {
@@ -159,7 +186,7 @@ abstract contract TokenManagerTest is BridgeTestBase {
         vm.stopPrank();
     }
 
-    function test_revertIf_NotAddedToken() public {
+    function test_revertIf_removeToken_NotAddedToken() public {
         address token = address(wrappedToken);
         bytes32 externalTokenAddress = bytes32("sAMB");
         vm.expectRevert(
@@ -175,8 +202,7 @@ abstract contract TokenManagerTest is BridgeTestBase {
         bytes32 externalTokenAddress = bytes32("sAMB");
         addToken(token, externalTokenAddress);
         bytes32 newExternalTokenAddress = bytes32("sAMB2");
-        bridgeInstance.mapExternalToken(newExternalTokenAddress, token);
-        assertEq(bridgeInstance.external2token(newExternalTokenAddress), token);
+        mapToken(token, newExternalTokenAddress);
     }
 
     function test_fuzz_mapExternalToken(
@@ -193,8 +219,7 @@ abstract contract TokenManagerTest is BridgeTestBase {
         newExternalTokenAddress =
             bytes32(bound(b, type(uint256).max / 2, type(uint256).max));
         addToken(token, externalTokenAddress);
-        bridgeInstance.mapExternalToken(newExternalTokenAddress, token);
-        assertEq(bridgeInstance.external2token(newExternalTokenAddress), token);
+        mapToken(token, newExternalTokenAddress);
     }
 
     function test_revertIf_mapExternalToken_notAdded() public {
@@ -241,10 +266,7 @@ abstract contract TokenManagerTest is BridgeTestBase {
         address token = address(wrappedToken);
         bytes32 externalTokenAddress = bytes32("sAMB");
         addToken(token, externalTokenAddress);
-        bridgeInstance.unmapExternalToken(externalTokenAddress);
-        assertEq(
-            bridgeInstance.external2token(externalTokenAddress), address(0x0)
-        );
+        unmapToken(externalTokenAddress);
     }
 
     function test_fuzz_unmapExternalToken(
@@ -255,10 +277,7 @@ abstract contract TokenManagerTest is BridgeTestBase {
     {
         vm.assume(token != address(0));
         addToken(token, externalTokenAddress);
-        bridgeInstance.unmapExternalToken(externalTokenAddress);
-        assertEq(
-            bridgeInstance.external2token(externalTokenAddress), address(0x0)
-        );
+        unmapToken(externalTokenAddress);
     }
 
     function test_revertIf_unmapExternalToken_not_authority() public {
@@ -331,6 +350,8 @@ abstract contract TokenManagerTest is BridgeTestBase {
         address token = address(wrappedToken);
         bytes32 externalTokenAddress = bytes32("sAMB");
         addToken(token, externalTokenAddress, false);
+        vm.expectEmit(address(bridgeInstance));
+        emit ITokenManager.TokenPaused(token);
         bridgeInstance.pauseToken(token);
         assertEq(bridgeInstance.pausedTokens(token), true);
     }
@@ -352,8 +373,12 @@ abstract contract TokenManagerTest is BridgeTestBase {
         address token = address(wrappedToken);
         bytes32 externalTokenAddress = bytes32("sAMB");
         addToken(token, externalTokenAddress, false);
+        vm.expectEmit(address(bridgeInstance));
+        emit ITokenManager.TokenPaused(token);
         bridgeInstance.pauseToken(token);
         assertEq(bridgeInstance.pausedTokens(token), true);
+        vm.expectEmit(address(bridgeInstance));
+        emit ITokenManager.TokenUnpaused(token);
         bridgeInstance.unpauseToken(token);
         assertEq(bridgeInstance.pausedTokens(token), false);
     }

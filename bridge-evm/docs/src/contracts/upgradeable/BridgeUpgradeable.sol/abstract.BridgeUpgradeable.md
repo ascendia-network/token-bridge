@@ -1,5 +1,5 @@
 # BridgeUpgradeable
-[Git Source](https://github.com/ambrosus/token-bridge/blob/feca847ded93a058080932a4b6dbb25928c5534c/contracts/upgradeable/BridgeUpgradeable.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/fd78173c03bc3176acad331d668a382df87c32fd/contracts/upgradeable/BridgeUpgradeable.sol)
 
 **Inherits:**
 [IBridge](/contracts/interface/IBridge.sol/interface.IBridge.md), Initializable, AccessManagedUpgradeable, [NoncesUpgradeable](/contracts/utils/NoncesUpgradeable.sol/abstract.NoncesUpgradeable.md), [TokenManagerUpgradeable](/contracts/upgradeable/TokenManagerUpgradeable.sol/abstract.TokenManagerUpgradeable.md)

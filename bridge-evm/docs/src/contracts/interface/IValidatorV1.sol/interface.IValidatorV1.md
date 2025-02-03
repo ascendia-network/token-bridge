@@ -1,5 +1,5 @@
 # IValidatorV1
-[Git Source](https://github.com/ambrosus/token-bridge/blob/feca847ded93a058080932a4b6dbb25928c5534c/contracts/interface/IValidatorV1.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/fd78173c03bc3176acad331d668a382df87c32fd/contracts/interface/IValidatorV1.sol)
 
 
 ## Functions
@@ -68,6 +68,35 @@ function isValidator(address validator)
 |----|----|-----------|
 |`isValidator`|`bool`|true if the address is a validator|
 
+
+## Events
+### ValidatorAdded
+Emits when a validator is added
+
+
+```solidity
+event ValidatorAdded(address validator);
+```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`validator`|`address`|address of the validator|
+
+### ValidatorRemoved
+Emits when a validator is removed
+
+
+```solidity
+event ValidatorRemoved(address validator);
+```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`validator`|`address`|address of the validator|
 
 ## Errors
 ### NoValidators

@@ -4,6 +4,14 @@ pragma abicoder v2;
 
 interface IValidatorV1 {
 
+    /// Emits when a validator is added
+    /// @param validator address of the validator
+    event ValidatorAdded(address validator);
+
+    /// Emits when a validator is removed
+    /// @param validator address of the validator
+    event ValidatorRemoved(address validator);
+
     /// Reverts if no validators are set
     error NoValidators();
 

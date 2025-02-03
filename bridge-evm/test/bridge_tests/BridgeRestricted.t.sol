@@ -11,6 +11,7 @@ import {EnumerableSet} from
     "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 import {ITokenManager} from "../../contracts/interface/ITokenManager.sol";
+import {IBridge} from "../../contracts/interface/IBridge.sol";
 import {IValidation} from "../../contracts/interface/IValidation.sol";
 import {IWrapped} from "../../contracts/interface/IWrapped.sol";
 
@@ -45,8 +46,12 @@ abstract contract BridgeRestrictedTest is BridgeTestBase {
     }
 
     function test_change_feeReceiver() public {
+        vm.expectEmit(address(bridgeInstance));
+        emit IBridge.FeeReceiverChanged(address(this), alice);
         bridgeInstance.setFeeReceiver(payable(alice));
         assertEq(bridgeInstance.feeReceiver(), payable(alice));
+        vm.expectEmit(address(bridgeInstance));
+        emit IBridge.FeeReceiverChanged(address(this), fee);
         bridgeInstance.setFeeReceiver(fee);
         assertEq(bridgeInstance.feeReceiver(), fee);
     }
@@ -63,8 +68,12 @@ abstract contract BridgeRestrictedTest is BridgeTestBase {
     }
 
     function test_change_nativeSendAmount() public {
+        vm.expectEmit(address(bridgeInstance));
+        emit IBridge.NativeSendAmountChanged(address(this), 2 ether);
         bridgeInstance.setNativeSendAmount(2 ether);
         assertEq(bridgeInstance.nativeSendAmount(), 2 ether);
+        vm.expectEmit(address(bridgeInstance));
+        emit IBridge.NativeSendAmountChanged(address(this), 1 ether);
         bridgeInstance.setNativeSendAmount(1 ether);
         assertEq(bridgeInstance.nativeSendAmount(), 1 ether);
     }
@@ -82,8 +91,12 @@ abstract contract BridgeRestrictedTest is BridgeTestBase {
 
     function test_change_validator() public {
         Validator newValidator = Validator(address(0x0));
+        vm.expectEmit(address(bridgeInstance));
+        emit IBridge.ValidatorChanged(address(this), address(newValidator));
         bridgeInstance.setValidator(newValidator);
         assertEq(address(bridgeInstance.validator()), address(newValidator));
+        vm.expectEmit(address(bridgeInstance));
+        emit IBridge.ValidatorChanged(address(this), address(validatorInstance));
         bridgeInstance.setValidator(validatorInstance);
         assertEq(
             address(bridgeInstance.validator()), address(validatorInstance)

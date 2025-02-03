@@ -228,6 +228,8 @@ contract ValidatorTest is Test {
 
     function test_addValidator() public {
         address newValidator = address(0xD0D0);
+        vm.expectEmit(address(validatorInstance));
+        emit IValidatorV1.ValidatorAdded(newValidator);
         assertTrue(validatorInstance.addValidator(newValidator));
         assertTrue(validatorInstance.isValidator(newValidator));
     }
@@ -242,6 +244,8 @@ contract ValidatorTest is Test {
 
     function test_fuzz_addValidator(address newValidator) public {
         vm.assume(newValidator != address(0) && newValidator != alice);
+        vm.expectEmit(address(validatorInstance));
+        emit IValidatorV1.ValidatorAdded(newValidator);
         assertTrue(validatorInstance.addValidator(newValidator));
         assertTrue(validatorInstance.isValidator(newValidator));
     }
@@ -265,6 +269,8 @@ contract ValidatorTest is Test {
     }
 
     function test_removeValidator() public {
+        vm.expectEmit(address(validatorInstance));
+        emit IValidatorV1.ValidatorRemoved(alice);
         assertTrue(validatorInstance.removeValidator(alice));
         assertFalse(validatorInstance.isValidator(alice));
     }
@@ -292,6 +298,8 @@ contract ValidatorTest is Test {
     }
 
     function test_setPayloadSigner() public {
+        vm.expectEmit(address(validatorInstance));
+        emit IValidation.PayloadSignerChanged(address(this), alice);
         validatorInstance.setPayloadSigner(alice);
         assertEq(validatorInstance.payloadSigner(), alice);
     }
@@ -308,6 +316,8 @@ contract ValidatorTest is Test {
     }
 
     function test_setFeeValidityWindow() public {
+        vm.expectEmit(address(validatorInstance));
+        emit IValidation.FeeValidityWindowChanged(address(this), 300);
         validatorInstance.setFeeValidityWindow(300);
         assertEq(validatorInstance.feeValidityWindow(), 300);
     }

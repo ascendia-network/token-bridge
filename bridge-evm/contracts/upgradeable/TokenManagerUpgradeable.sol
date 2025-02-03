@@ -229,6 +229,12 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         // $.token2external[token] = externalTokenAddress;
         $.external2token[externalTokenAddress] = token;
         $.unpausedTokens[token] = !paused;
+        emit TokenAdded(token, externalTokenAddress);
+        if (paused) {
+            emit TokenPaused(token);
+        } else {
+            emit TokenUnpaused(token);
+        }
         return true;
     }
 
@@ -251,6 +257,7 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
             revert TokenAlreadyMapped(externalTokenAddress);
         }
         $.external2token[externalTokenAddress] = token;
+        emit TokenMapped(token, externalTokenAddress);
         return true;
     }
 
@@ -266,6 +273,7 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
             revert TokenNotMapped(externalTokenAddress);
         }
         delete $.external2token[externalTokenAddress];
+        emit TokenUnmapped(externalTokenAddress);
         return true;
     }
 
@@ -288,6 +296,7 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         // delete $.token2external[token];
         delete $.external2token[externalTokenAddress];
         delete $.unpausedTokens[token];
+        emit TokenRemoved(token, externalTokenAddress);
         return true;
     }
 
@@ -312,6 +321,7 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         address bridge = $.bridge;
         token = address(new ERC20Bridged(name, symbol, decimals, bridge));
         _addToken(token, externalTokenAddress, true);
+        emit TokenDeployed(externalTokenAddress, name, symbol, decimals, token);
         return token;
     }
 
@@ -324,6 +334,7 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
             revert TokenIsPaused(token);
         }
         $.unpausedTokens[token] = false;
+        emit TokenPaused(token);
         return true;
     }
 
@@ -336,6 +347,7 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
             revert TokenNotPaused(token);
         }
         $.unpausedTokens[token] = true;
+        emit TokenUnpaused(token);
         return true;
     }
 

@@ -1,5 +1,5 @@
 # IBridge
-[Git Source](https://github.com/ambrosus/token-bridge/blob/feca847ded93a058080932a4b6dbb25928c5534c/contracts/interface/IBridge.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/fd78173c03bc3176acad331d668a382df87c32fd/contracts/interface/IBridge.sol)
 
 **Inherits:**
 [IBridgeTypes](/contracts/interface/IBridgeTypes.sol/interface.IBridgeTypes.md)
@@ -282,6 +282,55 @@ Emits when tokens are claimed from the contract
 ```solidity
 event TokenUnlocked(Receipt receipt);
 ```
+
+### FeeReceiverChanged
+Emits when the fee receiver is changed
+
+
+```solidity
+event FeeReceiverChanged(
+    address indexed changer, address indexed newFeeReceiver
+);
+```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`changer`|`address`|Who changed the fee receiver|
+|`newFeeReceiver`|`address`|New fee receiver address|
+
+### NativeSendAmountChanged
+Emits when the native send amount is changed
+
+
+```solidity
+event NativeSendAmountChanged(
+    address indexed changer, uint256 newNativeSendAmount
+);
+```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`changer`|`address`|Who changed the native send amount|
+|`newNativeSendAmount`|`uint256`|New native send amount|
+
+### ValidatorChanged
+Emits when the validator contract is changed
+
+
+```solidity
+event ValidatorChanged(address indexed changer, address indexed newValidator);
+```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`changer`|`address`|Who changed the validator contract|
+|`newValidator`|`address`|New validator contract address|
 
 ## Errors
 ### InvalidPermitFlag

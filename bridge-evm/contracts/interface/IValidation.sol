@@ -6,6 +6,18 @@ import {IBridgeTypes} from "./IBridgeTypes.sol";
 
 interface IValidation is IBridgeTypes {
 
+    /// Emits when the payload signer is changed
+    /// @param changer Who changed the payload signer
+    /// @param payloadSigner New payload signer address
+    event PayloadSignerChanged(address changer, address payloadSigner);
+
+    /// Emits when the fee validity window is changed
+    /// @param changer Who changed the fee validity window
+    /// @param validityWindow New fee validity window in seconds
+    event FeeValidityWindowChanged(address changer, uint256 validityWindow);
+
+    /// Reverts if the payload signer is unknown
+    /// @param signer address of the signer
     error UnknownSigner(address signer);
 
     /// Set the address of the payload signer

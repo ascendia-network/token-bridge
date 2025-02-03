@@ -1,5 +1,5 @@
 # ITokenManager
-[Git Source](https://github.com/ambrosus/token-bridge/blob/feca847ded93a058080932a4b6dbb25928c5534c/contracts/interface/ITokenManager.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/fd78173c03bc3176acad331d668a382df87c32fd/contracts/interface/ITokenManager.sol)
 
 
 ## Functions
@@ -284,81 +284,220 @@ function unpauseToken(address token) external returns (bool success);
 
 ## Events
 ### TokenAdded
+Emits when token is added to the bridge
+
 
 ```solidity
-event TokenAdded(address token, bytes32 externalTokenAddress);
+event TokenAdded(address indexed token, bytes32 indexed externalTokenAddress);
 ```
 
-### TokenRemoved
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`token`|`address`|address of the token|
+|`externalTokenAddress`|`bytes32`|external token address|
+
+### TokenMapped
+Emits when external token is mapped to the bridge
+
 
 ```solidity
-event TokenRemoved(address token);
+event TokenMapped(address indexed token, bytes32 indexed externalTokenAddress);
 ```
 
-### TokenPaused
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`token`|`address`|address of the token|
+|`externalTokenAddress`|`bytes32`|external token address|
+
+### TokenUnmapped
+Emits when external token is unmapped from the bridge
+
 
 ```solidity
-event TokenPaused(address token);
+event TokenUnmapped(bytes32 indexed externalTokenAddress);
 ```
 
-### TokenUnpaused
+**Parameters**
 
-```solidity
-event TokenUnpaused(address token);
-```
+|Name|Type|Description|
+|----|----|-----------|
+|`externalTokenAddress`|`bytes32`|external token address|
 
 ### TokenDeployed
+Emits when token is deployed from the bridge
+
 
 ```solidity
-event TokenDeployed(address token, bytes32 externalTokenAddress);
+event TokenDeployed(
+    bytes32 indexed externalTokenAddress,
+    string name,
+    string symbol,
+    uint8 decimals,
+    address token
+);
 ```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`externalTokenAddress`|`bytes32`|external token address|
+|`name`|`string`||
+|`symbol`|`string`||
+|`decimals`|`uint8`||
+|`token`|`address`|address of the token|
+
+### TokenRemoved
+Emits when token is removed from the bridge
+
+
+```solidity
+event TokenRemoved(address indexed token, bytes32 indexed externalTokenAddress);
+```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`token`|`address`|address of the token|
+|`externalTokenAddress`|`bytes32`|external token address|
+
+### TokenPaused
+Emits when token is paused
+
+
+```solidity
+event TokenPaused(address indexed token);
+```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`token`|`address`|address of the token|
+
+### TokenUnpaused
+Emits when token is unpaused
+
+
+```solidity
+event TokenUnpaused(address indexed token);
+```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`token`|`address`|address of the token|
 
 ## Errors
 ### TokenZeroAddress
+Reverts if the token address is zero
+
 
 ```solidity
 error TokenZeroAddress();
 ```
 
 ### TokenAlreadyAdded
+Reverts if token already added
+
 
 ```solidity
 error TokenAlreadyAdded(address token);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`token`|`address`|address of the token|
+
 ### TokenAlreadyMapped
+Reverts if token already mapped
+
 
 ```solidity
 error TokenAlreadyMapped(bytes32 externalTokenAddress);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`externalTokenAddress`|`bytes32`|external token address|
+
 ### TokenNotAdded
+Reverts if token not added
+
 
 ```solidity
 error TokenNotAdded(address token);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`token`|`address`|address of the token|
+
 ### TokenNotMapped
+Reverts if token not mapped
+
 
 ```solidity
 error TokenNotMapped(bytes32 externalTokenAddress);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`externalTokenAddress`|`bytes32`|external token address|
+
 ### TokenNotBridgable
+Reverts if token not bridgable
+
 
 ```solidity
 error TokenNotBridgable(address token);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`token`|`address`|address of the token|
+
 ### TokenNotPaused
+Reverts if token is not paused
+
 
 ```solidity
 error TokenNotPaused(address token);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`token`|`address`|address of the token|
+
 ### TokenIsPaused
+Reverts if token is paused
+
 
 ```solidity
 error TokenIsPaused(address token);
 ```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`token`|`address`|address of the token|
 

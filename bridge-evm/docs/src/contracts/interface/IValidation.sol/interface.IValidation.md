@@ -1,5 +1,5 @@
 # IValidation
-[Git Source](https://github.com/ambrosus/token-bridge/blob/feca847ded93a058080932a4b6dbb25928c5534c/contracts/interface/IValidation.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/fd78173c03bc3176acad331d668a382df87c32fd/contracts/interface/IValidation.sol)
 
 **Inherits:**
 [IBridgeTypes](/contracts/interface/IBridgeTypes.sol/interface.IBridgeTypes.md)
@@ -138,10 +138,49 @@ function validatePayload(
 |`isValid`|`bool`|true if the payload is valid|
 
 
+## Events
+### PayloadSignerChanged
+Emits when the payload signer is changed
+
+
+```solidity
+event PayloadSignerChanged(address changer, address payloadSigner);
+```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`changer`|`address`|Who changed the payload signer|
+|`payloadSigner`|`address`|New payload signer address|
+
+### FeeValidityWindowChanged
+Emits when the fee validity window is changed
+
+
+```solidity
+event FeeValidityWindowChanged(address changer, uint256 validityWindow);
+```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`changer`|`address`|Who changed the fee validity window|
+|`validityWindow`|`uint256`|New fee validity window in seconds|
+
 ## Errors
 ### UnknownSigner
+Reverts if the payload signer is unknown
+
 
 ```solidity
 error UnknownSigner(address signer);
 ```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`signer`|`address`|address of the signer|
 

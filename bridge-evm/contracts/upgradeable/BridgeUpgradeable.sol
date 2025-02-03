@@ -95,11 +95,13 @@ abstract contract BridgeUpgradeable is
         restricted
     {
         _getBridgeStorage().feeReceiver = newFeeReceiver;
+        emit FeeReceiverChanged(msg.sender, newFeeReceiver);
     }
 
     /// @inheritdoc IBridge
     function setNativeSendAmount(uint256 amount) public override restricted {
         _getBridgeStorage().nativeSendAmount = amount;
+        emit NativeSendAmountChanged(msg.sender, amount);
     }
 
     /// @inheritdoc IBridge
@@ -109,6 +111,7 @@ abstract contract BridgeUpgradeable is
         restricted
     {
         _getBridgeStorage().validator = newValidator;
+        emit ValidatorChanged(msg.sender, address(newValidator));
     }
 
     /// @inheritdoc ITokenManager

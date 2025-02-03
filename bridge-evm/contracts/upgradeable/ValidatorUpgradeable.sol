@@ -118,7 +118,11 @@ contract ValidatorUpgradeable is
             return false;
         }
         ValidatorStorage storage $ = _getValidatorStorage();
-        return $.validators.add(validator_);
+        added = $.validators.add(validator_);
+        if (added) {
+            emit ValidatorAdded(validator_);
+        }
+        return added;
     }
 
     /// @inheritdoc IValidatorV1
@@ -129,7 +133,11 @@ contract ValidatorUpgradeable is
         returns (bool removed)
     {
         ValidatorStorage storage $ = _getValidatorStorage();
-        return $.validators.remove(validator_);
+        removed = $.validators.remove(validator_);
+        if (removed) {
+            emit ValidatorRemoved(validator_);
+        }
+        return removed;
     }
 
     /// @inheritdoc IValidation
@@ -141,6 +149,7 @@ contract ValidatorUpgradeable is
     {
         ValidatorStorage storage $ = _getValidatorStorage();
         $.payloadSigner = payloadSigner_;
+        emit PayloadSignerChanged(msg.sender, payloadSigner_);
         return true;
     }
 
@@ -156,6 +165,7 @@ contract ValidatorUpgradeable is
         );
         ValidatorStorage storage $ = _getValidatorStorage();
         $.feeValidityWindow = feeValidityWindow_;
+        emit FeeValidityWindowChanged(msg.sender, feeValidityWindow_);
         return true;
     }
 

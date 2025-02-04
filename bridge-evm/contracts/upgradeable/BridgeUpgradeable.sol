@@ -84,6 +84,9 @@ abstract contract BridgeUpgradeable is
         $.validator = validator_;
         $.feeReceiver = feeReceiver_;
         $.nativeSendAmount = nativeSendAmount_;
+        emit ValidatorChanged(msg.sender, address(validator_));
+        emit FeeReceiverChanged(msg.sender, feeReceiver_);
+        emit NativeSendAmountChanged(msg.sender, nativeSendAmount_);
     }
 
     // restricted functions

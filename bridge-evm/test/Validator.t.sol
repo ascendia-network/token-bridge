@@ -86,6 +86,14 @@ contract ValidatorTest is Test {
         returns (Validator)
     {
         address proxy;
+        vm.expectEmit();
+        emit IValidation.PayloadSignerChanged(address(this), pldSigner);
+        vm.expectEmit();
+        emit IValidation.FeeValidityWindowChanged(address(this), feeValidityWindow);
+        for (uint256 i = 0; i < validators.length; i++) {
+            vm.expectEmit();
+            emit IValidatorV1.ValidatorAdded(validators[i]);
+        }
         if (isCoverage()) {
             address validator = address(new Validator());
             proxy = address(

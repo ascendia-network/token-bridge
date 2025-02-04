@@ -18,6 +18,8 @@ import {EnumerableSet} from
     "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 import {IValidation} from "../../contracts/interface/IValidation.sol";
+import {IValidatorV1} from "../../contracts/interface/IValidatorV1.sol";
+import {IBridge} from "../../contracts/interface/IBridge.sol";
 import {IWrapped} from "../../contracts/interface/IWrapped.sol";
 
 import {Bridge} from "../../contracts/Bridge.sol";
@@ -86,6 +88,14 @@ abstract contract BridgeTestBase is Test {
         returns (Validator)
     {
         address proxy;
+        vm.expectEmit();
+        emit IValidation.PayloadSignerChanged(address(this), pldSigner);
+        vm.expectEmit();
+        emit IValidation.FeeValidityWindowChanged(address(this), feeValidityWindow);
+        for (uint256 i = 0; i < validators.length; i++) {
+            vm.expectEmit();
+            emit IValidatorV1.ValidatorAdded(validators[i]);
+        }
         if (isCoverage()) {
             address validator = address(new Validator());
             proxy = address(
@@ -134,6 +144,12 @@ abstract contract BridgeTestBase is Test {
         returns (Bridge)
     {
         address payable proxy;
+        vm.expectEmit();
+        emit IBridge.ValidatorChanged(address(this), address(validation));
+        vm.expectEmit();
+        emit IBridge.FeeReceiverChanged(address(this), feeReceiver);
+        vm.expectEmit();
+        emit IBridge.NativeSendAmountChanged(address(this), nsa);
         if (isCoverage()) {
             address bridge = address(new Bridge());
             proxy = payable(

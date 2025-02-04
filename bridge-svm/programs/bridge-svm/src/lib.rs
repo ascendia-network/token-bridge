@@ -14,10 +14,16 @@ pub struct Lock<'info> {
     #[account(mut)]
     pub to: Account<'info, TokenAccount>,
 
-    pub token_program: Program<'info, Token>,
-
-    #[account(mut, constraint = state.is_enable)]
+    #[account(
+        mut,
+        seeds = [b"global_state"],
+        bump,
+        owner = crate::ID,
+        constraint = state.is_enable
+    )]
     pub state: Account<'info, GlobalState>,
+
+    pub token_program: Program<'info, Token>,
 }
 
 #[derive(Accounts)]
@@ -25,24 +31,36 @@ pub struct Unlock<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
 
+    #[account(mut)]
+    pub user: Signer<'info>,
+
+    #[account(mut)]
     pub from: Account<'info, TokenAccount>,
 
     #[account(mut)]
     pub to: Account<'info, TokenAccount>,
 
-    #[account(mut)]
+    #[account(
+        init_if_needed,
+        payer = user,
+        space = 16,
+        seeds = [user.key().as_ref()],
+        bump
+    )]
     pub nonce_account: Account<'info, NonceAccount>,
 
     pub token_program: Program<'info, Token>,
 
-    #[account(mut, constraint = state.is_enable)]
+    #[account(
+        mut,
+        seeds = [b"global_state"],
+        bump,
+        owner = crate::ID,
+        constraint = state.is_enable
+    )]
     pub state: Account<'info, GlobalState>,
-}
 
-#[account]
-#[derive(Default)]
-pub struct NonceAccount {
-    pub nonce_counter: u64,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
@@ -72,6 +90,12 @@ pub struct UpdateState<'info> {
 }
 
 #[account]
+#[derive(Default)]
+pub struct NonceAccount {
+    pub nonce_counter: u64,
+}
+
+#[account]
 pub struct GlobalState {
     pub admin: Pubkey,
     pub nonce: u64,
@@ -85,8 +109,6 @@ pub enum ErrorCode {
     MissingSignature,
     #[msg("Invalid nonce.")]
     InvalidNonce,
-    #[msg("Invalid account.")]
-    InvalidAccount,
     #[msg("Invalid token.")]
     InvalidToken,
 }
@@ -131,14 +153,7 @@ pub mod multisig_nonce {
     }
 
     pub fn lock(ctx: Context<Lock>, amount: u64, destination: String) -> Result<()> {
-        let (expected_pda, _) = Pubkey::find_program_address(&[b"global_state"], ctx.program_id);
-        require!(
-            ctx.accounts.state.key() == expected_pda,
-            ErrorCode::InvalidAccount
-        );
-
         ctx.accounts.state.nonce += 1;
-
         if !ctx
             .accounts
             .state
@@ -171,16 +186,6 @@ pub mod multisig_nonce {
     }
 
     pub fn unlock(ctx: Context<Unlock>, amount: u64, nonce_value: u64) -> Result<()> {
-        let (expected_pda, _) = Pubkey::find_program_address(&[b"global_state"], ctx.program_id);
-        require!(
-            ctx.accounts.state.key() == expected_pda,
-            ErrorCode::InvalidAccount
-        );
-
-        if ctx.accounts.nonce_account.to_account_info().owner != ctx.program_id {
-            return Err(ErrorCode::InvalidNonce.into());
-        }
-
         let nonce = &mut ctx.accounts.nonce_account;
         if nonce_value != nonce.nonce_counter {
             return Err(ErrorCode::InvalidNonce.into());

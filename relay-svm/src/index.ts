@@ -37,61 +37,9 @@ const provider = new AnchorProvider(connection, wallet, {
 });
 const program = new Program(idl as Idl, provider);
 
-async function lockTokens(
-  authority: Keypair,
-  from: PublicKey,
-  to: PublicKey,
-  nonceAccount: PublicKey,
-  amount: number,
-  address: string,
-): Promise<Transaction> {
-  const tx = await program.methods
-    .lock(new BN(amount), address)
-    .accounts({
-      authority: authority.publicKey,
-      from,
-      to,
-      nonceAccount,
-      tokenProgram: TOKEN_PROGRAM_ID,
-    })
-    .signers([authority])
-    .transaction();
-  return tx;
-}
-
-async function unlockTokens(
-  authority: Keypair,
-  from: PublicKey,
-  to: PublicKey,
-  nonceAccount: PublicKey,
-  amount: number,
-  nonceValue: number,
-  signers: Keypair[],
-): Promise<Transaction> {
-  const tx = new Transaction();
-  const instruction = await program.methods
-    .unlock(new BN(amount), new BN(nonceValue))
-    .accounts({
-      authority: authority.publicKey,
-      from,
-      to,
-      nonceAccount,
-      tokenProgram: TOKEN_PROGRAM_ID,
-    })
-    .remainingAccounts(remainingAccounts)
-    .instruction();
-
-  tx.add(instruction);
-  tx.partialSign(authority);
-  return tx;
-}
-
-async function getSignature(
-  tx: Transaction,
-  authority: Keypair,
-): Promise<string> {
+async function getSignature(tx: Transaction, signer: Keypair): Promise<string> {
   const signature = tx.signatures.find((sig) =>
-    sig.publicKey.equals(authority.publicKey),
+    sig.publicKey.equals(signer.publicKey),
   )?.signature;
 
   if (!signature) {
@@ -114,10 +62,10 @@ async function deserializeTransaction(
   return tx;
 }
 
-async function sendTransaction(
+async function signTransaction(
   serializedTx: string,
   signatures: { publicKey: string; signature: string }[],
-) {
+): Promise<string> {
   const tx = await deserializeTransaction(serializedTx);
 
   signatures.forEach(({ publicKey, signature }) => {
@@ -127,33 +75,52 @@ async function sendTransaction(
   if (!tx.verifySignatures()) {
     throw new Error("Signature verification failed");
   }
-  const txId = await sendAndConfirmTransaction(connection, tx, []);
-  console.log(txId);
+  return await serializeTransaction(tx);
 }
 
-async function createNonceAccount(): Promise<{
-  nonceAccount: Keypair;
-  txSignature: TransactionSignature;
-}> {
-  const nonceAccount = Keypair.generate();
-  const ACCOUNT_SIZE = 8 + 8;
-  const lamports =
-    await provider.connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE);
-  const tx = new Transaction().add(
-    SystemProgram.createAccount({
-      fromPubkey: provider.wallet.publicKey,
-      newAccountPubkey: nonceAccount.publicKey,
-      lamports,
-      space: ACCOUNT_SIZE,
-      programId: program.programId,
-    }),
-  );
-  provider.wallet.signTransaction(tx);
-  let txSignature = await sendAndConfirmTransaction(
-    provider.connection,
-    tx,
-    [],
-  );
-  console.log(txSignature);
-  return { nonceAccount, txSignature };
+async function lockTokens(
+  authority: Keypair,
+  from: PublicKey,
+  to: PublicKey,
+  amount: number,
+  address: string,
+): Promise<Transaction> {
+  const tx = await program.methods
+    .lock(new BN(amount), address)
+    .accounts({
+      authority: authority.publicKey,
+      from,
+      to,
+      tokenProgram: TOKEN_PROGRAM_ID,
+    })
+    .transaction();
+  tx.partialSign(authority);
+  return tx;
+}
+
+async function unlockTokens(
+  signer: Keypair,
+  authority: PublicKey,
+  client: PublicKey,
+  from: PublicKey,
+  to: PublicKey,
+  nonceAccount: PublicKey,
+  amount: number,
+  nonceValue: number,
+): Promise<Transaction> {
+  const tx = await program.methods
+    .unlock(new BN(amount), new BN(nonceValue))
+    .accounts({
+      authority: authority,
+      from,
+      to,
+      nonceAccount,
+      tokenProgram: TOKEN_PROGRAM_ID,
+    })
+    .remainingAccounts(remainingAccounts)
+    .transaction();
+
+  tx.feePayer = client;
+  tx.partialSign(signer);
+  return tx;
 }

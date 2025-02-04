@@ -52,7 +52,7 @@ pub struct Initialize<'info> {
         seeds = [b"global_state"],
         bump,
         payer = user,
-        space = 8 + 32 + 8 + 1 + 74 * 12
+        space = 992
     )]
     pub state: Account<'info, GlobalState>,
 

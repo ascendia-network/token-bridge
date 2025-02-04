@@ -52,7 +52,7 @@ pub struct Initialize<'info> {
         seeds = [b"global_state"],
         bump,
         payer = user,
-        space = 8 + 32 + 8 + 1 + 32 * 12
+        space = 8 + 32 + 8 + 1 + 74 * 12
     )]
     pub state: Account<'info, GlobalState>,
 
@@ -76,7 +76,7 @@ pub struct GlobalState {
     pub admin: Pubkey,
     pub nonce: u64,
     pub is_enable: bool,
-    pub tokens: Vec<Pubkey>,
+    pub tokens: Vec<(Pubkey, String)>,
 }
 
 #[error_code]
@@ -104,16 +104,16 @@ pub mod multisig_nonce {
         Ok(())
     }
 
-    pub fn add_token(ctx: Context<UpdateState>, token: Pubkey) -> Result<()> {
+    pub fn add_token(ctx: Context<UpdateState>, token: (Pubkey, String)) -> Result<()> {
         if ctx.accounts.state.tokens.len() < 12 {
-            ctx.accounts.state.tokens.push(token);
-            msg!("Add token: {}", token);
+            ctx.accounts.state.tokens.push(token.clone());
+            msg!("Add token: {}", token.0);
         }
         Ok(())
     }
 
     pub fn delete_token(ctx: Context<UpdateState>, token: Pubkey) -> Result<()> {
-        if let Some(index) = ctx.accounts.state.tokens.iter().position(|x| *x == token) {
+        if let Some(index) = ctx.accounts.state.tokens.iter().position(|x| x.0 == token) {
             ctx.accounts.state.tokens.remove(index);
             msg!("Delete token: {}", token);
         }
@@ -139,7 +139,13 @@ pub mod multisig_nonce {
 
         ctx.accounts.state.nonce += 1;
 
-        if !ctx.accounts.state.tokens.contains(&ctx.accounts.to.mint) {
+        if !ctx
+            .accounts
+            .state
+            .tokens
+            .iter()
+            .any(|(pubkey, _)| pubkey == &ctx.accounts.to.mint)
+        {
             return Err(ErrorCode::InvalidToken.into());
         }
 

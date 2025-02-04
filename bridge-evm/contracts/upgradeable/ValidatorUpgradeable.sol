@@ -77,8 +77,13 @@ contract ValidatorUpgradeable is
         ValidatorStorage storage $ = _getValidatorStorage();
         $.payloadSigner = payloadSigner_;
         $.feeValidityWindow = feeValidityWindow_;
+        emit PayloadSignerChanged(msg.sender, payloadSigner_);
+        emit FeeValidityWindowChanged(msg.sender, feeValidityWindow_);
         for (uint256 i = 0; i < validators_.length; i++) {
-            $.validators.add(validators_[i]);
+            bool added = $.validators.add(validators_[i]);
+            if (added) {
+                emit ValidatorAdded(validators_[i]);
+            }
         }
     }
 

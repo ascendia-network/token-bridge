@@ -18,7 +18,6 @@ pub struct Lock<'info> {
         mut,
         seeds = [b"global_state"],
         bump,
-        owner = crate::ID,
         constraint = state.is_enable
     )]
     pub state: Account<'info, GlobalState>,
@@ -45,7 +44,7 @@ pub struct Unlock<'info> {
         payer = user,
         space = 16,
         seeds = [user.key().as_ref()],
-        bump
+        bump,
     )]
     pub nonce_account: Account<'info, NonceAccount>,
 
@@ -69,13 +68,13 @@ pub struct Initialize<'info> {
         init,
         seeds = [b"global_state"],
         bump,
-        payer = user,
+        payer = admin,
         space = 992
     )]
     pub state: Account<'info, GlobalState>,
 
     #[account(mut)]
-    pub user: Signer<'info>,
+    pub admin: Signer<'info>,
 
     pub system_program: Program<'info, System>,
 }
@@ -113,13 +112,16 @@ pub enum ErrorCode {
     InvalidToken,
 }
 
+const ADMIN: &str = "";
+
 #[program]
 pub mod multisig_nonce {
     use super::*;
+    use core::str::FromStr;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         let state = &mut ctx.accounts.state;
-        state.admin = ctx.accounts.user.key();
+        state.admin = Pubkey::from_str(ADMIN).unwrap_or(ctx.accounts.admin.key());
         state.nonce = 0;
         state.is_enable = true;
         state.tokens = Vec::new();

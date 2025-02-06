@@ -16,6 +16,14 @@ pub struct Initialize<'info> {
     pub system_program: Program<'info, System>,
 }
 
+#[account]
+pub struct GlobalState {
+    pub admin: Pubkey,
+    pub nonce: u64,
+    pub is_enable: bool,
+    // pub tokens: Vec<(Pubkey, String)>,
+}
+
 
 
 
@@ -57,14 +65,13 @@ pub struct CreateTokenAccount<'info> {
 pub struct TokenConfig {
     pub token: Pubkey,      // Public key of the token
     pub amb_token: [u8; 20],  //
-    pub bump: u8,           // Nonce for the program-derived address
 }
 
 impl TokenConfig {
     pub const SEED_PREFIX: &'static str = "token";
     pub const ACCOUNT_SIZE: usize = 8 + 32 + 20 + 1;     // discriminator (8)  + Pubkey (32) + address (20)     + Bump (1) _
-    pub fn new(token: Pubkey, amb_token: [u8; 20], bump: u8) -> Self {
-        Self {            token,            amb_token,            bump,        }
+    pub fn new(token: Pubkey, amb_token: [u8; 20]) -> Self {
+        Self {            token,            amb_token           }
     }
 }
 
@@ -103,7 +110,7 @@ pub struct Lock<'info> {
 
     #[account(
         seeds = [TokenConfig::SEED_PREFIX.as_bytes(), mint.key().as_ref()],
-        bump = bridge_token.bump
+        bump
     )]
     pub bridge_token: Account<'info, TokenConfig>,
 
@@ -128,40 +135,58 @@ pub struct Lock<'info> {
 
 
 
-//
-// #[derive(Accounts)]
-// pub struct Unlock<'info> {
-//     #[account(mut)]
-//     pub authority: Signer<'info>,
-//
-//     #[account(mut)]
-//     pub user: Signer<'info>,
-//
-//     #[account(mut)]
-//     pub to: Account<'info, TokenAccount>,
-//
-//     #[account(
-//         init_if_needed,
-//         payer = user,
-//         space = 16,
-//         seeds = [user.key().as_ref()],
-//         bump,
-//     )]
-//     pub nonce_account: Account<'info, NonceAccount>,
-//
-//     pub token_program: Program<'info, Token>,
-//
-//     #[account(
-//         mut,
-//         seeds = [b"global_state"],
-//         bump,
-//         owner = crate::ID,
-//         constraint = state.is_enable
-//     )]
-//     pub state: Account<'info, GlobalState>,
-//
-//     pub system_program: Program<'info, System>,
-// }
+
+#[derive(Accounts)]
+pub struct Unlock<'info> {
+    #[account(        seeds = [b"global_state"],        bump,        constraint = state.is_enable    )]
+    pub state: Account<'info, GlobalState>,
+
+
+    #[account(mut)]
+    pub receiver: Signer<'info>,
+
+
+
+
+    #[account(
+        mut,
+        associated_token::mint = mint,
+        associated_token::authority = receiver,
+    )]
+    pub receiver_token_account: InterfaceAccount<'info, TokenAccount>,
+
+    #[account(
+        init_if_needed,
+        payer = receiver,
+        space = 16,
+        seeds = [receiver.key().as_ref()],
+        bump
+    )]
+    pub receiver_nonce_account: Account<'info, NonceAccount>,
+
+
+
+    #[account(
+        seeds = [TokenConfig::SEED_PREFIX.as_bytes(), mint.key().as_ref()],
+        bump
+    )]
+    pub bridge_token: Account<'info, TokenConfig>,
+
+    #[account(
+        mut,
+        token::mint = mint,
+        token::authority = bridge_token,
+    )]
+    pub bridge_token_account: InterfaceAccount<'info, TokenAccount>,
+
+
+
+    pub mint: InterfaceAccount<'info, Mint>,
+    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
+}
+
+
 
 #[derive(Accounts)]
 pub struct UpdateState<'info> {
@@ -178,13 +203,14 @@ pub struct NonceAccount {
     pub nonce_counter: u64,
 }
 
-#[account]
-pub struct GlobalState {
-    pub admin: Pubkey,
-    pub nonce: u64,
-    pub is_enable: bool,
-    // pub tokens: Vec<(Pubkey, String)>,
-}
+
+
+
+
+
+
+
+
 
 #[error_code]
 pub enum ErrorCode {
@@ -218,7 +244,7 @@ pub mod multisig_nonce {
         bridge_token.set_inner(TokenConfig::new(
             ctx.accounts.mint.key(),
             amb_token,
-            ctx.bumps.bridge_token,
+//             ctx.bumps.bridge_token,
         ));
         Ok(())
     }
@@ -281,36 +307,38 @@ pub mod multisig_nonce {
         Ok(())
     }
 
-    // pub fn unlock(ctx: Context<Unlock>, amount: u64, nonce_value: u64) -> Result<()> {
-    //     let nonce = &mut ctx.accounts.nonce_account;
-    //     if nonce_value != nonce.nonce_counter {
-    //         return Err(ErrorCode::InvalidNonce.into());
-    //     }
-    //
-    //     let accounts = ctx.remaining_accounts;
-    //     for account in accounts {
-    //         if !account.is_signer {
-    //             return Err(ErrorCode::MissingSignature.into());
-    //         }
-    //     }
-    //
-    //     let cpi_accounts = Transfer {
-    //         from: ctx.accounts.from.to_account_info(),
-    //         to: ctx.accounts.to.to_account_info(),
-    //         authority: ctx.accounts.authority.to_account_info(),
-    //     };
-    //
-    //     let cpi_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), cpi_accounts);
-    //     token::transfer(cpi_ctx, amount)?;
-    //
-    //     nonce.nonce_counter += 1;
-    //     msg!(
-    //         "Unlock, token: {}, from: {}, to: {}, amount: {}",
-    //         ctx.accounts.token_program.key(),
-    //         ctx.accounts.from.key(),
-    //         ctx.accounts.to.key(),
-    //         amount
-    //     );
-    //     Ok(())
-    // }
+   pub fn unlock(ctx: Context<Unlock>, amount: u64, nonce_value: u64) -> Result<()> {
+        let nonce = &mut ctx.accounts.receiver_nonce_account;
+        if nonce_value != nonce.nonce_counter {
+            return Err(ErrorCode::InvalidNonce.into());
+        }
+
+//         let accounts = ctx.remaining_accounts;
+//         for account in accounts {
+//             if !account.is_signer {
+//                 return Err(ErrorCode::MissingSignature.into());
+//             }
+//         }
+
+
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.bridge_token_account.to_account_info(),
+            to: ctx.accounts.receiver_token_account.to_account_info(),
+            authority: ctx.accounts.bridge_token.to_account_info(),
+        };
+
+        let cpi_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), cpi_accounts);
+        token::transfer(cpi_ctx, amount)?;
+
+
+        nonce.nonce_counter += 1;
+//         msg!(
+//             "Unlock, token: {}, from: {}, to: {}, amount: {}",
+//             ctx.accounts.token_program.key(),
+//             ctx.accounts.from.key(),
+//             ctx.accounts.to.key(),
+//             amount
+//         );
+        Ok(())
+    }
 }

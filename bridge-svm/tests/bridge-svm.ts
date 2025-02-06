@@ -100,13 +100,6 @@ describe("my-project", () => {
   it('lock', async () => {
     const amount = new anchor.BN(100);
 
-
-    // const [poolPda] = PublicKey.findProgramAddressSync([Buffer.from("bridge?"), tokenKeypair.publicKey.toBuffer()], program.programId)
-    // const vaultTokenAddress = getAssociatedTokenAddressSync(tokenKeypair.publicKey, poolPda, true);
-
-
-
-
     const userAta1 = getAssociatedTokenAddressSync(tokenMintA.publicKey, user.publicKey)
     const [bridge_token_pda] = PublicKey.findProgramAddressSync([Buffer.from("token"), tokenMintA.publicKey.toBuffer()], program.programId)
     const bridge_token_account = getAssociatedTokenAddressSync(tokenMintA.publicKey, bridge_token_pda, true);
@@ -125,7 +118,6 @@ describe("my-project", () => {
 
     // Lock tokens
     await program.methods.lock(amount, "0x228").accounts({
-      // authority: admin.publicKey,
       state: state,
       sender: user.publicKey,
       sender_token_account: userAta1,
@@ -149,48 +141,48 @@ describe("my-project", () => {
 
   });
 
-  // it('should unlock tokens with valid nonce and signatures', async () => {
-  //     const amount = new anchor.BN(50);
-  //
-  //     // Mint tokens to the fromTokenAccount
-  //     await tokenMint.mintTo(fromTokenAccount, admin, [], amount.toNumber());
-  //
-  //     // Lock tokens first
-  //     await program.rpc.lock(amount, "destination_string", {
-  //         accounts: {
-  //             authority: admin.publicKey,
-  //             from: fromTokenAccount,
-  //             to: toTokenAccount,
-  //             state,
-  //             tokenProgram: TOKEN_PROGRAM_ID,
-  //         },
-  //         signers: [admin],
-  //     });
-  //
-  //     // Unlock tokens
-  //     await program.rpc.unlock(amount, new anchor.BN(0), {
-  //         accounts: {
-  //             authority: admin.publicKey,
-  //             user: user.publicKey,
-  //             from: fromTokenAccount,
-  //             to: toTokenAccount,
-  //             nonceAccount,
-  //             state,
-  //             tokenProgram: TOKEN_PROGRAM_ID,
-  //             systemProgram: SystemProgram.programId,
-  //         },
-  //         signers: [user],
-  //     });
-  //
-  //     const accountState = await program.account.globalState.fetch(state);
-  //     assert.ok(accountState.nonce === 1);
-  //
-  //     const fromBalance = await tokenMint.getAccountInfo(fromTokenAccount);
-  //     const toBalance = await tokenMint.getAccountInfo(toTokenAccount);
-  //
-  //     assert.ok(fromBalance.amount.toNumber() === amount.toNumber()); // Should have received the tokens back
-  //     assert.ok(toBalance.amount.toNumber() === 0); // Should have transferred out the tokens
-  // });
+  it('should unlock tokens with valid nonce and signatures', async () => {
+      const amount = new anchor.BN(50);
+
+
+    const userAta1 = getAssociatedTokenAddressSync(tokenMintA.publicKey, user.publicKey)
+    const [bridge_token_pda] = PublicKey.findProgramAddressSync([Buffer.from("token"), tokenMintA.publicKey.toBuffer()], program.programId)
+    const bridge_token_account = getAssociatedTokenAddressSync(tokenMintA.publicKey, bridge_token_pda, true);
+
+    console.log("userAta1", userAta1.toBase58())
+    console.log("bridge_token_pda", bridge_token_pda.toBase58())
+    console.log("bridge_token_account", bridge_token_account.toBase58())
+
+
+    const tokenBalance = await connection.getTokenAccountBalance(userAta1);
+    console.log("tokenBalance", tokenBalance)
+    const tokenBalanceB = await connection.getTokenAccountBalance(bridge_token_account);
+    console.log("tokenBalanceB", tokenBalanceB)
+
+      // Unlock tokens
+      await program.methods.unlock(amount, new anchor.BN(0), {
+          accounts: {
+            state: state,
+            receiver: user.publicKey,
+            receiver_token_account: userAta1,
+            bridge_token: bridge_token_pda,
+            bridgeTokenAccount: bridge_token_account,
+            mint: tokenMintA.publicKey,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            system_program: SystemProgram.programId,
+          },
+          signers: [user],
+      });
+
+      // const accountState = await program.account.globalState.fetch(state);
+      // assert.ok(accountState.nonce === 1);
+      //
+      // const fromBalance = await tokenMint.getAccountInfo(fromTokenAccount);
+      // const toBalance = await tokenMint.getAccountInfo(toTokenAccount);
+      //
+      // assert.ok(fromBalance.amount.toNumber() === amount.toNumber()); // Should have received the tokens back
+      // assert.ok(toBalance.amount.toNumber() === 0); // Should have transferred out the tokens
+  });
 
   // it('should enable and disable the state correctly', async () => {
   //     // Disable state

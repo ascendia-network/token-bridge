@@ -10,6 +10,7 @@ import {
   mintTo,
   TOKEN_PROGRAM_ID
 } from "@solana/spl-token";
+import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 
 
 import assert from "assert";
@@ -83,7 +84,8 @@ describe("my-project", () => {
       mint: tokenMintA.publicKey,
 
       tokenProgram: TOKEN_PROGRAM_ID,
-      system_program: SystemProgram.programId,
+      associated_token_program: ASSOCIATED_PROGRAM_ID,
+    system_program: SystemProgram.programId,
     }).signers([admin]).rpc();
 
     const tokenConfigState = await program.account.tokenConfig.fetch(bridge_token_pda);
@@ -132,7 +134,7 @@ describe("my-project", () => {
       mint: tokenMintA.publicKey,
       tokenProgram: TOKEN_PROGRAM_ID,
       system_program: SystemProgram.programId,
-    }).signers([admin]).rpc();
+    }).signers([user]).rpc();
 
     const accountState = await program.account.globalState.fetch(state);
     assert.ok(+accountState.nonce === 1);

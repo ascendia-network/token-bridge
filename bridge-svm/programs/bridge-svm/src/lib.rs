@@ -39,8 +39,9 @@ pub struct CreateTokenAccount<'info> {
     #[account(
         init,
         payer = signer,
-        token::mint = mint,
-        token::authority = bridge_token,
+        associated_token::mint = mint,
+        associated_token::authority = bridge_token,
+        associated_token::token_program	= token_program,
     )]
     pub bridge_token_account: InterfaceAccount<'info, TokenAccount>,
 
@@ -48,6 +49,7 @@ pub struct CreateTokenAccount<'info> {
 
 
     pub token_program: Interface<'info, TokenInterface>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
 }
 
@@ -100,13 +102,13 @@ pub struct Lock<'info> {
 
 
     #[account(
-        mut,
         seeds = [TokenConfig::SEED_PREFIX.as_bytes(), mint.key().as_ref()],
         bump = bridge_token.bump
     )]
     pub bridge_token: Account<'info, TokenConfig>,
 
     #[account(
+        mut,
         token::mint = mint,
         token::authority = bridge_token,
     )]
@@ -211,8 +213,13 @@ pub mod multisig_nonce {
     }
 
     pub fn initialize_token(ctx: Context<CreateTokenAccount>, amb_token: [u8; 20]) -> Result<()> {
-        // todo use new
-        ctx.accounts.bridge_token.amb_token = amb_token;
+        let bridge_token = &mut ctx.accounts.bridge_token;
+
+        bridge_token.set_inner(TokenConfig::new(
+            ctx.accounts.mint.key(),
+            amb_token,
+            ctx.bumps.bridge_token,
+        ));
         Ok(())
     }
 

@@ -1,0 +1,147 @@
+{
+  "id": "e65cf4dc-6fb0-48e4-a91f-e07af61cc350",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "bridge.signatures": {
+      "name": "signatures",
+      "schema": "bridge",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "receipt_id": {
+          "name": "receipt_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "signed_by": {
+          "name": "signed_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "signature": {
+          "name": "signature",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {
+    "bridge": "bridge"
+  },
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {
+    "bridge.receipts": {
+      "columns": {
+        "receipt_id": {
+          "name": "receipt_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bridge_address": {
+          "name": "bridge_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "from": {
+          "name": "from",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "to": {
+          "name": "to",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_address": {
+          "name": "token_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chain_from": {
+          "name": "chain_from",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chain_to": {
+          "name": "chain_to",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "flags": {
+          "name": "flags",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "claimed": {
+          "name": "claimed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "definition": "select distinct on (\"unioned\".\"receipt_id\") \"receipt_id\", \"timestamp\", \"bridge_address\", \"from\", \"to\", \"token_address\", \"amount\", \"chain_from\", \"chain_to\", \"event_id\", \"flags\", \"data\", \"claimed\" from ((select \"receipt_id\", \"timestamp\", \"bridge_address\", \"from\", \"to\", \"token_address\", \"amount\", \"chain_from\", \"chain_to\", \"event_id\", \"flags\", \"data\", \"claimed\" from \"indexer_evm\".\"receipts\" order by \"indexer_evm\".\"receipts\".\"claimed\" desc, \"indexer_evm\".\"receipts\".\"timestamp\") union (select \"receipt_id\", \"timestamp\", \"bridge_address\", \"from\", \"to\", \"token_address\", \"amount\", \"chain_from\", \"chain_to\", \"event_id\", \"flags\", \"data\", \"claimed\" from \"indexer_svm\".\"receipts\" order by \"indexer_svm\".\"receipts\".\"claimed\" desc, \"indexer_svm\".\"receipts\".\"timestamp\")) \"unioned\" order by \"unioned\".\"receipt_id\", \"unioned\".\"timestamp\", \"unioned\".\"claimed\" desc",
+      "name": "receipts",
+      "schema": "bridge",
+      "isExisting": false,
+      "materialized": true
+    }
+  },
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

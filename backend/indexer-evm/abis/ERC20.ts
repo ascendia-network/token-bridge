@@ -309,4 +309,4 @@ export const ERC20Abi = [
       },
     ],
   },
-] as AbiItem[];
+] as const satisfies AbiItem[];

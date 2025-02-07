@@ -1,5 +1,5 @@
-import { Context, Event } from "ponder:registry";
-import { bridgeParams, receipt } from "ponder:schema";
+import { type Context, type Event } from "ponder:registry";
+import { bridgeParams } from "ponder:schema";
 import { zeroAddress } from "viem";
 
 export async function setupBridgeParams(args: {
@@ -8,27 +8,45 @@ export async function setupBridgeParams(args: {
 }) {
   const { client } = args.context;
   const { bridge } = args.context.contracts;
-  const entries = [];
+  const entries: Array<{
+    bridgeAddress: `0x${string}`;
+    feeReceiver: `0x${string}`;
+    nativeSendAmount: bigint;
+    validatorAddress: `0x${string}`;
+  }> = [];
   if (bridge.address)
     for (const address of bridge.address) {
-      const feeReceiver = await client.readContract({
-        abi: bridge.abi,
-        address,
-        functionName: "feeReceiver",
-        args: [],
-      });
-      const nativeSendAmount = await client.readContract({
-        abi: bridge.abi,
-        address,
-        functionName: "nativeSendAmount",
-        args: [],
-      });
-      const validatorAddress = await client.readContract({
-        abi: bridge.abi,
-        address,
-        functionName: "validator",
-        args: [],
-      });
+      let feeReceiver, nativeSendAmount, validatorAddress;
+      try {
+        feeReceiver = await client.readContract({
+          abi: bridge.abi,
+          address,
+          functionName: "feeReceiver",
+          args: [],
+        });
+      } catch (e) {
+        feeReceiver = zeroAddress;
+      }
+      try {
+        nativeSendAmount = await client.readContract({
+          abi: bridge.abi,
+          address,
+          functionName: "nativeSendAmount",
+          args: [],
+        });
+      } catch (e) {
+        nativeSendAmount = BigInt(0);
+      }
+      try {
+        validatorAddress = await client.readContract({
+          abi: bridge.abi,
+          address,
+          functionName: "validator",
+          args: [],
+        });
+      } catch (e) {
+        validatorAddress = zeroAddress;
+      }
       entries.push({
         bridgeAddress: address,
         feeReceiver,
@@ -39,7 +57,15 @@ export async function setupBridgeParams(args: {
   await args.context.db
     .insert(bridgeParams)
     .values(entries)
-    .onConflictDoNothing();
+    .onConflictDoUpdate((row) => {
+      const entry = entries.find((entry) => entry.bridgeAddress === row.bridgeAddress);
+      if (!entry) return row; // This should never happen
+      return {
+        feeReceiver: entry.feeReceiver,
+        nativeSendAmount: entry.nativeSendAmount,
+        validatorAddress: entry.validatorAddress,
+      };
+    });
   console.log("Bridge params setup complete");
 }
 
@@ -51,7 +77,6 @@ export async function saveBridgeParam(
     | "bridge:ValidatorChanged"
   >
 ): Promise<string> {
-  console.log(event);
   const bridgeAddress = event.log.address;
   const { client } = context;
   const { bridge } = context.contracts;

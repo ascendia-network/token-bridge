@@ -1452,4 +1452,4 @@ export const bridgeAbi = [
     name: "TransferFailed",
     inputs: [],
   },
-] as AbiItem[];
+] as const satisfies AbiItem[];

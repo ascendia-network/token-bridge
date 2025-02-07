@@ -1,9 +1,7 @@
-import { Context, Event } from "ponder:registry";
+import { type Context, type Event} from "ponder:registry";
 import {
   bridgedTokens,
-  bridgeParams,
   bridgeToToken,
-  receipt,
 } from "ponder:schema";
 import { numberToHex } from "viem";
 
@@ -18,34 +16,34 @@ export async function saveBridgeToken(
     | "bridge:TokenUnpaused"
     | "bridge:TokenDeployed"
   >
-): Promise<string> {
+) {
   const bridgeAddress = event.log.address as `0x${string}`;
   switch (event.name) {
     case "TokenAdded": {
       await context.db.insert(bridgedTokens).values({
-        tokenAddress: event.args.tokenAddress,
+        tokenAddress: event.args.token,
         chainId: numberToHex(context.network.chainId, { size: 32 }),
       });
       await context.db.insert(bridgeToToken).values({
         bridgeAddress,
-        tokenAddress: event.args.tokenAddress,
+        tokenAddress: event.args.token,
       });
       break;
     }
     case "TokenRemoved": {
       await context.db.delete(bridgeToToken, {
-        tokenAddress: event.args.tokenAddress,
+        tokenAddress: event.args.token,
         bridgeAddress: bridgeAddress,
       });
       await context.db.delete(bridgedTokens, {
-        tokenAddress: event.args.tokenAddress,
+        tokenAddress: event.args.token,
       });
       break;
     }
     case "TokenPaused": {
       await context.db
         .update(bridgedTokens, {
-          tokenAddress: event.args.tokenAddress,
+          tokenAddress: event.args.token,
         })
         .set({
           isPaused: true,
@@ -55,7 +53,7 @@ export async function saveBridgeToken(
     case "TokenUnpaused": {
       await context.db
         .update(bridgedTokens, {
-          tokenAddress: event.args.tokenAddress,
+          tokenAddress: event.args.token,
         })
         .set({
           isPaused: false,
@@ -64,13 +62,13 @@ export async function saveBridgeToken(
     }
     case "TokenDeployed": {
       await context.db.insert(bridgedTokens).values({
-        tokenAddress: event.args.tokenAddress,
+        tokenAddress: event.args.token,
         chainId: numberToHex(context.network.chainId, { size: 32 }),
         isBridged: true,
       });
       await context.db.insert(bridgeToToken).values({
         bridgeAddress,
-        tokenAddress: event.args.tokenAddress,
+        tokenAddress: event.args.token,
       });
       break;
     }

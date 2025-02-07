@@ -534,4 +534,4 @@ export const validatorAbi = [
       },
     ],
   },
-] as AbiItem[];
+] as const satisfies AbiItem[];

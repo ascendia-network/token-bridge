@@ -1,8 +1,11 @@
-use crate::state::*;
+use crate::structs::*;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, Transfer};
 use anchor_spl::token_interface::{ Mint, TokenAccount};
-
+use anchor_lang::solana_program::{
+    sysvar::instructions::{load_instruction_at_checked, ID as SYSVAR_INSTRUCTIONS_ID},
+    keccak::hash,
+};
 
 #[derive(Accounts)]
 pub struct Unlock<'info> {
@@ -23,7 +26,7 @@ pub struct Unlock<'info> {
         init_if_needed,
         payer = receiver,
         space = 16,
-        seeds = [receiver.key().as_ref()],
+        seeds = [b"nonce", receiver.key().as_ref()],
         bump
     )]
     pub receiver_nonce_account: Account<'info, NonceAccount>,
@@ -41,7 +44,12 @@ pub struct Unlock<'info> {
     )]
     pub bridge_token_account: InterfaceAccount<'info, TokenAccount>,
 
-
+    /// CHECK: The address check is needed because otherwise
+    /// the supplied Sysvar could be anything else.
+    /// The Instruction Sysvar has not been implemented
+    /// in the Anchor framework yet, so this is the safe approach.
+    #[account(address = SYSVAR_INSTRUCTIONS_ID)]
+    pub ix_sysvar: AccountInfo<'info>,
     pub mint: InterfaceAccount<'info, Mint>,
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
@@ -51,15 +59,22 @@ pub struct Unlock<'info> {
 
 
 
-pub fn unlock(ctx: Context<Unlock>, amount: u64, nonce_value: u64) -> Result<()> {
+pub fn unlock(ctx: Context<Unlock>, serialized_args: Vec<u8>) -> Result<()> {
     let nonce = &mut ctx.accounts.receiver_nonce_account;
-    if nonce_value != nonce.nonce_counter {
-        return Err(CustomError::InvalidNonce.into());
-    }
-
-    // todo check signature
-
     let bridge_token = &ctx.accounts.bridge_token;
+
+
+    let deserialized_args = ReceivePayload::try_from_slice(&serialized_args).map_err(|_| error!(CustomError::InvalidSerialization))?;
+    let args_hash = hash(&serialized_args);
+
+    let ix = load_instruction_at_checked(0, &ctx.accounts.ix_sysvar.to_account_info())?;
+    let signed_message = &ix.data[ix.data.len().saturating_sub(32)..];
+    let signer_pubkey = Pubkey::try_from_slice(&ix.data[ix.data.len().saturating_sub(32+32)..ix.data.len().saturating_sub(32)]);
+
+    require!(signed_message == args_hash.to_bytes(), CustomError::InvalidSignature);
+    require!(signer_pubkey? == ctx.accounts.state.admin, CustomError::InvalidSignature);
+    require!(deserialized_args.nonce == nonce.nonce_counter, CustomError::InvalidNonce);
+
 
     let seeds = &[TokenConfig::SEED_PREFIX.as_bytes(), bridge_token.token.as_ref(), &[bridge_token.bump]];
     let signer_seeds = &[&seeds[..]];
@@ -71,7 +86,7 @@ pub fn unlock(ctx: Context<Unlock>, amount: u64, nonce_value: u64) -> Result<()>
     };
 
     let cpi_ctx = CpiContext::new_with_signer(ctx.accounts.token_program.to_account_info(), cpi_accounts,            signer_seeds        );
-    token::transfer(cpi_ctx, amount)?;
+    token::transfer(cpi_ctx, deserialized_args.amount)?;
 
 
     nonce.nonce_counter += 1;
@@ -79,7 +94,7 @@ pub fn unlock(ctx: Context<Unlock>, amount: u64, nonce_value: u64) -> Result<()>
         "Unlock, token: {}, to: {}, amount: {}",
         ctx.accounts.mint.key(),
         ctx.accounts.receiver.key(),
-        amount
+        deserialized_args.amount
     );
     Ok(())
 }

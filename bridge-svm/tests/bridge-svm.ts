@@ -1,6 +1,14 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { Keypair, PublicKey, SystemProgram } from '@solana/web3.js';
+import {
+  Ed25519Program,
+  Keypair,
+  PublicKey,
+  sendAndConfirmTransaction,
+  SystemProgram,
+  Transaction,
+  TransactionInstruction
+} from '@solana/web3.js';
 
 import { MultisigNonce } from "../target/types/multisig_nonce";
 import {
@@ -11,10 +19,13 @@ import {
   TOKEN_PROGRAM_ID
 } from "@solana/spl-token";
 import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
-
+import * as borsh from 'borsh';
+import nacl from "tweetnacl";
 
 import assert from "assert";
-
+import { Buffer } from "buffer";
+import { hexToUint8Array, newEd25519Instruction, serializeReceivePayload } from "./utils";
+import { keccak_256 } from '@noble/hashes/sha3';
 
 describe("my-project", () => {
   // Configure the client to use the local cluster.
@@ -57,13 +68,13 @@ describe("my-project", () => {
     console.log("tokenMint1", tokenMint1.publicKey.toBase58())
 
     console.log("create mint 1")
-    await createMint(connection, admin, admin.publicKey, admin.publicKey, 18, tokenMint1);
+    await createMint(connection, admin, admin.publicKey, admin.publicKey, 6, tokenMint1);
 
     console.log("create user pda 1")
     user_token1_ata = (await getOrCreateAssociatedTokenAccount(connection, user, tokenMint1.publicKey, user.publicKey)).address;
 
     console.log("mint to user pda 1")
-    await mintTo(connection, user, tokenMint1.publicKey, user_token1_ata, admin, 10 * 10 ** 18,);
+    await mintTo(connection, user, tokenMint1.publicKey, user_token1_ata, admin, 10 * 10 ** 6);
 
 
     [bridge_token1_pda] = PublicKey.findProgramAddressSync([Buffer.from("token"), tokenMint1.publicKey.toBuffer()], program.programId)
@@ -89,7 +100,6 @@ describe("my-project", () => {
     console.log("globalState", globalState)
     assert.ok(globalState.admin.equals(admin.publicKey));
     assert.ok(!globalState.pause);
-
 
 
     const ambTokenAddress = hexToUint8Array("0x1111472FCa4260505EcE4AcD07717CADa41c1111");
@@ -148,48 +158,50 @@ describe("my-project", () => {
     console.log("tokenBalanceUser", tokenBalanceUser)
     console.log("tokenBalanceBridge", tokenBalanceBridge)
 
-    // Unlock tokens
-    await program.methods.unlock(new anchor.BN(50), new anchor.BN(0)).accounts({
+    const [nonceAccount] = PublicKey.findProgramAddressSync([Buffer.from("nonce"), user.publicKey.toBuffer()], program.programId);
+    console.log("nonceAccount", nonceAccount.toBase58());
+
+    const value = {
+      to: user.publicKey.toBytes(),
+      tokenAddressTo: tokenMint1.publicKey.toBytes(),
+      amount: 50,
+      nonce: 0,
+    };
+    const encoded = serializeReceivePayload(value);
+    const message = keccak_256(Buffer.from(encoded))
+    const signature = nacl.sign.detached(message, admin.secretKey);
+
+
+    const verifyInstruction = newEd25519Instruction(1, message, [admin.publicKey.toBytes()], [signature]);
+    const receiveInstruction = await program.methods.unlock(Buffer.from(encoded)).accounts({
       state: state_pda,
       receiver: user.publicKey,
       receiver_token_account: user_token1_ata,
+      receiverNonceAccount: nonceAccount,
       bridgeToken: bridge_token1_pda,
       bridgeTokenAccount: bridge_token1_ata,
       mint: tokenMint1.publicKey,
       tokenProgram: TOKEN_PROGRAM_ID,
       system_program: SystemProgram.programId,
-    }).signers([user]).rpc();
+    }).signers([user]).instruction()
 
-    const [nonceAccount] = PublicKey.findProgramAddressSync([user.publicKey.toBuffer()], program.programId);
+    const tx = new Transaction().add(verifyInstruction, receiveInstruction);
+    tx.feePayer = user.publicKey;
+    const txSignature = await sendAndConfirmTransaction(connection, tx, [user], { commitment: 'confirmed' }); // wait for transaction to be confirmed
+    // const txStatus = await connection.getParsedTransaction(txSignature, 'confirmed');
+
+
     const receiverNonce = await program.account.nonceAccount.fetch(nonceAccount);
-    console.log(receiverNonce);
-
-
-    //
-    // const fromBalance = await tokenMint.getAccountInfo(fromTokenAccount);
-    // const toBalance = await tokenMint.getAccountInfo(toTokenAccount);
-    //
-    // assert.ok(fromBalance.amount.toNumber() === amount.toNumber()); // Should have received the tokens back
-    // assert.ok(toBalance.amount.toNumber() === 0); // Should have transferred out the tokens
+    assert.ok(+receiverNonce.nonceCounter === 1);
   });
 
 });
-
-
-function hexToUint8Array(hexString: string) {
-  if (hexString.startsWith("0x"))
-    hexString = hexString.slice(2); // Remove "0x" prefix if present
-  const bytes = new Uint8Array(hexString.length / 2);
-  for (let i = 0; i < bytes.length; i++)
-    bytes[i] = parseInt(hexString.substr(i * 2, 2), 16);
-  return bytes;
-}
 
 
 async function requestSol(account, connection, amount = 5) {
   console.log(`Requesting airdrop for SOL : ${account.publicKey.toBase58()}`)
   const signature = await connection.requestAirdrop(account.publicKey, amount * 10 ** 9);
   const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
-  await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature }, 'finalized');
+  await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature }, 'confirmed');
   console.log("account wallet balance : ", account.publicKey.toBase58(), (await connection.getBalance(account.publicKey)) / 10 ** 9, "SOL")
 }

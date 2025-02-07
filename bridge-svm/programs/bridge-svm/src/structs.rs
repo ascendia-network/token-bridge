@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use borsh::{BorshDeserialize, BorshSerialize};
 
 
 #[account]
@@ -37,10 +38,21 @@ pub struct NonceAccount {
 
 #[error_code]
 pub enum CustomError {
-    #[msg("Signature invalid.")]
-    MissingSignature,
-    #[msg("Invalid nonce.")]
+    #[msg("Signature invalid")]
+    InvalidSignature,
+    #[msg("Invalid nonce")]
     InvalidNonce,
-    #[msg("Invalid token.")]
+    #[msg("Invalid token")]
     InvalidToken,
+    #[msg("Invalid serialization")]
+    InvalidSerialization
+}
+
+
+#[derive(BorshSerialize, BorshDeserialize, Debug)]
+pub struct ReceivePayload {
+    pub to: Pubkey,
+    pub token_address_to: Pubkey,
+    pub amount: u64,
+    pub nonce: u64,
 }

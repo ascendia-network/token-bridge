@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-pub mod state;
+pub mod structs;
 pub mod instructions;
 
 use crate::instructions::*;
@@ -30,7 +30,7 @@ pub mod multisig_nonce {
         instructions::lock(ctx, amount, destination)
     }
 
-   pub fn unlock(ctx: Context<Unlock>, amount: u64, nonce_value: u64) -> Result<()> {
-        instructions::unlock(ctx, amount, nonce_value)
+   pub fn unlock(ctx: Context<Unlock>, serialized_args: Vec<u8>) -> Result<()> {
+        instructions::unlock(ctx, serialized_args)
     }
 }

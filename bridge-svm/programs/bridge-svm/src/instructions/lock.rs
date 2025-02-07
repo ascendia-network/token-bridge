@@ -1,4 +1,4 @@
-use crate::state::*;
+use crate::structs::*;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, Transfer};
 use anchor_spl::token_interface::{ Mint, TokenAccount};

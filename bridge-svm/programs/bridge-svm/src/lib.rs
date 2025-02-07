@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
-declare_id!("GrDsFgHMrguqLqhb9JGvE26wTCbwPiLPhFGMsxeDt5Xd");
+declare_id!("9e3ndXjVeCCu89MvcCkpoyVpxSGGyym7eHu9i5Nimpni");
 
 #[derive(Accounts)]
 pub struct Lock<'info> {
@@ -41,6 +41,7 @@ pub struct Unlock<'info> {
 
     #[account(
         init_if_needed,
+        rent_exempt = enforce,
         payer = user,
         space = 16,
         seeds = [user.key().as_ref()],
@@ -66,6 +67,7 @@ pub struct Unlock<'info> {
 pub struct Initialize<'info> {
     #[account(
         init,
+        rent_exempt = enforce,
         seeds = [b"global_state"],
         bump,
         payer = admin,
@@ -86,6 +88,15 @@ pub struct UpdateState<'info> {
 
     #[account(mut, constraint = authority.key() == state.admin)]
     pub authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateNonce<'info> {
+    #[account(mut, seeds = [b"nonce_seed"], bump)]
+    pub nonce_pda: AccountInfo<'info>,
+    #[account(mut)]
+    pub nonce_account: AccountInfo<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 #[account]
@@ -128,10 +139,13 @@ pub mod multisig_nonce {
         Ok(())
     }
 
-    pub fn add_token(ctx: Context<UpdateState>, token: (Pubkey, String)) -> Result<()> {
+    pub fn add_token(ctx: Context<UpdateState>, token: Pubkey, name: String) -> Result<()> {
         if ctx.accounts.state.tokens.len() < 12 {
-            ctx.accounts.state.tokens.push(token.clone());
-            msg!("Add token: {}", token.0);
+            ctx.accounts
+                .state
+                .tokens
+                .push((token.clone(), name.clone()));
+            msg!("Add token: {}, name: {}", token, name);
         }
         Ok(())
     }
@@ -177,7 +191,7 @@ pub mod multisig_nonce {
 
         msg!(
             "Lock, token: {}, from: {}, to: {}, amount: {}, destination: {}, nonce: {}",
-            ctx.accounts.token_program.key(),
+            ctx.accounts.to.mint,
             ctx.accounts.from.key(),
             ctx.accounts.to.key(),
             amount,
@@ -212,7 +226,7 @@ pub mod multisig_nonce {
         nonce.nonce_counter += 1;
         msg!(
             "Unlock, token: {}, from: {}, to: {}, amount: {}",
-            ctx.accounts.token_program.key(),
+            ctx.accounts.to.mint,
             ctx.accounts.from.key(),
             ctx.accounts.to.key(),
             amount

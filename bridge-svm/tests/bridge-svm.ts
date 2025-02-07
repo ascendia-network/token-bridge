@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { type Connection, Keypair, PublicKey, type Signer, SystemProgram, Transaction } from '@solana/web3.js';
+import { Keypair, PublicKey, SystemProgram } from '@solana/web3.js';
 
 import { MultisigNonce } from "../target/types/multisig_nonce";
 import {
@@ -21,220 +21,159 @@ describe("my-project", () => {
   anchor.setProvider(anchor.AnchorProvider.local());
 
   const program = anchor.workspace.MultisigNonce as Program<MultisigNonce>;
+  const connection = program.provider.connection;
 
-  let connection;
-  let admin, user;
-  let state, vault;
-  let tokenMintA;
-  let userTokenAddressA;
+  const admin = anchor.web3.Keypair.generate();
+  const user = anchor.web3.Keypair.generate();
+
+  // pda - account to store some data
+  // ata - associated token account - storing tokens (one per user per token)
+  // mint - a.k.a. token
+
+
+  let tokenMint1;         // some token
+  let user_token1_ata;    // ata that store user's tokens, created by user
+  let bridge_token1_pda;  // pda that store token config, created and owned by program (payed by admin)
+  let bridge_token1_ata;  // ata that store locked token, owner is bridge_token1_pda (program)
+
+  let state_pda;          // pda that store global state, created and owned by program (payed by admin)
+
 
   it("airdropping sol", async () => {
 
-    connection = program.provider.connection;
-
-    admin = anchor.web3.Keypair.generate();
-    user = anchor.web3.Keypair.generate();
-    tokenMintA = Keypair.generate();
-
-    [state] = PublicKey.findProgramAddressSync([Buffer.from("global_state")], program.programId);
-
     console.log("Admin's wallet address is : ", admin.publicKey.toBase58())
     console.log("User's wallet address is : ", user.publicKey.toBase58())
-    console.log("tokenMintA", tokenMintA.publicKey)
 
     await requestSol(admin, connection);
     await requestSol(user, connection);
 
-
-    userTokenAddressA = await mintingTokens({
-      connection,
-      creator: admin,
-      holder: user,
-      tokenKeypair: tokenMintA,
-    })
-    console.log("userTokenAddressA", userTokenAddressA.address)
 
   })
 
 
   it("initializing", async () => {
 
-    const tx = await program.methods.initialize().accounts({
-      state: state,
+    tokenMint1 = Keypair.generate();
+    console.log("tokenMint1", tokenMint1.publicKey.toBase58())
+
+    console.log("create mint 1")
+    await createMint(connection, admin, admin.publicKey, admin.publicKey, 18, tokenMint1);
+
+    console.log("create user pda 1")
+    user_token1_ata = (await getOrCreateAssociatedTokenAccount(connection, user, tokenMint1.publicKey, user.publicKey)).address;
+
+    console.log("mint to user pda 1")
+    await mintTo(connection, user, tokenMint1.publicKey, user_token1_ata, admin, 10 * 10 ** 18,);
+
+
+    [bridge_token1_pda] = PublicKey.findProgramAddressSync([Buffer.from("token"), tokenMint1.publicKey.toBuffer()], program.programId)
+    bridge_token1_ata = getAssociatedTokenAddressSync(tokenMint1.publicKey, bridge_token1_pda, true);
+
+    [state_pda] = PublicKey.findProgramAddressSync([Buffer.from("global_state")], program.programId);
+
+
+    console.log("user_token1_ata", user_token1_ata.toBase58())
+    console.log("bridge_token1_pda", bridge_token1_pda.toBase58())
+    console.log("bridge_token1_ata", bridge_token1_ata.toBase58())
+    console.log("state_pda", state_pda.toBase58())
+
+
+    await program.methods.initialize().accounts({
+      state: state_pda,
       admin: admin.publicKey,
       systemProgram: SystemProgram.programId
     }).signers([admin]).rpc();
-    console.log("Your transaction signature", tx);
-
-    const accountState = await program.account.globalState.fetch(state);
-    console.log("accountState", accountState)
-    assert.ok(accountState.admin.equals(admin.publicKey));
-    assert.ok(accountState.isEnable);
 
 
-    const [bridge_token_pda] = PublicKey.findProgramAddressSync([Buffer.from("token"), tokenMintA.publicKey.toBuffer()], program.programId)
-    const bridge_token_account = getAssociatedTokenAddressSync(tokenMintA.publicKey, bridge_token_pda, true);
+    const globalState = await program.account.globalState.fetch(state_pda);
+    console.log("globalState", globalState)
+    assert.ok(globalState.admin.equals(admin.publicKey));
+    assert.ok(!globalState.pause);
 
 
-    await program.methods.initializeToken(hexToUint8Array("0x1111472FCa4260505EcE4AcD07717CADa41c1111")).accounts({
+
+    const ambTokenAddress = hexToUint8Array("0x1111472FCa4260505EcE4AcD07717CADa41c1111");
+    await program.methods.initializeToken(ambTokenAddress).accounts({
       signer: admin.publicKey,
-      bridge_token: bridge_token_pda,
-      bridge_token_account: bridge_token_account,
-
-      mint: tokenMintA.publicKey,
-
+      bridgeToken: bridge_token1_pda,
+      bridgeTokenAccount: bridge_token1_ata,
+      mint: tokenMint1.publicKey,
       tokenProgram: TOKEN_PROGRAM_ID,
       associated_token_program: ASSOCIATED_PROGRAM_ID,
-    system_program: SystemProgram.programId,
+      system_program: SystemProgram.programId,
     }).signers([admin]).rpc();
 
-    const tokenConfigState = await program.account.tokenConfig.fetch(bridge_token_pda);
-    console.log("tokenConfigState",  tokenConfigState)
 
-    // todo this not working
-    const tokenBalanceB = await connection.getTokenAccountBalance(bridge_token_account);
+    const tokenConfigState = await program.account.tokenConfig.fetch(bridge_token1_pda);
+    const tokenBalanceB = await connection.getTokenAccountBalance(bridge_token1_ata);
+    const bridgeAta = await connection.getAccountInfo(bridge_token1_ata);
+
+    console.log("tokenConfigState", tokenConfigState)
     console.log("tokenBalanceB", tokenBalanceB)
+    console.log("bridgeAta", bridgeAta)
 
   });
 
   it('lock', async () => {
-    const amount = new anchor.BN(100);
-
-    const userAta1 = getAssociatedTokenAddressSync(tokenMintA.publicKey, user.publicKey)
-    const [bridge_token_pda] = PublicKey.findProgramAddressSync([Buffer.from("token"), tokenMintA.publicKey.toBuffer()], program.programId)
-    const bridge_token_account = getAssociatedTokenAddressSync(tokenMintA.publicKey, bridge_token_pda, true);
-
-    console.log("userAta1", userAta1.toBase58())
-    console.log("bridge_token_pda", bridge_token_pda.toBase58())
-    console.log("bridge_token_account", bridge_token_account.toBase58())
-
-
-    const tokenBalance = await connection.getTokenAccountBalance(userAta1);
-    console.log("tokenBalance", tokenBalance)
-    const tokenBalanceB = await connection.getTokenAccountBalance(bridge_token_account);
-    console.log("tokenBalanceB", tokenBalanceB)
-
+    const tokenBalanceUser = await connection.getTokenAccountBalance(user_token1_ata);
+    const tokenBalanceBridge = await connection.getTokenAccountBalance(bridge_token1_ata);
+    console.log("tokenBalanceUser", tokenBalanceUser)
+    console.log("tokenBalanceBridge", tokenBalanceBridge)
 
 
     // Lock tokens
-    await program.methods.lock(amount, "0x228").accounts({
-      state: state,
+    await program.methods.lock(new anchor.BN(100), "0x228").accounts({
+      state: state_pda,
       sender: user.publicKey,
-      sender_token_account: userAta1,
-      bridge_token: bridge_token_pda,
-      bridgeTokenAccount: bridge_token_account,
-      mint: tokenMintA.publicKey,
+      sender_token_account: user_token1_ata,
+      bridgeToken: bridge_token1_pda,
+      bridgeTokenAccount: bridge_token1_ata,
+      mint: tokenMint1.publicKey,
       tokenProgram: TOKEN_PROGRAM_ID,
       system_program: SystemProgram.programId,
     }).signers([user]).rpc();
 
-    const accountState = await program.account.globalState.fetch(state);
+    const accountState = await program.account.globalState.fetch(state_pda);
     assert.ok(+accountState.nonce === 1);
 
-    // const nonceAccount = PublicKey.findProgramAddressSync([user.publicKey.toBuffer()], program.programId)[0];
-    // const receiverNonce = await program.account.nonceAccount.fetch(nonceAccount);
-    // console.log(receiverNonce);
 
-
-    const tokenBalance2 = await connection.getTokenAccountBalance(userAta1);
+    const tokenBalance2 = await connection.getTokenAccountBalance(user_token1_ata);
     console.log(tokenBalance2)
 
   });
 
-  it('should unlock tokens with valid nonce and signatures', async () => {
-      const amount = new anchor.BN(50);
+  it('unlock', async () => {
+    const tokenBalanceUser = await connection.getTokenAccountBalance(user_token1_ata);
+    const tokenBalanceBridge = await connection.getTokenAccountBalance(bridge_token1_ata);
+    console.log("tokenBalanceUser", tokenBalanceUser)
+    console.log("tokenBalanceBridge", tokenBalanceBridge)
+
+    // Unlock tokens
+    await program.methods.unlock(new anchor.BN(50), new anchor.BN(0)).accounts({
+      state: state_pda,
+      receiver: user.publicKey,
+      receiver_token_account: user_token1_ata,
+      bridgeToken: bridge_token1_pda,
+      bridgeTokenAccount: bridge_token1_ata,
+      mint: tokenMint1.publicKey,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      system_program: SystemProgram.programId,
+    }).signers([user]).rpc();
+
+    const [nonceAccount] = PublicKey.findProgramAddressSync([user.publicKey.toBuffer()], program.programId);
+    const receiverNonce = await program.account.nonceAccount.fetch(nonceAccount);
+    console.log(receiverNonce);
 
 
-    const userAta1 = getAssociatedTokenAddressSync(tokenMintA.publicKey, user.publicKey)
-    const [bridge_token_pda] = PublicKey.findProgramAddressSync([Buffer.from("token"), tokenMintA.publicKey.toBuffer()], program.programId)
-    const bridge_token_account = getAssociatedTokenAddressSync(tokenMintA.publicKey, bridge_token_pda, true);
-
-    console.log("userAta1", userAta1.toBase58())
-    console.log("bridge_token_pda", bridge_token_pda.toBase58())
-    console.log("bridge_token_account", bridge_token_account.toBase58())
-
-
-    const tokenBalance = await connection.getTokenAccountBalance(userAta1);
-    console.log("tokenBalance", tokenBalance)
-    const tokenBalanceB = await connection.getTokenAccountBalance(bridge_token_account);
-    console.log("tokenBalanceB", tokenBalanceB)
-
-      // Unlock tokens
-      await program.methods.unlock(amount, new anchor.BN(0), {
-          accounts: {
-            state: state,
-            receiver: user.publicKey,
-            receiver_token_account: userAta1,
-            bridge_token: bridge_token_pda,
-            bridgeTokenAccount: bridge_token_account,
-            mint: tokenMintA.publicKey,
-            tokenProgram: TOKEN_PROGRAM_ID,
-            system_program: SystemProgram.programId,
-          },
-          signers: [user],
-      });
-
-      // const accountState = await program.account.globalState.fetch(state);
-      // assert.ok(accountState.nonce === 1);
-      //
-      // const fromBalance = await tokenMint.getAccountInfo(fromTokenAccount);
-      // const toBalance = await tokenMint.getAccountInfo(toTokenAccount);
-      //
-      // assert.ok(fromBalance.amount.toNumber() === amount.toNumber()); // Should have received the tokens back
-      // assert.ok(toBalance.amount.toNumber() === 0); // Should have transferred out the tokens
+    //
+    // const fromBalance = await tokenMint.getAccountInfo(fromTokenAccount);
+    // const toBalance = await tokenMint.getAccountInfo(toTokenAccount);
+    //
+    // assert.ok(fromBalance.amount.toNumber() === amount.toNumber()); // Should have received the tokens back
+    // assert.ok(toBalance.amount.toNumber() === 0); // Should have transferred out the tokens
   });
 
-  // it('should enable and disable the state correctly', async () => {
-  //     // Disable state
-  //     await program.rpc.disable({
-  //         accounts: {
-  //             state,
-  //             authority: admin.publicKey,
-  //         },
-  //         signers: [admin],
-  //     });
-  //
-  //     let accountState = await program.account.globalState.fetch(state);
-  //     assert.ok(!accountState.isEnable);
-  //
-  //     // Enable state
-  //     await program.rpc.enable({
-  //         accounts: {
-  //             state,
-  //             authority: admin.publicKey,
-  //         },
-  //         signers: [admin],
-  //     });
-  //
-  //     accountState = await program.account.globalState.fetch(state);
-  //     assert.ok(accountState.isEnable);
-  // });
-  //
 });
-
-
-export const mintingTokens = async (
-  {
-    connection,
-    creator,
-    holder = creator,
-    tokenKeypair,
-    mintedAmount = 100,
-    decimals = 6,
-  }: {
-    connection: Connection;
-    creator: Signer;
-    holder?: Signer;
-    tokenKeypair: Keypair;
-    mintedAmount?: number;
-    decimals?: number;
-  }) => {
-
-  await createMint(connection, creator, creator.publicKey, creator.publicKey, decimals, tokenKeypair);
-  const ata = await getOrCreateAssociatedTokenAccount(connection, creator, tokenKeypair.publicKey, holder.publicKey, true);
-  await mintTo(connection, creator, tokenKeypair.publicKey, ata.address, creator.publicKey, mintedAmount * 10 ** decimals,);
-  return ata;
-};
 
 
 function hexToUint8Array(hexString: string) {
@@ -247,7 +186,7 @@ function hexToUint8Array(hexString: string) {
 }
 
 
-async function requestSol(account, connection, amount=5) {
+async function requestSol(account, connection, amount = 5) {
   console.log(`Requesting airdrop for SOL : ${account.publicKey.toBase58()}`)
   const signature = await connection.requestAirdrop(account.publicKey, amount * 10 ** 9);
   const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();

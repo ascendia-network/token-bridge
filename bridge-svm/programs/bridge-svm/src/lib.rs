@@ -20,8 +20,7 @@ pub struct Initialize<'info> {
 pub struct GlobalState {
     pub admin: Pubkey,
     pub nonce: u64,
-    pub is_enable: bool,
-    // pub tokens: Vec<(Pubkey, String)>,
+    pub pause: bool,
 }
 
 
@@ -49,14 +48,13 @@ pub struct CreateTokenAccount<'info> {
         payer = signer,
         associated_token::mint = mint,
         associated_token::authority = bridge_token,
-        associated_token::token_program	= token_program,
     )]
     pub bridge_token_account: InterfaceAccount<'info, TokenAccount>,
 
     pub mint: InterfaceAccount<'info, Mint>,
 
 
-    pub token_program: Interface<'info, TokenInterface>,
+    pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
 }
@@ -65,13 +63,14 @@ pub struct CreateTokenAccount<'info> {
 pub struct TokenConfig {
     pub token: Pubkey,      // Public key of the token
     pub amb_token: [u8; 20],  //
+    pub bump: u8,
 }
 
 impl TokenConfig {
     pub const SEED_PREFIX: &'static str = "token";
     pub const ACCOUNT_SIZE: usize = 8 + 32 + 20 + 1;     // discriminator (8)  + Pubkey (32) + address (20)     + Bump (1) _
-    pub fn new(token: Pubkey, amb_token: [u8; 20]) -> Self {
-        Self {            token,            amb_token           }
+    pub fn new(token: Pubkey, amb_token: [u8; 20], bump: u8) -> Self {
+        Self {            token,            amb_token, bump           }
     }
 }
 
@@ -94,7 +93,7 @@ impl TokenConfig {
 
 #[derive(Accounts)]
 pub struct Lock<'info> {
-    #[account(        mut,        seeds = [b"global_state"],        bump,        constraint = state.is_enable    )]
+    #[account(        mut,        seeds = [b"global_state"],        bump,        constraint = !state.pause    )]
     pub state: Account<'info, GlobalState>,
 
     #[account(mut)]
@@ -110,7 +109,7 @@ pub struct Lock<'info> {
 
     #[account(
         seeds = [TokenConfig::SEED_PREFIX.as_bytes(), mint.key().as_ref()],
-        bump
+        bump = bridge_token.bump
     )]
     pub bridge_token: Account<'info, TokenConfig>,
 
@@ -125,7 +124,7 @@ pub struct Lock<'info> {
 
 
     pub mint: InterfaceAccount<'info, Mint>,
-    pub token_program: Interface<'info, TokenInterface>,
+    pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
 }
 
@@ -138,7 +137,7 @@ pub struct Lock<'info> {
 
 #[derive(Accounts)]
 pub struct Unlock<'info> {
-    #[account(        seeds = [b"global_state"],        bump,        constraint = state.is_enable    )]
+    #[account(        seeds = [b"global_state"],        bump,        constraint = !state.pause    )]
     pub state: Account<'info, GlobalState>,
 
 
@@ -168,14 +167,14 @@ pub struct Unlock<'info> {
 
     #[account(
         seeds = [TokenConfig::SEED_PREFIX.as_bytes(), mint.key().as_ref()],
-        bump
+        bump = bridge_token.bump
     )]
     pub bridge_token: Account<'info, TokenConfig>,
 
     #[account(
         mut,
-        token::mint = mint,
-        token::authority = bridge_token,
+        associated_token::mint = mint,
+        associated_token::authority = bridge_token,
     )]
     pub bridge_token_account: InterfaceAccount<'info, TokenAccount>,
 
@@ -233,8 +232,7 @@ pub mod multisig_nonce {
         let state = &mut ctx.accounts.state;
         state.admin = Pubkey::from_str(ADMIN).unwrap_or(ctx.accounts.admin.key());
         state.nonce = 0;
-        state.is_enable = true;
-        // state.tokens = Vec::new();
+        state.pause = false;
         Ok(())
     }
 
@@ -244,48 +242,24 @@ pub mod multisig_nonce {
         bridge_token.set_inner(TokenConfig::new(
             ctx.accounts.mint.key(),
             amb_token,
-//             ctx.bumps.bridge_token,
+            ctx.bumps.bridge_token,
         ));
+
         Ok(())
     }
 
-    // pub fn add_token(ctx: Context<UpdateState>, token: (Pubkey, String)) -> Result<()> {
-    //     if ctx.accounts.state.tokens.len() < 12 {
-    //         ctx.accounts.state.tokens.push(token.clone());
-    //         msg!("Add token: {}", token.0);
-    //     }
-    //     Ok(())
-    // }
-
-    // pub fn delete_token(ctx: Context<UpdateState>, token: Pubkey) -> Result<()> {
-    //     if let Some(index) = ctx.accounts.state.tokens.iter().position(|x| x.0 == token) {
-    //         ctx.accounts.state.tokens.remove(index);
-    //         msg!("Delete token: {}", token);
-    //     }
-    //     Ok(())
-    // }
-    //
-    pub fn disable(ctx: Context<UpdateState>) -> Result<()> {
-        ctx.accounts.state.is_enable = false;
+    pub fn set_pause(ctx: Context<UpdateState>, pause: bool) -> Result<()> {
+        ctx.accounts.state.pause = pause;
         Ok(())
     }
 
-    pub fn enable(ctx: Context<UpdateState>) -> Result<()> {
-        ctx.accounts.state.is_enable = true;
-        Ok(())
-    }
 
     pub fn lock(ctx: Context<Lock>, amount: u64, destination: String) -> Result<()> {
         ctx.accounts.state.nonce += 1;
-        // if !ctx
-        //     .accounts
-        //     .state
-        //     .tokens
-        //     .iter()
-        //     .any(|(pubkey, _)| pubkey == &ctx.accounts.to.mint)
-        // {
-        //     return Err(ErrorCode::InvalidToken.into());
-        // }
+
+        // todo check token
+        // todo check signature
+        // todo fees
 
         let cpi_accounts = Transfer {
             from: ctx.accounts.sender_token_account.to_account_info(),
@@ -298,7 +272,7 @@ pub mod multisig_nonce {
 
         msg!(
             "Lock, token: {}, from: {}, amount: {}, destination: {}, nonce: {}",
-            ctx.accounts.token_program.key(),
+            ctx.accounts.mint.key(),
             ctx.accounts.sender.key(),
             amount,
             destination,
@@ -313,13 +287,12 @@ pub mod multisig_nonce {
             return Err(ErrorCode::InvalidNonce.into());
         }
 
-//         let accounts = ctx.remaining_accounts;
-//         for account in accounts {
-//             if !account.is_signer {
-//                 return Err(ErrorCode::MissingSignature.into());
-//             }
-//         }
+        // todo check signature
 
+        let bridge_token = &ctx.accounts.bridge_token;
+
+        let seeds = &[TokenConfig::SEED_PREFIX.as_bytes(), bridge_token.token.as_ref(), &[bridge_token.bump]];
+        let signer_seeds = &[&seeds[..]];
 
         let cpi_accounts = Transfer {
             from: ctx.accounts.bridge_token_account.to_account_info(),
@@ -327,18 +300,17 @@ pub mod multisig_nonce {
             authority: ctx.accounts.bridge_token.to_account_info(),
         };
 
-        let cpi_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), cpi_accounts);
+        let cpi_ctx = CpiContext::new_with_signer(ctx.accounts.token_program.to_account_info(), cpi_accounts,            signer_seeds        );
         token::transfer(cpi_ctx, amount)?;
 
 
         nonce.nonce_counter += 1;
-//         msg!(
-//             "Unlock, token: {}, from: {}, to: {}, amount: {}",
-//             ctx.accounts.token_program.key(),
-//             ctx.accounts.from.key(),
-//             ctx.accounts.to.key(),
-//             amount
-//         );
+        msg!(
+            "Unlock, token: {}, to: {}, amount: {}",
+            ctx.accounts.mint.key(),
+            ctx.accounts.receiver.key(),
+            amount
+        );
         Ok(())
     }
 }

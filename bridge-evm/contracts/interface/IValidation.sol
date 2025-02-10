@@ -2,9 +2,9 @@
 pragma solidity ^0.8.20;
 pragma abicoder v2;
 
-import {IBridgeTypes} from "./IBridgeTypes.sol";
+import {BridgeTypes} from "./BridgeTypes.sol";
 
-interface IValidation is IBridgeTypes {
+interface IValidation is BridgeTypes {
 
     /// Emits when the payload signer is changed
     /// @param changer Who changed the payload signer
@@ -45,11 +45,22 @@ interface IValidation is IBridgeTypes {
         returns (uint256 validityWindow);
 
     /// Validate the transaction receipt
-    /// @param receipt transaction receipt
+    /// @param receipt transaction full receipt
     /// @param signature signature of the receipt. Must be signed by all validators
     /// @return isValid true if the receipt is valid
     function validate(
-        Receipt memory receipt,
+        FullReceipt memory receipt,
+        bytes memory signature
+    )
+        external
+        view
+        returns (bool isValid);
+    /// Validate the transaction receipt
+    /// @param receipt transaction cropped receipt
+    /// @param signature signature of the receipt. Must be signed by all validators
+    /// @return isValid true if the receipt is valid
+    function validate(
+        MiniReceipt memory receipt,
         bytes memory signature
     )
         external

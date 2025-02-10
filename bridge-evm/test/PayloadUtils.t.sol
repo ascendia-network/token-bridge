@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {IBridgeTypes} from "../contracts/interface/IBridgeTypes.sol";
+import {BridgeTypes} from "../contracts/interface/BridgeTypes.sol";
 
 import {PayloadUtils} from "../contracts/utils/PayloadUtils.sol";
 
@@ -36,7 +36,7 @@ contract PayloadUtilsTest is Test {
         public
     {
         string[] memory runJsInputs = new string[](8);
-        IBridgeTypes.SendPayload memory payload = IBridgeTypes.SendPayload({
+        BridgeTypes.SendPayload memory payload = BridgeTypes.SendPayload({
             tokenAddress: tokenAddress,
             amountToSend: amountToSend,
             feeAmount: feeAmount,

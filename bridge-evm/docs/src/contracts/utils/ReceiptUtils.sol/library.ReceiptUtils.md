@@ -1,8 +1,32 @@
 # ReceiptUtils
-[Git Source](https://github.com/ambrosus/token-bridge/blob/fd78173c03bc3176acad331d668a382df87c32fd/contracts/utils/ReceiptUtils.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/91bb52a526c0f112baf68a5b9e3a3c70d76246d0/contracts/utils/ReceiptUtils.sol)
 
 
 ## Functions
+### asMini
+
+Convert full receipt to mini receipt
+
+
+```solidity
+function asMini(BridgeTypes.FullReceipt memory receipt)
+    internal
+    pure
+    returns (BridgeTypes.MiniReceipt memory mini);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`receipt`|`BridgeTypes.FullReceipt`|receipt to convert|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mini`|`BridgeTypes.MiniReceipt`|receipt converted|
+
+
 ### toHash
 
 Shortcut to convert receipt to hash
@@ -11,7 +35,7 @@ Shortcut to convert receipt to hash
 
 
 ```solidity
-function toHash(IBridgeTypes.Receipt memory receipt)
+function toHash(BridgeTypes.FullReceipt memory receipt)
     internal
     pure
     returns (bytes32 hash);
@@ -20,7 +44,33 @@ function toHash(IBridgeTypes.Receipt memory receipt)
 
 |Name|Type|Description|
 |----|----|-----------|
-|`receipt`|`IBridgeTypes.Receipt`|receipt to convert|
+|`receipt`|`BridgeTypes.FullReceipt`|receipt to convert|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`hash`|`bytes32`|converted|
+
+
+### toHash
+
+Shortcut to convert receipt to hash
+
+*using [toEthSignedMessageHash](https://docs.openzeppelin.com/contracts/5.x/api/utils#MessageHashUtils-toEthSignedMessageHash-bytes32-) from OpenZeppelin's MessageHashUtils*
+
+
+```solidity
+function toHash(BridgeTypes.MiniReceipt memory receipt)
+    internal
+    pure
+    returns (bytes32 hash);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`receipt`|`BridgeTypes.MiniReceipt`|receipt to convert|
 
 **Returns**
 
@@ -37,7 +87,7 @@ Convert receipt to hash via toEthSignedMessageHash
 
 
 ```solidity
-function toEthSignedMessageHash(IBridgeTypes.Receipt memory receipt)
+function toEthSignedMessageHash(BridgeTypes.MiniReceipt memory receipt)
     internal
     pure
     returns (bytes32 hash);
@@ -46,7 +96,7 @@ function toEthSignedMessageHash(IBridgeTypes.Receipt memory receipt)
 
 |Name|Type|Description|
 |----|----|-----------|
-|`receipt`|`IBridgeTypes.Receipt`|receipt to convert|
+|`receipt`|`BridgeTypes.MiniReceipt`|receipt to convert|
 
 **Returns**
 

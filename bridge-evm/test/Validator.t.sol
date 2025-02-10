@@ -19,7 +19,7 @@ import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {EnumerableSet} from
     "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-import {IBridgeTypes} from "../contracts/interface/IBridgeTypes.sol";
+import {BridgeTypes} from "../contracts/interface/BridgeTypes.sol";
 import {IValidation} from "../contracts/interface/IValidation.sol";
 import {IValidatorV1} from "../contracts/interface/IValidatorV1.sol";
 import {IWrapped} from "../contracts/interface/IWrapped.sol";
@@ -34,8 +34,9 @@ import {sAMB} from "./mocks/sAMB.sol";
 contract ValidatorTest is Test {
 
     using EnumerableSet for EnumerableSet.AddressSet;
-    using ReceiptUtils for IBridgeTypes.Receipt;
-    using PayloadUtils for IBridgeTypes.SendPayload;
+    using ReceiptUtils for BridgeTypes.FullReceipt;
+    using ReceiptUtils for BridgeTypes.MiniReceipt;
+    using PayloadUtils for BridgeTypes.SendPayload;
 
     bytes32 private constant coverageProfile =
         keccak256(abi.encodePacked("coverage"));
@@ -65,9 +66,10 @@ contract ValidatorTest is Test {
     Signer payloadSigner;
     EnumerableSet.AddressSet validatorSet;
 
-    IBridgeTypes.SendPayload payloadCommon;
+    BridgeTypes.SendPayload payloadCommon;
 
-    IBridgeTypes.Receipt receiptCommon;
+    BridgeTypes.FullReceipt receiptCommon;
+    BridgeTypes.MiniReceipt miniReceiptCommon;
 
     function setUpWrappedToken() public virtual returns (IWrapped) {
         address wrappedTokenAddress = address(new sAMB("Wrapped Amber", "sAMB"));
@@ -89,7 +91,9 @@ contract ValidatorTest is Test {
         vm.expectEmit();
         emit IValidation.PayloadSignerChanged(address(this), pldSigner);
         vm.expectEmit();
-        emit IValidation.FeeValidityWindowChanged(address(this), feeValidityWindow);
+        emit IValidation.FeeValidityWindowChanged(
+            address(this), feeValidityWindow
+        );
         for (uint256 i = 0; i < validators.length; i++) {
             vm.expectEmit();
             emit IValidatorV1.ValidatorAdded(validators[i]);
@@ -212,7 +216,7 @@ contract ValidatorTest is Test {
             100
         );
 
-        payloadCommon = IBridgeTypes.SendPayload({
+        payloadCommon = BridgeTypes.SendPayload({
             tokenAddress: bytes32("SOLANA"),
             amountToSend: 100 ether,
             feeAmount: 1 ether,
@@ -221,11 +225,13 @@ contract ValidatorTest is Test {
             flagData: bytes("SOME_USEFUL_DATA")
         });
 
-        receiptCommon = IBridgeTypes.Receipt({
+        receiptCommon = BridgeTypes.FullReceipt({
             from: bytes32("GOOD_SENDER"),
             to: bytes32("GOOD_RECEIVER"),
-            tokenAddress: bytes32("SOLANA"),
-            amount: 100 ether,
+            tokenAddressFrom: bytes32("SOLANA"),
+            tokenAddressTo: bytes32(uint256(uint160(address(wrappedToken)))),
+            amountFrom: 100 ether,
+            amountTo: 100 ether,
             chainFrom: 1,
             chainTo: 2,
             eventId: 1,
@@ -347,7 +353,7 @@ contract ValidatorTest is Test {
     }
 
     function signPayload(
-        IBridgeTypes.SendPayload memory payload,
+        BridgeTypes.SendPayload memory payload,
         Signer memory signer
     )
         internal
@@ -427,7 +433,7 @@ contract ValidatorTest is Test {
         vm.stopPrank();
     }
 
-    function signReceipt(IBridgeTypes.Receipt memory receipt)
+    function signReceipt(BridgeTypes.MiniReceipt memory receipt)
         internal
         returns (bytes memory signature)
     {
@@ -442,7 +448,7 @@ contract ValidatorTest is Test {
     }
 
     function test_validate() public {
-        bytes memory signature = signReceipt(receiptCommon);
+        bytes memory signature = signReceipt(receiptCommon.asMini());
         assertTrue(
             validatorInstance.validate(receiptCommon, signature),
             "Receipt validation failed"
@@ -477,7 +483,7 @@ contract ValidatorTest is Test {
     }
 
     function test_revertWhen_validate_SignatureCountMismatch() public {
-        bytes memory signature = signReceipt(receiptCommon);
+        bytes memory signature = signReceipt(receiptCommon.asMini());
         // Another alice in the validator set, so the signature count is different
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -490,7 +496,7 @@ contract ValidatorTest is Test {
     }
 
     function test_revertWhen_validate_InvalidSignatureLength() public {
-        bytes memory signature = signReceipt(receiptCommon);
+        bytes memory signature = signReceipt(receiptCommon.asMini());
         // Change the signature length to simulate an invalid signature
         signature = bytes.concat(signature, bytes("GARBAGE"));
         vm.expectRevert(
@@ -503,11 +509,13 @@ contract ValidatorTest is Test {
 
     function test_revertWhen_validate_EmptyValidatorSet() public {
         bytes memory signature;
-        IBridgeTypes.Receipt memory receipt = IBridgeTypes.Receipt({
+        BridgeTypes.FullReceipt memory receipt = BridgeTypes.FullReceipt({
             from: bytes32("GOOD_SENDER"),
             to: bytes32("GOOD_RECEIVER"),
-            tokenAddress: bytes32("SOLANA"),
-            amount: 100 ether,
+            tokenAddressFrom: bytes32("SOLANA"),
+            tokenAddressTo: bytes32(uint256(uint160(address(wrappedToken)))),
+            amountFrom: 100 ether,
+            amountTo: 100 ether,
             chainFrom: 1,
             chainTo: 2,
             eventId: 1,
@@ -526,13 +534,13 @@ contract ValidatorTest is Test {
     }
 
     function test_revertWhen_validate_NoPayloadSigner() public {
-        bytes memory signature = signReceipt(receiptCommon);
+        bytes memory signature = signReceipt(receiptCommon.asMini());
         vm.expectRevert(IValidatorV1.NoPayloadSigner.selector);
         validatorInstance.validate(receiptCommon, signature);
     }
 
     function test_revertWhen_validate_ZeroValidityWindow() public {
-        bytes memory signature = signReceipt(receiptCommon);
+        bytes memory signature = signReceipt(receiptCommon.asMini());
         vm.expectRevert(IValidatorV1.NoFeeValidityWindow.selector);
         validatorInstance.validate(receiptCommon, signature);
     }

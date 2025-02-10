@@ -17,16 +17,16 @@ import {IValidatorV1} from "../interface/IValidatorV1.sol";
 import {PayloadUtils} from "../utils/PayloadUtils.sol";
 import {ReceiptUtils} from "../utils/ReceiptUtils.sol";
 
-contract ValidatorUpgradeable is
+abstract contract ValidatorUpgradeable is
     IValidation,
     IValidatorV1,
     Initializable,
     AccessManagedUpgradeable
 {
-
     using EnumerableSet for EnumerableSet.AddressSet;
     using ECDSA for bytes32;
-    using ReceiptUtils for Receipt;
+    using ReceiptUtils for FullReceipt;
+    using ReceiptUtils for MiniReceipt;
     using PayloadUtils for SendPayload;
 
     struct ValidatorStorage {
@@ -53,12 +53,12 @@ contract ValidatorUpgradeable is
         address[] calldata validators_,
         address payloadSigner_,
         uint256 feeValidityWindow_
-    )
-        internal
-        onlyInitializing
-    {
+    ) internal onlyInitializing {
         __Validator_init_unchained(
-            authority_, validators_, payloadSigner_, feeValidityWindow_
+            authority_,
+            validators_,
+            payloadSigner_,
+            feeValidityWindow_
         );
     }
 
@@ -67,10 +67,7 @@ contract ValidatorUpgradeable is
         address[] calldata validators_,
         address payloadSigner_,
         uint256 feeValidityWindow_
-    )
-        internal
-        onlyInitializing
-    {
+    ) internal onlyInitializing {
         // Dont know why it should be called here, according to docs it should be called in __Validator_init ...
         __AccessManaged_init(authority_);
 
@@ -102,23 +99,17 @@ contract ValidatorUpgradeable is
     }
 
     /// @inheritdoc IValidatorV1
-    function isValidator(address validator_)
-        public
-        view
-        override
-        returns (bool isValidator_)
-    {
+    function isValidator(
+        address validator_
+    ) public view override returns (bool isValidator_) {
         ValidatorStorage storage $ = _getValidatorStorage();
         return $.validators.contains(validator_);
     }
 
     /// @inheritdoc IValidatorV1
-    function addValidator(address validator_)
-        public
-        override
-        restricted
-        returns (bool added)
-    {
+    function addValidator(
+        address validator_
+    ) public override restricted returns (bool added) {
         if (validator_ == address(0)) {
             return false;
         }
@@ -131,12 +122,9 @@ contract ValidatorUpgradeable is
     }
 
     /// @inheritdoc IValidatorV1
-    function removeValidator(address validator_)
-        public
-        override
-        restricted
-        returns (bool removed)
-    {
+    function removeValidator(
+        address validator_
+    ) public override restricted returns (bool removed) {
         ValidatorStorage storage $ = _getValidatorStorage();
         removed = $.validators.remove(validator_);
         if (removed) {
@@ -146,12 +134,9 @@ contract ValidatorUpgradeable is
     }
 
     /// @inheritdoc IValidation
-    function setPayloadSigner(address payloadSigner_)
-        public
-        override
-        restricted
-        returns (bool success)
-    {
+    function setPayloadSigner(
+        address payloadSigner_
+    ) public override restricted returns (bool success) {
         ValidatorStorage storage $ = _getValidatorStorage();
         $.payloadSigner = payloadSigner_;
         emit PayloadSignerChanged(msg.sender, payloadSigner_);
@@ -159,14 +144,12 @@ contract ValidatorUpgradeable is
     }
 
     /// @inheritdoc IValidation
-    function setFeeValidityWindow(uint256 feeValidityWindow_)
-        public
-        override
-        restricted
-        returns (bool success)
-    {
+    function setFeeValidityWindow(
+        uint256 feeValidityWindow_
+    ) public override restricted returns (bool success) {
         require(
-            feeValidityWindow_ > 0, "Fee validity window must be greater than 0"
+            feeValidityWindow_ > 0,
+            "Fee validity window must be greater than 0"
         );
         ValidatorStorage storage $ = _getValidatorStorage();
         $.feeValidityWindow = feeValidityWindow_;
@@ -186,17 +169,10 @@ contract ValidatorUpgradeable is
         return $.feeValidityWindow;
     }
 
-    /// @inheritdoc IValidation
-    function validate(
-        Receipt calldata receipt,
-        bytes calldata combinedSignatures
-    )
-        public
-        view
-        override
-        readyToValidate
-        returns (bool isValid)
-    {
+    function _validate(
+        MiniReceipt memory receipt,
+        bytes memory combinedSignatures
+    ) internal view returns (bool isValid) {
         if (combinedSignatures.length % 65 != 0) {
             revert InvalidSignatureLength(combinedSignatures.length);
         }
@@ -220,16 +196,25 @@ contract ValidatorUpgradeable is
     }
 
     /// @inheritdoc IValidation
+    function validate(
+        FullReceipt calldata receipt,
+        bytes calldata combinedSignatures
+    ) public view override readyToValidate returns (bool isValid) {
+        return _validate(receipt.asMini(), combinedSignatures);
+    }
+    /// @inheritdoc IValidation
+    function validate(
+        MiniReceipt calldata receipt,
+        bytes calldata combinedSignatures
+    ) public view override readyToValidate returns (bool isValid) {
+        return _validate(receipt, combinedSignatures);
+    }
+
+    /// @inheritdoc IValidation
     function validatePayload(
         SendPayload calldata payload,
         bytes calldata signature
-    )
-        public
-        view
-        override
-        readyToValidate
-        returns (bool isValid)
-    {
+    ) public view override readyToValidate returns (bool isValid) {
         ValidatorStorage storage $ = _getValidatorStorage();
         bytes32 hash = payload.toHash();
         address signer = hash.recover(signature);
@@ -238,5 +223,4 @@ contract ValidatorUpgradeable is
         }
         return true;
     }
-
 }

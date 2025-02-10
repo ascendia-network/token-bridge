@@ -1,5 +1,5 @@
 # TokenManagerUpgradeable
-[Git Source](https://github.com/ambrosus/token-bridge/blob/fd78173c03bc3176acad331d668a382df87c32fd/contracts/upgradeable/TokenManagerUpgradeable.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/91bb52a526c0f112baf68a5b9e3a3c70d76246d0/contracts/upgradeable/TokenManagerUpgradeable.sol)
 
 **Inherits:**
 [ITokenManager](/contracts/interface/ITokenManager.sol/interface.ITokenManager.md), Initializable
@@ -49,6 +49,13 @@ function __TokenManager_init_unchained(
     onlyInitializing;
 ```
 
+### isBridgable
+
+
+```solidity
+modifier isBridgable(bytes32 token);
+```
+
 ### addToken
 
 Add token to the bridge
@@ -57,7 +64,7 @@ Add token to the bridge
 ```solidity
 function addToken(
     address token,
-    bytes32 externalTokenAddress,
+    ExternalToken[] calldata externalTokens,
     bool paused
 )
     public
@@ -69,7 +76,7 @@ function addToken(
 |Name|Type|Description|
 |----|----|-----------|
 |`token`|`address`|address of the token|
-|`externalTokenAddress`|`bytes32`|external token address|
+|`externalTokens`|`ExternalToken[]`|external tokens that should be mapped to the token|
 |`paused`|`bool`|true if the token should be paused at the start|
 
 **Returns**
@@ -79,14 +86,14 @@ function addToken(
 |`success`|`bool`|true if the token was added successfully|
 
 
-### mapExternalToken
+### mapExternalTokens
 
 Map external token address to token
 
 
 ```solidity
-function mapExternalToken(
-    bytes32 externalTokenAddress,
+function mapExternalTokens(
+    ExternalToken[] calldata externalTokens,
     address token
 )
     public
@@ -97,7 +104,7 @@ function mapExternalToken(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`externalTokenAddress`|`bytes32`|external token address|
+|`externalTokens`|`ExternalToken[]`|external tokens that should be mapped to the token|
 |`token`|`address`|address of the token|
 
 **Returns**
@@ -113,7 +120,10 @@ Unmap external token address to token
 
 
 ```solidity
-function unmapExternalToken(bytes32 externalTokenAddress)
+function unmapExternalToken(
+    uint256 chainId,
+    bytes32 externalTokenAddress
+)
     public
     virtual
     returns (bool success);
@@ -122,6 +132,7 @@ function unmapExternalToken(bytes32 externalTokenAddress)
 
 |Name|Type|Description|
 |----|----|-----------|
+|`chainId`|`uint256`||
 |`externalTokenAddress`|`bytes32`|external token address|
 
 **Returns**
@@ -187,10 +198,7 @@ Remove token from the bridge
 
 
 ```solidity
-function removeToken(
-    address token,
-    bytes32 externalTokenAddress
-)
+function removeToken(address token)
     public
     virtual
     override
@@ -201,7 +209,6 @@ function removeToken(
 |Name|Type|Description|
 |----|----|-----------|
 |`token`|`address`|address of the token|
-|`externalTokenAddress`|`bytes32`|external token address|
 
 **Returns**
 
@@ -219,7 +226,7 @@ Deploy external ERC20 token to chain
 
 ```solidity
 function deployExternalTokenERC20(
-    bytes32 externalTokenAddress,
+    ExternalToken calldata externalToken,
     string calldata name,
     string calldata symbol,
     uint8 decimals
@@ -233,7 +240,7 @@ function deployExternalTokenERC20(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`externalTokenAddress`|`bytes32`|external token address|
+|`externalToken`|`ExternalToken`|external token address that will mapped to the token|
 |`name`|`string`|name of the token|
 |`symbol`|`string`|symbol of the token|
 |`decimals`|`uint8`|decimals of the token|
@@ -292,7 +299,7 @@ function bridgableTokens(address token)
     public
     view
     override
-    returns (bool isBridgable);
+    returns (bool isBridgable_);
 ```
 **Parameters**
 
@@ -304,7 +311,65 @@ function bridgableTokens(address token)
 
 |Name|Type|Description|
 |----|----|-----------|
-|`isBridgable`|`bool`|true if the token is bridgable|
+|`isBridgable_`|`bool`|isBridgable true if the token is bridgable|
+
+
+### bridgableTokenTo
+
+Check if the token is bridgable
+
+
+```solidity
+function bridgableTokenTo(
+    address token,
+    uint256 chainId
+)
+    public
+    view
+    override
+    returns (bool isBridgableTo);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`token`|`address`|address of the token|
+|`chainId`|`uint256`||
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`isBridgableTo`|`bool`|isBridgable true if the token is bridgable|
+
+
+### token2external
+
+Get external token address
+
+
+```solidity
+function token2external(
+    address token,
+    uint256 chainId
+)
+    public
+    view
+    override
+    returns (ExternalToken memory externalToken);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`token`|`address`|address of the token|
+|`chainId`|`uint256`|chain id of the external token|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`externalToken`|`ExternalToken`|external token structure|
 
 
 ### external2token
@@ -313,7 +378,10 @@ Get token address by external token address
 
 
 ```solidity
-function external2token(bytes32 externalTokenAddress)
+function external2token(
+    uint256 chainId,
+    bytes32 externalTokenAddress
+)
     public
     view
     override
@@ -323,6 +391,7 @@ function external2token(bytes32 externalTokenAddress)
 
 |Name|Type|Description|
 |----|----|-----------|
+|`chainId`|`uint256`||
 |`externalTokenAddress`|`bytes32`|external token address|
 
 **Returns**
@@ -380,7 +449,7 @@ Adds token to the bridge
 ```solidity
 function _addToken(
     address token,
-    bytes32 externalTokenAddress,
+    ExternalToken[] memory externalTokens,
     bool paused
 )
     private
@@ -391,7 +460,7 @@ function _addToken(
 |Name|Type|Description|
 |----|----|-----------|
 |`token`|`address`|address of the token|
-|`externalTokenAddress`|`bytes32`|external token address|
+|`externalTokens`|`ExternalToken[]`|external tokens that should be mapped to the token|
 |`paused`|`bool`||
 
 **Returns**
@@ -408,7 +477,7 @@ Map external token address to token
 
 ```solidity
 function _mapToken(
-    bytes32 externalTokenAddress,
+    ExternalToken memory externalToken,
     address token
 )
     private
@@ -418,7 +487,7 @@ function _mapToken(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`externalTokenAddress`|`bytes32`|external token address|
+|`externalToken`|`ExternalToken`|external token that should be mapped to the token|
 |`token`|`address`|address of the token|
 
 **Returns**
@@ -434,7 +503,10 @@ Unmap external token address to token
 
 
 ```solidity
-function _unmapToken(bytes32 externalTokenAddress)
+function _unmapToken(
+    uint256 chainId,
+    bytes32 externalTokenAddress
+)
     private
     returns (bool success);
 ```
@@ -442,6 +514,7 @@ function _unmapToken(bytes32 externalTokenAddress)
 
 |Name|Type|Description|
 |----|----|-----------|
+|`chainId`|`uint256`||
 |`externalTokenAddress`|`bytes32`|external token address|
 
 **Returns**
@@ -457,19 +530,13 @@ Remove token from the bridge
 
 
 ```solidity
-function _removeToken(
-    address token,
-    bytes32 externalTokenAddress
-)
-    private
-    returns (bool success);
+function _removeToken(address token) private returns (bool success);
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`token`|`address`|address of the token|
-|`externalTokenAddress`|`bytes32`|external token address|
 
 **Returns**
 
@@ -489,7 +556,7 @@ Deploy external ERC20 token to chain
 
 ```solidity
 function _deployExternalTokenERC20(
-    bytes32 externalTokenAddress,
+    ExternalToken memory externalToken,
     string calldata name,
     string calldata symbol,
     uint8 decimals
@@ -501,7 +568,7 @@ function _deployExternalTokenERC20(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`externalTokenAddress`|`bytes32`|external token address|
+|`externalToken`|`ExternalToken`|external token that will be mapped to the token|
 |`name`|`string`|name of the token|
 |`symbol`|`string`|symbol of the token|
 |`decimals`|`uint8`|decimals of the token|
@@ -563,8 +630,9 @@ storage-location: erc7201:airdao.bridge.token-manager.storage
 
 ```solidity
 struct TokenManagerStorage {
-    mapping(address => bool) bridgableTokens;
-    mapping(bytes32 => address) external2token;
+    mapping(address => ExternalToken[]) bridgableTokens;
+    mapping(uint256 => mapping(bytes32 => address)) external2token;
+    mapping(address => mapping(uint256 => ExternalToken)) token2external;
     mapping(address => bool) unpausedTokens;
     address bridge;
     address SAMB;

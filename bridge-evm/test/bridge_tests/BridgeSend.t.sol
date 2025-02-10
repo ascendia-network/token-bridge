@@ -4,15 +4,17 @@ pragma solidity ^0.8.20;
 import "forge-std/Test.sol";
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
 import {ERC20Permit} from
     "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
+import {IERC20Metadata} from
+    "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {IBridge} from "../../contracts/interface/IBridge.sol";
 
 import {
-    BridgeFlags,
-    IBridgeTypes
-} from "../../contracts/interface/IBridgeTypes.sol";
+    BridgeFlags, BridgeTypes
+} from "../../contracts/interface/BridgeTypes.sol";
 import {ITokenManager} from "../../contracts/interface/ITokenManager.sol";
 
 import {Bridge} from "../../contracts/Bridge.sol";
@@ -26,8 +28,9 @@ import {BridgeTestBase} from "./BridgeBase.t.sol";
 // Huge mess cuz Stack too deep error
 abstract contract BridgeSendTest is BridgeTestBase {
 
-    using ReceiptUtils for IBridgeTypes.Receipt;
-    using PayloadUtils for IBridgeTypes.SendPayload;
+    using ReceiptUtils for BridgeTypes.FullReceipt;
+    using ReceiptUtils for BridgeTypes.MiniReceipt;
+    using PayloadUtils for BridgeTypes.SendPayload;
 
     function signPermit(
         address token,
@@ -56,6 +59,33 @@ abstract contract BridgeSendTest is BridgeTestBase {
         return vm.sign(PK, digest);
     }
 
+    /// Convert the amount based on token decimals
+    /// @param tokenFrom address of the token
+    /// @param amount amount to convert
+    /// @param decimalsTo token decimals
+    /// @return convertedAmount converted amount
+    function _convertAmount(
+        address tokenFrom,
+        uint256 amount,
+        uint8 decimalsTo
+    )
+        private
+        view
+        returns (uint256 convertedAmount)
+    {
+        IERC20Metadata token = IERC20Metadata(tokenFrom);
+        uint8 decimalsFrom = token.decimals();
+        if (decimalsFrom < decimalsTo) {
+            // Ex.: 1234567890 with 3 decimals to 6 decimals => 1234567_890 * 10 ** (6 - 3) = 1234567_890000
+            return amount * (10 ** uint256(decimalsTo - decimalsFrom));
+        } else if (decimalsFrom > decimalsTo) {
+            // Ex.: 1234567890 with 6 decimals to 3 decimals => 1234_567890 / 10 ** (6 - 3) = 1234_567
+            return amount / (10 ** uint256(decimalsFrom - decimalsTo));
+        } else {
+            return amount;
+        }
+    }
+
     function generateSendingValues(
         address token,
         uint256 amountToSend,
@@ -68,12 +98,12 @@ abstract contract BridgeSendTest is BridgeTestBase {
         public
         view
         returns (
-            IBridgeTypes.SendPayload memory payload,
-            IBridgeTypes.Receipt memory receipt,
+            BridgeTypes.SendPayload memory payload,
+            BridgeTypes.FullReceipt memory receipt,
             bytes memory payloadSignature
         )
     {
-        payload = IBridgeTypes.SendPayload({
+        payload = BridgeTypes.SendPayload({
             tokenAddress: bytes32(uint256(uint160(token))),
             amountToSend: amountToSend,
             feeAmount: feeAmount,
@@ -81,11 +111,19 @@ abstract contract BridgeSendTest is BridgeTestBase {
             flags: flags,
             flagData: new bytes(0)
         });
-        receipt = IBridgeTypes.Receipt({
+        ITokenManager.ExternalToken memory extToken = bridgeInstance.token2external(token, chainDest);
+        receipt = BridgeTypes.FullReceipt({
             from: bytes32(uint256(uint160(address(sender)))),
             to: recipient,
-            tokenAddress: payload.tokenAddress,
-            amount: payload.amountToSend,
+            tokenAddressFrom: payload.tokenAddress,
+            tokenAddressTo: extToken
+                .externalTokenAddress,
+            amountFrom: payload.amountToSend,
+            amountTo: _convertAmount(
+                token,
+                payload.amountToSend,
+                extToken.decimals
+            ),
             chainFrom: block.chainid,
             chainTo: chainDest,
             eventId: bridgeInstance.nextEventID(),
@@ -96,7 +134,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
     }
 
     function signPayload(
-        IBridgeTypes.SendPayload memory payload,
+        BridgeTypes.SendPayload memory payload,
         uint256 PK
     )
         public
@@ -143,8 +181,14 @@ abstract contract BridgeSendTest is BridgeTestBase {
     function prepareSend(uint256 tokenAmount) public returns (Signer memory) {
         Signer memory signer = getSigner("sender");
         vm.warp(1000);
+        ITokenManager.ExternalToken[] memory tokens = new ITokenManager.ExternalToken[](1);
+        tokens[0] = ITokenManager.ExternalToken({
+            externalTokenAddress: bytes32("PMT_EXT"),
+            decimals: permittableToken.decimals(),
+            chainId: uint256(bytes32("SOLANA"))
+        });
         bridgeInstance.addToken(
-            address(permittableToken), bytes32("PMT_EXT"), false
+            address(permittableToken), tokens, false
         );
         vm.startPrank(signer.Address);
         vm.deal(signer.Address, 100 ether);
@@ -160,8 +204,14 @@ abstract contract BridgeSendTest is BridgeTestBase {
         returns (Signer memory)
     {
         vm.warp(1000);
+        ITokenManager.ExternalToken[] memory tokens = new ITokenManager.ExternalToken[](1);
+        tokens[0] = ITokenManager.ExternalToken({
+            externalTokenAddress: bytes32("PMT_EXT"),
+            decimals: permittableToken.decimals(),
+            chainId: uint256(bytes32("SOLANA"))
+        });
         try bridgeInstance.addToken(
-            address(permittableToken), bytes32("PMT_EXT"), false
+            address(permittableToken), tokens, false
         ) {} catch (bytes memory lowLevelData) {
             if (
                 bytes4(
@@ -183,8 +233,14 @@ abstract contract BridgeSendTest is BridgeTestBase {
     function prepareSendNative(uint256 amount) public returns (Signer memory) {
         Signer memory signer = getSigner("sender");
         vm.warp(1000);
+        ITokenManager.ExternalToken[] memory tokens = new ITokenManager.ExternalToken[](1);
+        tokens[0] = ITokenManager.ExternalToken({
+            externalTokenAddress: bytes32("AMB_EXT"),
+            decimals: permittableToken.decimals(),
+            chainId: uint256(bytes32("SOLANA"))
+        });
         bridgeInstance.addToken(
-            address(wrappedToken), bytes32("AMB_EXT"), false
+            address(wrappedToken), tokens, false
         );
         vm.startPrank(signer.Address);
         vm.deal(signer.Address, amount + 1 ether);
@@ -193,8 +249,8 @@ abstract contract BridgeSendTest is BridgeTestBase {
 
     function send(
         Signer memory signer,
-        IBridgeTypes.SendPayload memory payload,
-        IBridgeTypes.Receipt memory receipt,
+        BridgeTypes.SendPayload memory payload,
+        BridgeTypes.FullReceipt memory receipt,
         bytes memory payloadSignature,
         uint256 destinationChain
     )
@@ -206,10 +262,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
         vm.expectEmit(address(bridgeInstance));
         emit IBridge.TokenLocked(receipt);
         bridgeInstance.send{value: payload.feeAmount}(
-            receipt.to,
-            destinationChain,
-            payload,
-            payloadSignature
+            receipt.to, destinationChain, payload, payloadSignature
         );
         assertEq(
             balanceTokenBefore - payload.amountToSend,
@@ -223,13 +276,15 @@ abstract contract BridgeSendTest is BridgeTestBase {
         );
         // Next event ID incremented
         assertEq(bridgeInstance.nextEventID(), receipt.eventId + 1);
-        assertEq(bridgeInstance.nonces(receipt.to), bytesToUint(receipt.data) + 1);
+        assertEq(
+            bridgeInstance.nonces(receipt.to), bytesToUint(receipt.data) + 1
+        );
     }
 
     function sendNative(
         Signer memory signer,
-        IBridgeTypes.SendPayload memory payload,
-        IBridgeTypes.Receipt memory receipt,
+        BridgeTypes.SendPayload memory payload,
+        BridgeTypes.FullReceipt memory receipt,
         bytes memory payloadSignature,
         uint256 destinationChain
     )
@@ -258,8 +313,8 @@ abstract contract BridgeSendTest is BridgeTestBase {
 
     function send(
         Signer memory signer,
-        IBridgeTypes.SendPayload memory payload,
-        IBridgeTypes.Receipt memory receipt,
+        BridgeTypes.SendPayload memory payload,
+        BridgeTypes.FullReceipt memory receipt,
         bytes memory payloadSignature,
         uint256 destinationChain,
         uint8 vP,
@@ -307,12 +362,12 @@ abstract contract BridgeSendTest is BridgeTestBase {
             amountToSend,
             address(bridgeInstance)
         );
-        uint256 destinationChain = 1;
+        uint256 destinationChain = uint256(bytes32("SOLANA"));
         uint256 feeAmount = 1000 wei;
         uint256 flag = isPermit ? BridgeFlags.SEND_WITH_PERMIT : 0;
         (
-            IBridgeTypes.SendPayload memory payload,
-            IBridgeTypes.Receipt memory receipt,
+            BridgeTypes.SendPayload memory payload,
+            BridgeTypes.FullReceipt memory receipt,
             bytes memory payloadSignature
         ) = generateSendingValues(
             address(permittableToken),
@@ -348,11 +403,11 @@ abstract contract BridgeSendTest is BridgeTestBase {
             amountToSend * 2,
             address(bridgeInstance)
         );
-        uint256 destinationChain = 1;
+        uint256 destinationChain = uint256(bytes32("SOLANA"));
         uint256 feeAmount = 1000 wei;
         (
-            IBridgeTypes.SendPayload memory payload,
-            IBridgeTypes.Receipt memory receipt,
+            BridgeTypes.SendPayload memory payload,
+            BridgeTypes.FullReceipt memory receipt,
             bytes memory payloadSignature
         ) = generateSendingValues(
             address(permittableToken),
@@ -412,11 +467,11 @@ abstract contract BridgeSendTest is BridgeTestBase {
     function test_sendingToBridge_native(uint256 amountToSend) public {
         vm.assume(amountToSend > 0 && amountToSend < 1000 ether);
         Signer memory signer = prepareSendNative(amountToSend);
-        uint256 destinationChain = 1;
+        uint256 destinationChain = uint256(bytes32("SOLANA"));
         uint256 feeAmount = 1000 wei;
         (
-            IBridgeTypes.SendPayload memory payload,
-            IBridgeTypes.Receipt memory receipt,
+            BridgeTypes.SendPayload memory payload,
+            BridgeTypes.FullReceipt memory receipt,
             bytes memory payloadSignature
         ) = generateSendingValues(
             address(wrappedToken),
@@ -437,13 +492,10 @@ abstract contract BridgeSendTest is BridgeTestBase {
     {
         vm.assume(amountToSend > 0 && amountToSend < 1000 ether);
         Signer memory signer = prepareSendNative(amountToSend);
-        uint256 destinationChain = 1;
+        uint256 destinationChain = uint256(bytes32("SOLANA"));
         uint256 feeAmount = 1000 wei;
-        (
-            IBridgeTypes.SendPayload memory payload,
-            ,
-            bytes memory payloadSignature
-        ) = generateSendingValues(
+        (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)
+        = generateSendingValues(
             address(wrappedToken),
             amountToSend,
             feeAmount,
@@ -477,14 +529,11 @@ abstract contract BridgeSendTest is BridgeTestBase {
             amountToSend,
             address(bridgeInstance)
         );
-        uint256 destinationChain = 1;
+        uint256 destinationChain = uint256(bytes32("SOLANA"));
         uint256 feeAmount = 1000 wei;
         uint256 flag = 0;
-        (
-            IBridgeTypes.SendPayload memory payload,
-            ,
-            bytes memory payloadSignature
-        ) = generateSendingValues(
+        (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)
+        = generateSendingValues(
             address(permittableToken),
             amountToSend,
             feeAmount,
@@ -516,14 +565,11 @@ abstract contract BridgeSendTest is BridgeTestBase {
             amountToSend,
             address(bridgeInstance)
         );
-        uint256 destinationChain = 1;
+        uint256 destinationChain = uint256(bytes32("SOLANA"));
         uint256 feeAmount = 1000 wei;
         uint256 flag = 0;
-        (
-            IBridgeTypes.SendPayload memory payload,
-            ,
-            bytes memory payloadSignature
-        ) = generateSendingValues(
+        (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)
+        = generateSendingValues(
             address(permittableToken),
             amountToSend,
             feeAmount,
@@ -554,11 +600,8 @@ abstract contract BridgeSendTest is BridgeTestBase {
         uint256 destinationChain = block.chainid;
         uint256 feeAmount = 1000 wei;
         uint256 flag = 0;
-        (
-            IBridgeTypes.SendPayload memory payload,
-            ,
-            bytes memory payloadSignature
-        ) = generateSendingValues(
+        (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)
+        = generateSendingValues(
             address(permittableToken),
             amountToSend,
             feeAmount,
@@ -586,14 +629,11 @@ abstract contract BridgeSendTest is BridgeTestBase {
             amountToSend,
             address(bridgeInstance)
         );
-        uint256 destinationChain = 1;
+        uint256 destinationChain = uint256(bytes32("SOLANA"));
         uint256 feeAmount = 1000 wei;
         uint256 flag = 0;
-        (
-            IBridgeTypes.SendPayload memory payload,
-            ,
-            bytes memory payloadSignature
-        ) = generateSendingValues(
+        (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)
+        = generateSendingValues(
             address(permittableToken),
             amountToSend,
             feeAmount,
@@ -628,14 +668,11 @@ abstract contract BridgeSendTest is BridgeTestBase {
             amountToSend,
             address(bridgeInstance)
         );
-        uint256 destinationChain = 1;
+        uint256 destinationChain = uint256(bytes32("SOLANA"));
         uint256 feeAmount = 1000 wei;
         uint256 flag = 0;
-        (
-            IBridgeTypes.SendPayload memory payload,
-            ,
-            bytes memory payloadSignature
-        ) = generateSendingValues(
+        (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)
+        = generateSendingValues(
             address(permittableToken),
             amountToSend,
             feeAmount,
@@ -669,14 +706,11 @@ abstract contract BridgeSendTest is BridgeTestBase {
             amountToSend,
             address(bridgeInstance)
         );
-        uint256 destinationChain = 1;
+        uint256 destinationChain = uint256(bytes32("SOLANA"));
         uint256 feeAmount = 1000 wei;
         uint256 flag = 0;
-        (
-            IBridgeTypes.SendPayload memory payload,
-            ,
-            bytes memory payloadSignature
-        ) = generateSendingValues(
+        (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)
+        = generateSendingValues(
             address(permittableToken),
             amountToSend,
             feeAmount,
@@ -704,14 +738,11 @@ abstract contract BridgeSendTest is BridgeTestBase {
             amountToSend,
             address(bridgeInstance)
         );
-        uint256 destinationChain = 1;
+        uint256 destinationChain = uint256(bytes32("SOLANA"));
         uint256 feeAmount = 1000 wei;
         uint256 flag = 0;
-        (
-            IBridgeTypes.SendPayload memory payload,
-            ,
-            bytes memory payloadSignature
-        ) = generateSendingValues(
+        (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)
+        = generateSendingValues(
             address(permittableToken),
             amountToSend,
             feeAmount,

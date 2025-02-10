@@ -2,10 +2,10 @@
 pragma solidity ^0.8.20;
 pragma abicoder v2;
 
-import {IBridgeTypes} from "./IBridgeTypes.sol";
+import {BridgeTypes} from "./BridgeTypes.sol";
 import {IValidation} from "./IValidation.sol";
 
-interface IBridge is IBridgeTypes {
+interface IBridge is BridgeTypes {
 
     /// Reverts if passed permit signature without permit flag
     error InvalidPermitFlag();
@@ -26,25 +26,31 @@ interface IBridge is IBridgeTypes {
     error InvalidAmount();
 
     /// Emits when tokens are locked in the contract
-    event TokenLocked(Receipt receipt);
+    event TokenLocked(FullReceipt receipt);
 
     /// Emits when tokens are claimed from the contract
-    event TokenUnlocked(Receipt receipt);
+    event TokenUnlocked(MiniReceipt receipt);
 
     /// Emits when the fee receiver is changed
     /// @param changer Who changed the fee receiver
     /// @param newFeeReceiver New fee receiver address
-    event FeeReceiverChanged(address indexed changer, address indexed newFeeReceiver);
+    event FeeReceiverChanged(
+        address indexed changer, address indexed newFeeReceiver
+    );
 
     /// Emits when the native send amount is changed
     /// @param changer Who changed the native send amount
     /// @param newNativeSendAmount New native send amount
-    event NativeSendAmountChanged(address indexed changer, uint256 newNativeSendAmount);
+    event NativeSendAmountChanged(
+        address indexed changer, uint256 newNativeSendAmount
+    );
 
     /// Emits when the validator contract is changed
     /// @param changer Who changed the validator contract
     /// @param newValidator New validator contract address
-    event ValidatorChanged(address indexed changer, address indexed newValidator);
+    event ValidatorChanged(
+        address indexed changer, address indexed newValidator
+    );
 
     /// Get the last nonce of the chain transactions
     /// @return nonce last nonce that was used
@@ -66,7 +72,7 @@ interface IBridge is IBridgeTypes {
     )
         external
         payable
-        returns (Receipt memory receipt);
+        returns (FullReceipt memory receipt);
 
     /// Send tokens to another chain with permit params
     /// @dev This function should be called by the user who wants to send tokens to another chain.
@@ -92,25 +98,46 @@ interface IBridge is IBridgeTypes {
     )
         external
         payable
-        returns (Receipt memory receipt);
+        returns (FullReceipt memory receipt);
 
     /// Claim tokens from another chain
     /// @dev This function should be called by the user who wants to claim tokens from another chain.
     /// It claims the tokens from the contract, and emits a `TokenUnlocked` event.
-    /// @param receipt Receipt of the transaction to claim
-    /// @param signature MPC signature of the payload
+    /// @param receipt `MiniReceipt` of the transaction to claim
+    /// @param signature signature of the payload
     /// @return success true if the claim was successful
     function claim(
-        Receipt calldata receipt,
+        MiniReceipt calldata receipt,
+        bytes calldata signature
+    )
+        external
+        returns (bool success);
+
+    /// Claim tokens from another chain
+    /// @dev This function should be called by the user who wants to claim tokens from another chain.
+    /// It claims the tokens from the contract, and emits a `TokenUnlocked` event.
+    /// @param receipt `MiniReceipt` of the transaction to claim
+    /// @param signature signature of the payload
+    /// @return success true if the claim was successful
+    function claim(
+        FullReceipt calldata receipt,
         bytes calldata signature
     )
         external
         returns (bool success);
 
     /// Check if the receipt is already claimed
-    /// @param receipt Receipt of the transaction to check
+    /// @param receipt `FullReceipt` of the transaction to check
     /// @return claimed true if the receipt is already claimed
-    function isClaimed(Receipt calldata receipt)
+    function isClaimed(FullReceipt calldata receipt)
+        external
+        view
+        returns (bool claimed);
+
+    /// Check if the receipt is already claimed
+    /// @param receipt `MiniReceipt` of the transaction to check
+    /// @return claimed true if the receipt is already claimed
+    function isClaimed(MiniReceipt calldata receipt)
         external
         view
         returns (bool claimed);

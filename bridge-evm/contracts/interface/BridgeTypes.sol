@@ -28,9 +28,9 @@ library BridgeFlags {
 
 }
 
-interface IBridgeTypes {
+interface BridgeTypes {
 
-    /// Bridge transaction receipt structure that is used for signing and validation
+    /// Bridge transaction receipt structure that is used for locking tokens
     /// @param from source address
     /// @param to destination address
     /// @param tokenAddress source token address
@@ -40,11 +40,33 @@ interface IBridgeTypes {
     /// @param eventId transaction number
     /// @param flags flags for receiver
     /// @param data additional data of the transaction (eg. user nonce for Solana)
-    struct Receipt {
+    struct FullReceipt {
         bytes32 from; // source address (bytes32 because of cross-chain compatibility)
         bytes32 to; // destination address (bytes32 because of cross-chain compatibility)
-        bytes32 tokenAddress; // source token address (bytes32 because of cross-chain compatibility)
-        uint256 amount; // amount of tokens sent
+        bytes32 tokenAddressFrom; // source token address (bytes32 because of cross-chain compatibility)
+        bytes32 tokenAddressTo; // source token address (bytes32 because of cross-chain compatibility)
+        uint256 amountFrom; // amount of tokens sent
+        uint256 amountTo; // amount of tokens received
+        uint256 chainFrom; // chain id of the source chain
+        uint256 chainTo; // chain id of the destination chain
+        uint256 eventId; // transaction number
+        uint256 flags; // flags for receiver
+        bytes data; // additional data of the transaction (eg. user nonce for Solana)
+    }
+    /// Bridge transaction cropped receipt structure that is used for validation and unlocking tokens
+    /// @param to destination address
+    /// @param tokenAddressTo dest token address
+    /// @param amountTo amount of tokens sent
+    /// @param chainFrom chain id of the source chain
+    /// @param chainTo chain id of the destination chain
+    /// @param eventId transaction number
+    /// @param flags flags for receiver
+    /// @param data additional data of the transaction (eg. user nonce for Solana)
+
+    struct MiniReceipt {
+        bytes32 to; // destination address (bytes32 because of cross-chain compatibility)
+        bytes32 tokenAddressTo; // dest token address (bytes32 because of cross-chain compatibility)
+        uint256 amountTo; // amount of tokens sent
         uint256 chainFrom; // chain id of the source chain
         uint256 chainTo; // chain id of the destination chain
         uint256 eventId; // transaction number

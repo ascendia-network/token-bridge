@@ -17,9 +17,9 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {EnumerableSet} from
     "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
+import {IBridge} from "../../contracts/interface/IBridge.sol";
 import {IValidation} from "../../contracts/interface/IValidation.sol";
 import {IValidatorV1} from "../../contracts/interface/IValidatorV1.sol";
-import {IBridge} from "../../contracts/interface/IBridge.sol";
 import {IWrapped} from "../../contracts/interface/IWrapped.sol";
 
 import {Bridge} from "../../contracts/Bridge.sol";
@@ -91,7 +91,9 @@ abstract contract BridgeTestBase is Test {
         vm.expectEmit();
         emit IValidation.PayloadSignerChanged(address(this), pldSigner);
         vm.expectEmit();
-        emit IValidation.FeeValidityWindowChanged(address(this), feeValidityWindow);
+        emit IValidation.FeeValidityWindowChanged(
+            address(this), feeValidityWindow
+        );
         for (uint256 i = 0; i < validators.length; i++) {
             vm.expectEmit();
             emit IValidatorV1.ValidatorAdded(validators[i]);

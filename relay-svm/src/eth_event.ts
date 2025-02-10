@@ -55,7 +55,7 @@ export async function fetchAndParseTransaction(
 export async function signMessage(
   message: string,
   keypair: Keypair,
-): Promise<Uint8Array<ArrayBufferLike>> {
+): Promise<Uint8Array> {
   const signature: Uint8Array = nacl.sign.detached(
     new TextEncoder().encode(message),
     keypair.secretKey,

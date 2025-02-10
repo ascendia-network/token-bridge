@@ -49,7 +49,9 @@ export async function fetchAndParseTransaction(
         };
         return parsedReceipt;
       }
-    } catch (error) {}
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 }
 

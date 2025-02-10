@@ -22,6 +22,7 @@ export async function fetchAndParseTransaction(
   provider: ethers.JsonRpcProvider,
   txHash: string,
   confirmations: number,
+  abi: string[],
 ): Promise<ParsedReceipt> {
   const receipt = await provider.getTransactionReceipt(txHash);
   if (!receipt || (await receipt.confirmations()) < confirmations) {

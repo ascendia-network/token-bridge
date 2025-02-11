@@ -1,30 +1,54 @@
-import { desc } from "drizzle-orm";
+import { desc, eq, exists, getTableColumns, notExists, sql } from "drizzle-orm";
 import { pgSchema } from "drizzle-orm/pg-core";
 import * as evmSchema from "./evm.schema";
-import * as svmSchema from "./solana.schema";
+import * as solanaSchema from "./solana.schema";
 
 export const coreSchema = pgSchema("bridge");
 
 export const receipt = coreSchema.materializedView("receipts").as((qb) => {
   const evmReceipts = qb
-    .select()
-    .from(evmSchema.receiptsInIndexerEvm)
-    .orderBy(
-      desc(evmSchema.receiptsInIndexerEvm.claimed),
-      evmSchema.receiptsInIndexerEvm.timestamp
-    );
-  const svmReceipts = qb
-    .select()
-    .from(svmSchema.receiptsInIndexerSolana)
-    .orderBy(
-      desc(svmSchema.receiptsInIndexerSolana.claimed),
-      svmSchema.receiptsInIndexerSolana.timestamp
-    );
-  const unioned = evmReceipts.union(svmReceipts).as("unioned");
+    .select({
+      ...getTableColumns(evmSchema.receiptsSentInIndexerEvm),
+      claimed: exists(
+        qb
+          .select({
+            claimed: sql`1`,
+          })
+          .from(solanaSchema.receiptsClaimedInIndexerSolana)
+          .where(
+            eq(
+              evmSchema.receiptsSentInIndexerEvm.receiptId,
+              solanaSchema.receiptsClaimedInIndexerSolana.receiptId
+            )
+          )
+      ).as("claimed"),
+    })
+    .from(evmSchema.receiptsSentInIndexerEvm)
+    .orderBy(evmSchema.receiptsSentInIndexerEvm.timestamp);
+  const solanaReceipts = qb
+    .select({
+      ...getTableColumns(solanaSchema.receiptsSentInIndexerSolana),
+      claimed: exists(
+        qb
+          .select({
+            claimed: sql`1`,
+          })
+          .from(evmSchema.receiptsClaimedInIndexerEvm)
+          .where(
+            eq(
+              solanaSchema.receiptsSentInIndexerSolana.receiptId,
+              evmSchema.receiptsClaimedInIndexerEvm.receiptId
+            )
+          )
+      ).as("claimed"),
+    })
+    .from(solanaSchema.receiptsSentInIndexerSolana)
+    .orderBy(solanaSchema.receiptsSentInIndexerSolana.timestamp);
+  const unioned = evmReceipts.unionAll(solanaReceipts).as("unioned");
   return qb
-    .selectDistinctOn([unioned.receiptId])
+    .select()
     .from(unioned)
-    .orderBy(unioned.receiptId, unioned.timestamp, desc(unioned.claimed));
+    .orderBy(unioned.timestamp, desc(unioned.claimed));
 });
 
 export const signatures = coreSchema.table("signatures", (t) => ({

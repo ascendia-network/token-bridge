@@ -1,7 +1,7 @@
 import { onchainTable, primaryKey, relations } from "ponder";
 
 export const receipt = onchainTable(
-  "receipts",
+  "receiptsSent",
   (t) => ({
     receiptId: t
       .text("receipt_id")
@@ -15,23 +15,53 @@ export const receipt = onchainTable(
           `${receipt.chainFrom}_${receipt.chainTo}_${receipt.eventId}`
       ),
     timestamp: t.bigint().notNull(),
-    bridgeAddress: t
-      .hex()
-      .notNull(),
-      // .references(() => bridgeParams.bridgeAddress), // Not supported in ponder
+    bridgeAddress: t.hex().notNull(),
+    // .references(() => bridgeParams.bridgeAddress), // Not supported in ponder
     from: t.hex().notNull(),
     to: t.hex().notNull(),
-    tokenAddress: t
-      .hex()
-      .notNull(),
-      // .references(() => bridgedTokens.tokenAddressHex), // Not supported in ponder
-    amount: t.bigint().notNull(),
+    tokenAddressFrom: t.hex().notNull(),
+    // .references(() => bridgedTokens.tokenAddressHex), // Not supported in ponder
+    tokenAddressTo: t.hex().notNull(),
+    amountFrom: t.bigint().notNull(),
+    amountTo: t.bigint().notNull(),
     chainFrom: t.bigint().notNull(),
     chainTo: t.bigint().notNull(),
     eventId: t.bigint().notNull(),
     flags: t.bigint().notNull(),
     data: t.hex().notNull(),
-    claimed: t.boolean().notNull().default(false),
+  }),
+  (table) => ({
+    pk: primaryKey({
+      columns: [table.chainFrom, table.chainTo, table.eventId],
+    }),
+  })
+);
+
+export const claimed = onchainTable(
+  "receiptsClaimed",
+  (t) => ({
+    receiptId: t
+      .text("receipt_id")
+      .notNull()
+      .$defaultFn(
+        (): string =>
+          `${receipt.chainFrom}_${receipt.chainTo}_${receipt.eventId}`
+      )
+      .$onUpdateFn(
+        (): string =>
+          `${receipt.chainFrom}_${receipt.chainTo}_${receipt.eventId}`
+      ),
+    // .references(() => receipt.receiptId), // Not supported in ponder
+    timestamp: t.bigint().notNull(),
+    bridgeAddress: t.hex().notNull(),
+    to: t.hex().notNull(),
+    tokenAddressTo: t.hex().notNull(),
+    // .references(() => bridgedTokens.tokenAddressHex), // Not supported in ponder
+    amountTo: t.bigint().notNull(),
+    chainFrom: t.bigint().notNull(),
+    chainTo: t.bigint().notNull(),
+    eventId: t.bigint().notNull(),
+    flags: t.bigint().notNull(),
   }),
   (table) => ({
     pk: primaryKey({
@@ -41,20 +71,13 @@ export const receipt = onchainTable(
 );
 
 export const receiptMeta = onchainTable("receiptsMeta", (t) => ({
-  receiptId: t
-    .text("receipt_id")
-    .primaryKey(),
-    // .references(() => receipt.receiptId), // Not supported in ponder
-  sendBlockHash: t.hex(),
-  sendBlockNumber: t.bigint(),
-  sendTimestamp: t.bigint(),
-  sendTransactionHash: t.hex(),
-  sendTransactionIndex: t.integer(),
-  receiveBlockHash: t.hex(),
-  receiveBlockNumber: t.bigint(),
-  receiveTimestamp: t.bigint(),
-  receiveTransactionHash: t.hex(),
-  receiveTransactionIndex: t.integer(),
+  receiptId: t.text("receipt_id").primaryKey(),
+  // .references(() => receipt.receiptId), // Not supported in ponder
+  blockHash: t.hex(),
+  blockNumber: t.bigint(),
+  timestamp: t.bigint(),
+  transactionHash: t.hex(),
+  transactionIndex: t.integer(),
 }));
 
 export const bridgeParams = onchainTable("bridges", (t) => ({
@@ -80,14 +103,10 @@ export const bridgeRelations = relations(bridgeParams, ({ many }) => ({
 export const bridgeToToken = onchainTable(
   "bridge_to_token",
   (t) => ({
-    bridgeAddress: t
-      .hex()
-      .notNull(),
-      // .references(() => bridgeParams.bridgeAddress), // Not supported in ponder
-    tokenAddress: t
-      .hex()
-      .notNull(),
-      // .references(() => bridgedTokens.tokenAddress), // Not supported in ponder
+    bridgeAddress: t.hex().notNull(),
+    // .references(() => bridgeParams.bridgeAddress), // Not supported in ponder
+    tokenAddress: t.hex().notNull(),
+    // .references(() => bridgedTokens.tokenAddress), // Not supported in ponder
   }),
   (table) => ({
     pk: primaryKey({ columns: [table.bridgeAddress, table.tokenAddress] }),
@@ -100,7 +119,7 @@ export const receiptRelations = relations(receipt, ({ one }) => ({
     references: [bridgeParams.bridgeAddress],
   }),
   token: one(bridgedTokens, {
-    fields: [receipt.tokenAddress],
+    fields: [receipt.tokenAddressFrom],
     references: [bridgedTokens.tokenAddressHex],
   }),
   meta: one(receiptMeta, {
@@ -109,10 +128,21 @@ export const receiptRelations = relations(receipt, ({ one }) => ({
   }),
 }));
 
+export const claimedRelations = relations(claimed, ({ one }) => ({
+  token: one(bridgedTokens, {
+    fields: [claimed.tokenAddressTo],
+    references: [bridgedTokens.tokenAddressHex],
+  }),
+}));
+
 export const receiptMetaRelations = relations(receiptMeta, ({ one }) => ({
   receipt: one(receipt, {
     fields: [receiptMeta.receiptId],
     references: [receipt.receiptId],
+  }),
+  claimed: one(claimed, {
+    fields: [receiptMeta.receiptId],
+    references: [claimed.receiptId],
   }),
 }));
 

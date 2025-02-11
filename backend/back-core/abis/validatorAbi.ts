@@ -1,4 +1,4 @@
-import { type AbiItem } from "viem";
+import { AbiItem } from "viem";
 
 export const validatorAbi = [
   {
@@ -196,7 +196,7 @@ export const validatorAbi = [
       {
         name: "receipt",
         type: "tuple",
-        internalType: "struct IBridgeTypes.Receipt",
+        internalType: "struct BridgeTypes.Receipt",
         components: [
           {
             name: "from",
@@ -267,7 +267,7 @@ export const validatorAbi = [
       {
         name: "payload",
         type: "tuple",
-        internalType: "struct IBridgeTypes.SendPayload",
+        internalType: "struct BridgeTypes.SendPayload",
         components: [
           {
             name: "tokenAddress",

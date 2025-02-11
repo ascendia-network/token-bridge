@@ -15,9 +15,21 @@ export const bridgeAbi = [
         internalType: "address",
       },
       {
-        name: "externalTokenAddress",
-        type: "bytes32",
-        internalType: "bytes32",
+        name: "externalToken_",
+        type: "tuple",
+        internalType: "struct ITokenManager.ExternalTokenUnmapped",
+        components: [
+          {
+            name: "externalTokenAddress",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "decimals",
+            type: "uint8",
+            internalType: "uint8",
+          },
+        ],
       },
       {
         name: "paused",
@@ -44,9 +56,21 @@ export const bridgeAbi = [
         internalType: "address",
       },
       {
-        name: "externalTokenAddress",
-        type: "bytes32",
-        internalType: "bytes32",
+        name: "externalToken_",
+        type: "tuple",
+        internalType: "struct ITokenManager.ExternalTokenUnmapped",
+        components: [
+          {
+            name: "externalTokenAddress",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "decimals",
+            type: "uint8",
+            internalType: "uint8",
+          },
+        ],
       },
     ],
     outputs: [
@@ -83,7 +107,7 @@ export const bridgeAbi = [
     ],
     outputs: [
       {
-        name: "isBridgable",
+        name: "isBridgable_",
         type: "bool",
         internalType: "bool",
       },
@@ -97,7 +121,7 @@ export const bridgeAbi = [
       {
         name: "receipt",
         type: "tuple",
-        internalType: "struct IBridgeTypes.Receipt",
+        internalType: "struct BridgeTypes.FullReceipt",
         components: [
           {
             name: "from",
@@ -110,12 +134,88 @@ export const bridgeAbi = [
             internalType: "bytes32",
           },
           {
-            name: "tokenAddress",
+            name: "tokenAddressFrom",
             type: "bytes32",
             internalType: "bytes32",
           },
           {
-            name: "amount",
+            name: "tokenAddressTo",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "amountFrom",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "amountTo",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "chainFrom",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "chainTo",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "eventId",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "flags",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "data",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
+      },
+      {
+        name: "signature",
+        type: "bytes",
+        internalType: "bytes",
+      },
+    ],
+    outputs: [
+      {
+        name: "success",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "claim",
+    inputs: [
+      {
+        name: "receipt",
+        type: "tuple",
+        internalType: "struct BridgeTypes.MiniReceipt",
+        components: [
+          {
+            name: "to",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "tokenAddressTo",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "amountTo",
             type: "uint256",
             internalType: "uint256",
           },
@@ -166,9 +266,21 @@ export const bridgeAbi = [
     name: "deployExternalTokenERC20",
     inputs: [
       {
-        name: "externalTokenAddress",
-        type: "bytes32",
-        internalType: "bytes32",
+        name: "externalToken_",
+        type: "tuple",
+        internalType: "struct ITokenManager.ExternalTokenUnmapped",
+        components: [
+          {
+            name: "externalTokenAddress",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "decimals",
+            type: "uint8",
+            internalType: "uint8",
+          },
+        ],
       },
       {
         name: "name",
@@ -210,6 +322,42 @@ export const bridgeAbi = [
         name: "token",
         type: "address",
         internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "externalToken",
+    inputs: [
+      {
+        name: "externalTokenAddress",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    outputs: [
+      {
+        name: "_externalToken",
+        type: "tuple",
+        internalType: "struct ITokenManager.ExternalToken",
+        components: [
+          {
+            name: "externalTokenAddress",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "tokenAddress",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "decimals",
+            type: "uint8",
+            internalType: "uint8",
+          },
+        ],
       },
     ],
     stateMutability: "view",
@@ -280,7 +428,7 @@ export const bridgeAbi = [
       {
         name: "receipt",
         type: "tuple",
-        internalType: "struct IBridgeTypes.Receipt",
+        internalType: "struct BridgeTypes.FullReceipt",
         components: [
           {
             name: "from",
@@ -293,12 +441,83 @@ export const bridgeAbi = [
             internalType: "bytes32",
           },
           {
-            name: "tokenAddress",
+            name: "tokenAddressFrom",
             type: "bytes32",
             internalType: "bytes32",
           },
           {
-            name: "amount",
+            name: "tokenAddressTo",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "amountFrom",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "amountTo",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "chainFrom",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "chainTo",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "eventId",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "flags",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "data",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
+      },
+    ],
+    outputs: [
+      {
+        name: "claimed",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "isClaimed",
+    inputs: [
+      {
+        name: "receipt",
+        type: "tuple",
+        internalType: "struct BridgeTypes.MiniReceipt",
+        components: [
+          {
+            name: "to",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "tokenAddressTo",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "amountTo",
             type: "uint256",
             internalType: "uint256",
           },
@@ -376,9 +595,21 @@ export const bridgeAbi = [
     name: "mapExternalToken",
     inputs: [
       {
-        name: "externalTokenAddress",
-        type: "bytes32",
-        internalType: "bytes32",
+        name: "externalToken_",
+        type: "tuple",
+        internalType: "struct ITokenManager.ExternalTokenUnmapped",
+        components: [
+          {
+            name: "externalTokenAddress",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "decimals",
+            type: "uint8",
+            internalType: "uint8",
+          },
+        ],
       },
       {
         name: "token",
@@ -525,11 +756,6 @@ export const bridgeAbi = [
         type: "address",
         internalType: "address",
       },
-      {
-        name: "externalTokenAddress",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
     ],
     outputs: [
       {
@@ -570,10 +796,15 @@ export const bridgeAbi = [
       {
         name: "payload",
         type: "tuple",
-        internalType: "struct IBridgeTypes.SendPayload",
+        internalType: "struct BridgeTypes.SendPayload",
         components: [
           {
             name: "tokenAddress",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "externalTokenAddress",
             type: "bytes32",
             internalType: "bytes32",
           },
@@ -614,7 +845,7 @@ export const bridgeAbi = [
       {
         name: "receipt",
         type: "tuple",
-        internalType: "struct IBridgeTypes.Receipt",
+        internalType: "struct BridgeTypes.FullReceipt",
         components: [
           {
             name: "from",
@@ -627,12 +858,22 @@ export const bridgeAbi = [
             internalType: "bytes32",
           },
           {
-            name: "tokenAddress",
+            name: "tokenAddressFrom",
             type: "bytes32",
             internalType: "bytes32",
           },
           {
-            name: "amount",
+            name: "tokenAddressTo",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "amountFrom",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "amountTo",
             type: "uint256",
             internalType: "uint256",
           },
@@ -683,10 +924,15 @@ export const bridgeAbi = [
       {
         name: "payload",
         type: "tuple",
-        internalType: "struct IBridgeTypes.SendPayload",
+        internalType: "struct BridgeTypes.SendPayload",
         components: [
           {
             name: "tokenAddress",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "externalTokenAddress",
             type: "bytes32",
             internalType: "bytes32",
           },
@@ -747,7 +993,7 @@ export const bridgeAbi = [
       {
         name: "receipt",
         type: "tuple",
-        internalType: "struct IBridgeTypes.Receipt",
+        internalType: "struct BridgeTypes.FullReceipt",
         components: [
           {
             name: "from",
@@ -760,12 +1006,22 @@ export const bridgeAbi = [
             internalType: "bytes32",
           },
           {
-            name: "tokenAddress",
+            name: "tokenAddressFrom",
             type: "bytes32",
             internalType: "bytes32",
           },
           {
-            name: "amount",
+            name: "tokenAddressTo",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "amountFrom",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "amountTo",
             type: "uint256",
             internalType: "uint256",
           },
@@ -976,12 +1232,6 @@ export const bridgeAbi = [
         indexed: true,
         internalType: "address",
       },
-      {
-        name: "externalTokenAddress",
-        type: "bytes32",
-        indexed: true,
-        internalType: "bytes32",
-      },
     ],
     anonymous: false,
   },
@@ -989,12 +1239,6 @@ export const bridgeAbi = [
     type: "event",
     name: "TokenDeployed",
     inputs: [
-      {
-        name: "externalTokenAddress",
-        type: "bytes32",
-        indexed: true,
-        internalType: "bytes32",
-      },
       {
         name: "name",
         type: "string",
@@ -1030,7 +1274,7 @@ export const bridgeAbi = [
         name: "receipt",
         type: "tuple",
         indexed: false,
-        internalType: "struct IBridgeTypes.Receipt",
+        internalType: "struct BridgeTypes.FullReceipt",
         components: [
           {
             name: "from",
@@ -1043,12 +1287,22 @@ export const bridgeAbi = [
             internalType: "bytes32",
           },
           {
-            name: "tokenAddress",
+            name: "tokenAddressFrom",
             type: "bytes32",
             internalType: "bytes32",
           },
           {
-            name: "amount",
+            name: "tokenAddressTo",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "amountFrom",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "amountTo",
             type: "uint256",
             internalType: "uint256",
           },
@@ -1124,12 +1378,6 @@ export const bridgeAbi = [
         indexed: true,
         internalType: "address",
       },
-      {
-        name: "externalTokenAddress",
-        type: "bytes32",
-        indexed: true,
-        internalType: "bytes32",
-      },
     ],
     anonymous: false,
   },
@@ -1141,25 +1389,20 @@ export const bridgeAbi = [
         name: "receipt",
         type: "tuple",
         indexed: false,
-        internalType: "struct IBridgeTypes.Receipt",
+        internalType: "struct BridgeTypes.MiniReceipt",
         components: [
-          {
-            name: "from",
-            type: "bytes32",
-            internalType: "bytes32",
-          },
           {
             name: "to",
             type: "bytes32",
             internalType: "bytes32",
           },
           {
-            name: "tokenAddress",
+            name: "tokenAddressTo",
             type: "bytes32",
             internalType: "bytes32",
           },
           {
-            name: "amount",
+            name: "amountTo",
             type: "uint256",
             internalType: "uint256",
           },

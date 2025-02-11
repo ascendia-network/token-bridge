@@ -1,5 +1,5 @@
 # BridgeUpgradeable
-[Git Source](https://github.com/ambrosus/token-bridge/blob/91bb52a526c0f112baf68a5b9e3a3c70d76246d0/contracts/upgradeable/BridgeUpgradeable.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/2704f133ac810fd32e38846890ea517279600f52/contracts/upgradeable/BridgeUpgradeable.sol)
 
 **Inherits:**
 [IBridge](/contracts/interface/IBridge.sol/interface.IBridge.md), Initializable, AccessManagedUpgradeable, [NoncesUpgradeable](/contracts/utils/NoncesUpgradeable.sol/abstract.NoncesUpgradeable.md), [TokenManagerUpgradeable](/contracts/upgradeable/TokenManagerUpgradeable.sol/abstract.TokenManagerUpgradeable.md)
@@ -106,7 +106,7 @@ Add token to the bridge
 ```solidity
 function addToken(
     address token,
-    ExternalToken[] calldata externalTokens
+    ExternalTokenUnmapped calldata externalToken_
 )
     external
     override
@@ -118,7 +118,7 @@ function addToken(
 |Name|Type|Description|
 |----|----|-----------|
 |`token`|`address`|address of the token|
-|`externalTokens`|`ExternalToken[]`|external tokens that should be mapped to the token|
+|`externalToken_`|`ExternalTokenUnmapped`||
 
 **Returns**
 
@@ -127,14 +127,14 @@ function addToken(
 |`success`|`bool`|true if the token was added successfully|
 
 
-### mapExternalTokens
+### mapExternalToken
 
 Map external token address to token
 
 
 ```solidity
-function mapExternalTokens(
-    ExternalToken[] calldata externalTokens,
+function mapExternalToken(
+    ExternalTokenUnmapped calldata externalToken_,
     address token
 )
     public
@@ -146,7 +146,7 @@ function mapExternalTokens(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`externalTokens`|`ExternalToken[]`|external tokens that should be mapped to the token|
+|`externalToken_`|`ExternalTokenUnmapped`||
 |`token`|`address`|address of the token|
 
 **Returns**
@@ -162,10 +162,7 @@ Unmap external token address to token
 
 
 ```solidity
-function unmapExternalToken(
-    uint256 chainId,
-    bytes32 externalTokenAddress
-)
+function unmapExternalToken(bytes32 externalTokenAddress)
     public
     override
     restricted
@@ -175,7 +172,6 @@ function unmapExternalToken(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`chainId`|`uint256`||
 |`externalTokenAddress`|`bytes32`|external token address|
 
 **Returns**
@@ -193,7 +189,7 @@ Add token to the bridge
 ```solidity
 function addToken(
     address token,
-    ExternalToken[] calldata externalTokens,
+    ExternalTokenUnmapped calldata externalToken_,
     bool paused
 )
     public
@@ -206,7 +202,7 @@ function addToken(
 |Name|Type|Description|
 |----|----|-----------|
 |`token`|`address`|address of the token|
-|`externalTokens`|`ExternalToken[]`|external tokens that should be mapped to the token|
+|`externalToken_`|`ExternalTokenUnmapped`||
 |`paused`|`bool`|true if the token should be paused at the start|
 
 **Returns**
@@ -300,7 +296,7 @@ Deploy external ERC20 token to chain
 
 ```solidity
 function deployExternalTokenERC20(
-    ExternalToken calldata externalToken,
+    ExternalTokenUnmapped calldata externalToken_,
     string calldata name,
     string calldata symbol,
     uint8 decimals
@@ -314,7 +310,7 @@ function deployExternalTokenERC20(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`externalToken`|`ExternalToken`|external token address that will mapped to the token|
+|`externalToken_`|`ExternalTokenUnmapped`||
 |`name`|`string`|name of the token|
 |`symbol`|`string`|symbol of the token|
 |`decimals`|`uint8`|decimals of the token|
@@ -526,7 +522,8 @@ function _validateSendValues(
     bytes calldata payloadSignature
 )
     private
-    view;
+    view
+    returns (uint256 amountToReceive);
 ```
 **Parameters**
 

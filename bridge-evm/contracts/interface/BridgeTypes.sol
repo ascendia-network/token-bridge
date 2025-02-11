@@ -83,6 +83,7 @@ interface BridgeTypes {
     /// @param data additional data of the sending operation
     struct SendPayload {
         bytes32 tokenAddress; // address of the token contract
+        bytes32 externalTokenAddress; // address of the external token contract (in destination chain)
         uint256 amountToSend; // amount of the tokens to be sent
         uint256 feeAmount; // amount of the fee
         uint256 timestamp; // timestamp of the fee was generated

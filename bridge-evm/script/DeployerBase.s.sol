@@ -19,6 +19,14 @@ contract DeployerBase is Script {
     Validator validator;
     Bridge bridge;
 
+    VmSafe.Wallet deployer;
+
+    function getDeployer() public returns (VmSafe.Wallet memory) {
+        uint256 deployerPK = vm.envUint("PRIVATE_KEY");
+        deployer = vm.createWallet(deployerPK);
+        return deployer;
+    }
+
     function checkDeployed(string memory contractName)
         public
         view
@@ -91,7 +99,7 @@ contract DeployerBase is Script {
     }
 
     function deployAuthority() public returns (AccessManager) {
-        address admin = vm.envOr("AUTHORITY_ADMIN", msg.sender);
+        address admin = vm.envOr("AUTHORITY_ADMIN", deployer.addr);
         authority = new AccessManager(admin);
         console.log("AccessManager deployed at", address(authority));
         return authority;

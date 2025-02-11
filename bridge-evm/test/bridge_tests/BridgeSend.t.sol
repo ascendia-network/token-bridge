@@ -105,13 +105,14 @@ abstract contract BridgeSendTest is BridgeTestBase {
     {
         payload = BridgeTypes.SendPayload({
             tokenAddress: bytes32(uint256(uint160(token))),
+            externalTokenAddress: token == address(wrappedToken) ? bytes32("AMB_EXT") : bytes32("PMT_EXT"),
             amountToSend: amountToSend,
             feeAmount: feeAmount,
             timestamp: block.timestamp,
             flags: flags,
             flagData: new bytes(0)
         });
-        ITokenManager.ExternalToken memory extToken = bridgeInstance.token2external(token, chainDest);
+        ITokenManager.ExternalToken memory extToken = bridgeInstance.externalToken(payload.externalTokenAddress);
         receipt = BridgeTypes.FullReceipt({
             from: bytes32(uint256(uint160(address(sender)))),
             to: recipient,
@@ -181,14 +182,12 @@ abstract contract BridgeSendTest is BridgeTestBase {
     function prepareSend(uint256 tokenAmount) public returns (Signer memory) {
         Signer memory signer = getSigner("sender");
         vm.warp(1000);
-        ITokenManager.ExternalToken[] memory tokens = new ITokenManager.ExternalToken[](1);
-        tokens[0] = ITokenManager.ExternalToken({
+        ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager.ExternalTokenUnmapped({
             externalTokenAddress: bytes32("PMT_EXT"),
-            decimals: permittableToken.decimals(),
-            chainId: uint256(bytes32("SOLANA"))
+            decimals: permittableToken.decimals()
         });
         bridgeInstance.addToken(
-            address(permittableToken), tokens, false
+            address(permittableToken), extToken, false
         );
         vm.startPrank(signer.Address);
         vm.deal(signer.Address, 100 ether);
@@ -204,14 +203,12 @@ abstract contract BridgeSendTest is BridgeTestBase {
         returns (Signer memory)
     {
         vm.warp(1000);
-        ITokenManager.ExternalToken[] memory tokens = new ITokenManager.ExternalToken[](1);
-        tokens[0] = ITokenManager.ExternalToken({
+        ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager.ExternalTokenUnmapped({
             externalTokenAddress: bytes32("PMT_EXT"),
-            decimals: permittableToken.decimals(),
-            chainId: uint256(bytes32("SOLANA"))
+            decimals: permittableToken.decimals()
         });
         try bridgeInstance.addToken(
-            address(permittableToken), tokens, false
+            address(permittableToken), extToken, false
         ) {} catch (bytes memory lowLevelData) {
             if (
                 bytes4(
@@ -233,14 +230,12 @@ abstract contract BridgeSendTest is BridgeTestBase {
     function prepareSendNative(uint256 amount) public returns (Signer memory) {
         Signer memory signer = getSigner("sender");
         vm.warp(1000);
-        ITokenManager.ExternalToken[] memory tokens = new ITokenManager.ExternalToken[](1);
-        tokens[0] = ITokenManager.ExternalToken({
+        ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager.ExternalTokenUnmapped({
             externalTokenAddress: bytes32("AMB_EXT"),
-            decimals: permittableToken.decimals(),
-            chainId: uint256(bytes32("SOLANA"))
+            decimals: permittableToken.decimals()
         });
         bridgeInstance.addToken(
-            address(wrappedToken), tokens, false
+            address(wrappedToken), extToken, false
         );
         vm.startPrank(signer.Address);
         vm.deal(signer.Address, amount + 1 ether);

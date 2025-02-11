@@ -218,6 +218,7 @@ contract ValidatorTest is Test {
 
         payloadCommon = BridgeTypes.SendPayload({
             tokenAddress: bytes32("SOLANA"),
+            externalTokenAddress: bytes32("sAMB"),
             amountToSend: 100 ether,
             feeAmount: 1 ether,
             timestamp: block.timestamp,

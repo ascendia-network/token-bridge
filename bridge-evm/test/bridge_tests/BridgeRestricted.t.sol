@@ -131,30 +131,27 @@ abstract contract BridgeRestrictedTest is BridgeTestBase {
         bridgeInstance.setNativeSendAmount(2 ether);
         assertEq(bridgeInstance.nativeSendAmount(), 2 ether);
         bridgeInstance.setValidator(Validator(address(0x0)));
-        ITokenManager.ExternalToken memory extToken = ITokenManager.ExternalToken({
+         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager.ExternalTokenUnmapped({
             externalTokenAddress: bytes32("SOLANA_TOKEN"),
-            chainId: uint256(bytes32("SOLANA")),
             decimals: 6
         });
-        ITokenManager.ExternalToken[] memory extTokens = new ITokenManager.ExternalToken[](1);
-        extTokens[0] = extToken;
         vm.expectRevert(
             abi.encodeWithSelector(
                 IAccessManaged.AccessManagedUnauthorized.selector, bob
             ),
             7
         );
-        bridgeInstance.addToken(address(wrappedToken), extTokens);
+        bridgeInstance.addToken(address(wrappedToken), extToken);
         bridgeInstance.removeToken(address(wrappedToken));
         bridgeInstance.deployExternalTokenERC20(
             extToken, "Wrapped Solana", "wSOL", 18
         );
         bridgeInstance.pauseToken(address(wrappedToken));
         bridgeInstance.unpauseToken(address(wrappedToken));
-        bridgeInstance.mapExternalTokens(
-            extTokens, address(wrappedToken)
+        bridgeInstance.mapExternalToken(
+            extToken, address(wrappedToken)
         );
-        bridgeInstance.unmapExternalToken(uint256(bytes32("SOLANA")), bytes32("SOLANA_TOKEN"));
+        bridgeInstance.unmapExternalToken(bytes32("SOLANA_TOKEN"));
         vm.stopPrank();
     }
 

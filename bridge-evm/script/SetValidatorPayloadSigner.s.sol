@@ -8,18 +8,14 @@ import {AccessManager} from
     "@openzeppelin/contracts/access/manager/AccessManager.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-contract DeployAuthority is DeployerBase {
+contract SetValidatorPayloadSigner is DeployerBase {
 
     function run() public override {
         getDeployer();
         vm.startBroadcast(deployer.privateKey);
-        (bool deployed, address authorityAddress) =
-            checkDeployed("AccessManager");
-        if (deployed && !vm.envOr("FORCE_DEPLOY", false)) {
-            console.log("AccessManager already deployed at", authorityAddress);
-        } else {
-            deployAuthority();
-        }
+        getValidator();
+        address signer = vm.envAddress("PAYLOAD_SIGNER");
+        validator.setPayloadSigner(signer);
         vm.stopBroadcast();
     }
 

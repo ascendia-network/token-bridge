@@ -1,5 +1,5 @@
 # AddressUtils
-[Git Source](https://github.com/ambrosus/token-bridge/blob/91bb52a526c0f112baf68a5b9e3a3c70d76246d0/contracts/utils/AddressUtils.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/2704f133ac810fd32e38846890ea517279600f52/contracts/utils/AddressUtils.sol)
 
 
 ## Functions

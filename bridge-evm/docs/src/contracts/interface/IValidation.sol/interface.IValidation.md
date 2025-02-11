@@ -1,8 +1,8 @@
 # IValidation
-[Git Source](https://github.com/ambrosus/token-bridge/blob/fd78173c03bc3176acad331d668a382df87c32fd/contracts/interface/IValidation.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/91bb52a526c0f112baf68a5b9e3a3c70d76246d0/contracts/interface/IValidation.sol)
 
 **Inherits:**
-[IBridgeTypes](/contracts/interface/IBridgeTypes.sol/interface.IBridgeTypes.md)
+[BridgeTypes](/contracts/interface/BridgeTypes.sol/interface.BridgeTypes.md)
 
 
 ## Functions
@@ -89,7 +89,7 @@ Validate the transaction receipt
 
 ```solidity
 function validate(
-    Receipt memory receipt,
+    FullReceipt memory receipt,
     bytes memory signature
 )
     external
@@ -100,7 +100,35 @@ function validate(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`receipt`|`Receipt`|transaction receipt|
+|`receipt`|`FullReceipt`|transaction full receipt|
+|`signature`|`bytes`|signature of the receipt. Must be signed by all validators|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`isValid`|`bool`|true if the receipt is valid|
+
+
+### validate
+
+Validate the transaction receipt
+
+
+```solidity
+function validate(
+    MiniReceipt memory receipt,
+    bytes memory signature
+)
+    external
+    view
+    returns (bool isValid);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`receipt`|`MiniReceipt`|transaction cropped receipt|
 |`signature`|`bytes`|signature of the receipt. Must be signed by all validators|
 
 **Returns**

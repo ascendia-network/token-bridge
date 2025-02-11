@@ -6,15 +6,19 @@ import {Initializable} from
 
 import {ITokenManager} from "../interface/ITokenManager.sol";
 import {IWrapped} from "../interface/IWrapped.sol";
+import {AddressUtils} from "../utils/AddressUtils.sol";
 
 import {ERC20Bridged} from "../token/ERC20Bridged.sol";
 
 abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
 
+    using AddressUtils for bytes32;
+
     /// @custom:storage-location erc7201:airdao.bridge.token-manager.storage
     struct TokenManagerStorage {
-        mapping(address => bool) bridgableTokens;
-        mapping(bytes32 => address) external2token;
+        mapping(address => ExternalToken[]) bridgableTokens;
+        mapping(uint256 => mapping(bytes32 => address)) external2token;
+        mapping(address => mapping(uint256 => ExternalToken)) token2external;
         mapping(address => bool) unpausedTokens; // paused tokens where 0 is paused and 1 is unpaused
         address bridge;
         address SAMB;
@@ -55,40 +59,57 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         $.bridge = bridge_;
         $.SAMB = SAMB;
     }
+
+    modifier isBridgable(bytes32 token) {
+        if (!bridgableTokens(token.toAddress())) {
+            revert TokenNotBridgable(token.toAddress());
+        }
+        _;
+    }
+
     /// @inheritdoc ITokenManager
 
     function addToken(
         address token,
-        bytes32 externalTokenAddress,
+        ExternalToken[] calldata externalTokens,
         bool paused
     )
         public
         virtual
         returns (bool success)
     {
-        bool res = _addToken(token, externalTokenAddress, paused);
+        bool res = _addToken(token, externalTokens, paused);
         return res;
     }
+
     /// @inheritdoc ITokenManager
 
-    function mapExternalToken(
-        bytes32 externalTokenAddress,
+    function mapExternalTokens(
+        ExternalToken[] calldata externalTokens,
         address token
     )
         public
         virtual
         returns (bool success)
     {
-        return _mapToken(externalTokenAddress, token);
+        for (uint256 i = 0; i < externalTokens.length; i++) {
+            bool res = _mapToken(externalTokens[i], token);
+            if (!res) {
+                return false;
+            }
+        }
     }
 
     /// @inheritdoc ITokenManager
-    function unmapExternalToken(bytes32 externalTokenAddress)
+    function unmapExternalToken(
+        uint256 chainId,
+        bytes32 externalTokenAddress
+    )
         public
         virtual
         returns (bool success)
     {
-        return _unmapToken(externalTokenAddress);
+        return _unmapToken(chainId, externalTokenAddress);
     }
 
     /// @inheritdoc ITokenManager
@@ -112,21 +133,18 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     }
 
     /// @inheritdoc ITokenManager
-    function removeToken(
-        address token,
-        bytes32 externalTokenAddress
-    )
+    function removeToken(address token)
         public
         virtual
         override
         returns (bool success)
     {
-        return _removeToken(token, externalTokenAddress);
+        return _removeToken(token);
     }
 
     /// @inheritdoc ITokenManager
     function deployExternalTokenERC20(
-        bytes32 externalTokenAddress,
+        ExternalToken calldata externalToken,
         string calldata name,
         string calldata symbol,
         uint8 decimals
@@ -136,10 +154,9 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         override
         returns (address token)
     {
-        return _deployExternalTokenERC20(
-            externalTokenAddress, name, symbol, decimals
-        );
+        return _deployExternalTokenERC20(externalToken, name, symbol, decimals);
     }
+
     /// Used to wrap AMB to SAMB
     /// @param amount amount to wrap
 
@@ -161,29 +178,53 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         public
         view
         override
-        returns (bool isBridgable)
+        returns (bool isBridgable_)
     {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
-        return $.bridgableTokens[token];
+        return $.bridgableTokens[token].length > 0;
     }
 
-    // /// @inheritdoc ITokenManager
-    // function token2external(
-    //     address token
-    // ) public view override returns (bytes32 externalTokenAddress) {
-    //     TokenManagerStorage storage $ = _getTokenManagerStorage();
-    //     return $.token2external[token];
-    // }
+    /// @inheritdoc ITokenManager
+    function bridgableTokenTo(
+        address token,
+        uint256 chainId
+    )
+        public
+        view
+        override
+        returns (bool isBridgableTo)
+    {
+        TokenManagerStorage storage $ = _getTokenManagerStorage();
+        return $.token2external[token][chainId].chainId == chainId
+            && $.token2external[token][chainId].externalTokenAddress != bytes32(0);
+    }
 
     /// @inheritdoc ITokenManager
-    function external2token(bytes32 externalTokenAddress)
+    function token2external(
+        address token,
+        uint256 chainId
+    )
+        public
+        view
+        override
+        returns (ExternalToken memory externalToken)
+    {
+        TokenManagerStorage storage $ = _getTokenManagerStorage();
+        return $.token2external[token][chainId];
+    }
+
+    /// @inheritdoc ITokenManager
+    function external2token(
+        uint256 chainId,
+        bytes32 externalTokenAddress
+    )
         public
         view
         override
         returns (address token)
     {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
-        return $.external2token[externalTokenAddress];
+        return $.external2token[chainId][externalTokenAddress];
     }
 
     /// @inheritdoc ITokenManager
@@ -205,11 +246,11 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
 
     /// Adds token to the bridge
     /// @param token address of the token
-    /// @param externalTokenAddress external token address
+    /// @param externalTokens external tokens that should be mapped to the token
     /// @return success true if the token was added
     function _addToken(
         address token,
-        bytes32 externalTokenAddress,
+        ExternalToken[] memory externalTokens,
         bool paused
     )
         private
@@ -219,17 +260,31 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
             revert TokenZeroAddress();
         }
         TokenManagerStorage storage $ = _getTokenManagerStorage();
-        if ($.bridgableTokens[token]) {
+        if ($.bridgableTokens[token].length > 0) {
             revert TokenAlreadyAdded(token);
         }
-        if ($.external2token[externalTokenAddress] != address(0)) {
-            revert TokenAlreadyMapped(externalTokenAddress);
+        for (uint256 i = 0; i < externalTokens.length; i++) {
+            if (
+                $.external2token[externalTokens[i].chainId][externalTokens[i]
+                    .externalTokenAddress] != address(0)
+            ) {
+                revert TokenAlreadyMapped(
+                    externalTokens[i].externalTokenAddress
+                );
+            }
+            $.bridgableTokens[token].push(externalTokens[i]);
+            $.external2token[externalTokens[i].chainId][externalTokens[i]
+                .externalTokenAddress] = token;
+            $.token2external[token][externalTokens[i].chainId] =
+                externalTokens[i];
+            emit TokenMapped(
+                token,
+                externalTokens[i].chainId,
+                externalTokens[i].externalTokenAddress
+            );
         }
-        $.bridgableTokens[token] = true;
-        // $.token2external[token] = externalTokenAddress;
-        $.external2token[externalTokenAddress] = token;
+        emit TokenAdded(token);
         $.unpausedTokens[token] = !paused;
-        emit TokenAdded(token, externalTokenAddress);
         if (paused) {
             emit TokenPaused(token);
         } else {
@@ -239,77 +294,100 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     }
 
     /// Map external token address to token
-    /// @param externalTokenAddress external token address
+    /// @param externalToken external token that should be mapped to the token
     /// @param token address of the token
     /// @return success true if the token was added
     function _mapToken(
-        bytes32 externalTokenAddress,
+        ExternalToken memory externalToken,
         address token
     )
         private
         returns (bool success)
     {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
-        if (!$.bridgableTokens[token]) {
+        if ($.bridgableTokens[token].length == 0) {
             revert TokenNotBridgable(token);
         }
-        if ($.external2token[externalTokenAddress] != address(0)) {
-            revert TokenAlreadyMapped(externalTokenAddress);
+        if (
+            $.external2token[externalToken.chainId][externalToken
+                .externalTokenAddress] != address(0)
+        ) {
+            revert TokenAlreadyMapped(externalToken.externalTokenAddress);
         }
-        $.external2token[externalTokenAddress] = token;
-        emit TokenMapped(token, externalTokenAddress);
+        $.external2token[externalToken.chainId][externalToken
+            .externalTokenAddress] = token;
+        $.token2external[token][externalToken.chainId] = externalToken;
+        $.bridgableTokens[token].push(externalToken);
+        emit TokenMapped(
+            token, externalToken.chainId, externalToken.externalTokenAddress
+        );
         return true;
     }
 
     /// Unmap external token address to token
     /// @param externalTokenAddress external token address
     /// @return success true if the token was removed
-    function _unmapToken(bytes32 externalTokenAddress)
-        private
-        returns (bool success)
-    {
-        TokenManagerStorage storage $ = _getTokenManagerStorage();
-        if ($.external2token[externalTokenAddress] == address(0)) {
-            revert TokenNotMapped(externalTokenAddress);
-        }
-        delete $.external2token[externalTokenAddress];
-        emit TokenUnmapped(externalTokenAddress);
-        return true;
-    }
-
-    /// Remove token from the bridge
-    /// @param token address of the token
-    /// @param externalTokenAddress external token address
-    /// @return success true if the token was removed
-    function _removeToken(
-        address token,
+    function _unmapToken(
+        uint256 chainId,
         bytes32 externalTokenAddress
     )
         private
         returns (bool success)
     {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
-        if (!$.bridgableTokens[token]) {
+        address token = $.external2token[chainId][externalTokenAddress];
+        if (token == address(0)) {
+            revert TokenNotMapped(externalTokenAddress);
+        }
+        for (uint256 i = 0; i < $.bridgableTokens[token].length; i++) {
+            if (
+                $.bridgableTokens[token][i].externalTokenAddress
+                    == externalTokenAddress
+                    && $.bridgableTokens[token][i].chainId == chainId
+            ) {
+                $.bridgableTokens[token][i] = $.bridgableTokens[token][$
+                    .bridgableTokens[token].length - 1];
+                $.bridgableTokens[token].pop();
+                break;
+            }
+        }
+        delete $.external2token[chainId][externalTokenAddress];
+        delete $.token2external[token][chainId];
+        emit TokenUnmapped(chainId, externalTokenAddress);
+        return true;
+    }
+
+    /// Remove token from the bridge
+    /// @param token address of the token
+    /// @return success true if the token was removed
+    function _removeToken(address token) private returns (bool success) {
+        TokenManagerStorage storage $ = _getTokenManagerStorage();
+        if ($.bridgableTokens[token].length == 0) {
             revert TokenNotAdded(token);
         }
+        ExternalToken[] storage tokens = $.bridgableTokens[token];
+        for (uint256 i = 0; i < tokens.length; i++) {
+            delete $.external2token[tokens[i].chainId][
+                tokens[i].externalTokenAddress
+            ];
+            delete $.token2external[token][tokens[i].chainId];
+        }
         delete $.bridgableTokens[token];
-        // delete $.token2external[token];
-        delete $.external2token[externalTokenAddress];
         delete $.unpausedTokens[token];
-        emit TokenRemoved(token, externalTokenAddress);
+        emit TokenRemoved(token);
         return true;
     }
 
     /// Deploy external ERC20 token to chain
     /// @dev This function should be called by admin to deploy external token to the chain.
     /// @dev This token will be used for bridging as minting and burning. For more details see `ERC20Bridged` contract.
-    /// @param externalTokenAddress external token address
+    /// @param externalToken external token that will be mapped to the token
     /// @param name name of the token
     /// @param symbol symbol of the token
     /// @param decimals decimals of the token
     /// @return token address of the token
     function _deployExternalTokenERC20(
-        bytes32 externalTokenAddress,
+        ExternalToken memory externalToken,
         string calldata name,
         string calldata symbol,
         uint8 decimals
@@ -320,8 +398,10 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         address bridge = $.bridge;
         token = address(new ERC20Bridged(name, symbol, decimals, bridge));
-        _addToken(token, externalTokenAddress, true);
-        emit TokenDeployed(externalTokenAddress, name, symbol, decimals, token);
+        ExternalToken[] memory tokensExt = new ExternalToken[](1);
+        tokensExt[0] = externalToken;
+        _addToken(token, tokensExt, true);
+        emit TokenDeployed(name, symbol, decimals, token);
         return token;
     }
 

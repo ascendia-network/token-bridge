@@ -12,9 +12,8 @@ import {EnumerableSet} from
 import {IBridge} from "../../contracts/interface/IBridge.sol";
 
 import {
-    BridgeFlags,
-    IBridgeTypes
-} from "../../contracts/interface/IBridgeTypes.sol";
+    BridgeFlags, BridgeTypes
+} from "../../contracts/interface/BridgeTypes.sol";
 import {ITokenManager} from "../../contracts/interface/ITokenManager.sol";
 
 import {Bridge} from "../../contracts/Bridge.sol";
@@ -29,10 +28,11 @@ import {BridgeTestBase} from "./BridgeBase.t.sol";
 abstract contract BridgeClaimTest is BridgeTestBase {
 
     using EnumerableSet for EnumerableSet.AddressSet;
-    using ReceiptUtils for IBridgeTypes.Receipt;
-    using PayloadUtils for IBridgeTypes.SendPayload;
+    using ReceiptUtils for BridgeTypes.FullReceipt;
+    using ReceiptUtils for BridgeTypes.MiniReceipt;
+    using PayloadUtils for BridgeTypes.SendPayload;
 
-    function signReceipt(IBridgeTypes.Receipt memory receipt)
+    function signReceipt(BridgeTypes.MiniReceipt memory receipt)
         public
         view
         returns (bytes memory)
@@ -47,45 +47,55 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         return signature;
     }
 
-    function test_claim(uint256 amount) public {
+    function test_claim(uint256 amount) public returns (address) {
+        ITokenManager.ExternalToken memory extToken = ITokenManager.ExternalToken({
+            externalTokenAddress: bytes32("SOLANA_TOKEN"),
+            chainId: uint256(bytes32("SOLANA")),
+            decimals: permittableToken.decimals()
+        });
         address token = bridgeInstance.deployExternalTokenERC20(
-            bytes32("SOLANA_TOKEN"), "solana token", "SOL", 18
+            extToken, "solana token", "SOL", 18
         );
         bridgeInstance.unpauseToken(token);
-        IBridgeTypes.Receipt memory receipt = IBridgeTypes.Receipt({
+        BridgeTypes.FullReceipt memory receipt = BridgeTypes.FullReceipt({
             from: bytes32("SOLANA_SENDER"),
             to: bytes32(uint256(uint160(deadBeef))), // deadBeef
-            tokenAddress: bytes32("SOLANA_TOKEN"),
-            amount: amount,
-            chainFrom: 1,
+            tokenAddressFrom: bytes32("SOLANA_TOKEN"),
+            tokenAddressTo: bytes32(uint256(uint160(token))),
+            amountFrom: amount,
+            amountTo: amount,
+            chainFrom: uint256(bytes32("SOLANA")),
             chainTo: block.chainid,
             eventId: 555,
             flags: 0,
             data: new bytes(0)
         });
-        bytes memory signature = signReceipt(receipt);
+        bytes memory signature = signReceipt(receipt.asMini());
         vm.expectEmit(address(bridgeInstance));
-        emit IBridge.TokenUnlocked(receipt);
+        emit IBridge.TokenUnlocked(receipt.asMini());
         bridgeInstance.claim(receipt, signature);
         assertEq(ERC20(token).balanceOf(deadBeef), amount);
         assertTrue(bridgeInstance.isClaimed(receipt));
         assertTrue(bridgeInstance.isClaimed(receipt.toHash()));
+        return token;
     }
 
     function test_revertIf_claim_alreadyClaimed(uint256 amount) public {
-        test_claim(amount);
-        IBridgeTypes.Receipt memory sameReceipt = IBridgeTypes.Receipt({
+        address token = test_claim(amount);
+        BridgeTypes.FullReceipt memory sameReceipt = BridgeTypes.FullReceipt({
             from: bytes32("SOLANA_SENDER"),
             to: bytes32(uint256(uint160(deadBeef))), // deadBeef
-            tokenAddress: bytes32("SOLANA_TOKEN"),
-            amount: amount,
-            chainFrom: 1,
+            tokenAddressFrom: bytes32("SOLANA_TOKEN"),
+            tokenAddressTo: bytes32(uint256(uint160(token))), 
+            amountFrom: amount,
+            amountTo: amount,
+            chainFrom: uint256(bytes32("SOLANA")),
             chainTo: block.chainid,
             eventId: 555,
             flags: 0,
             data: new bytes(0)
         });
-        bytes memory signature = signReceipt(sameReceipt);
+        bytes memory signature = signReceipt(sameReceipt.asMini());
         vm.expectRevert(
             abi.encodeWithSelector(
                 IBridge.Claimed.selector, sameReceipt.toHash()
@@ -94,64 +104,80 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         bridgeInstance.claim(sameReceipt, signature);
     }
 
-    function test_revertIf_claim_tokenNotMapped(uint256 amount) public {
-        IBridgeTypes.Receipt memory receipt = IBridgeTypes.Receipt({
+    function test_revertIf_claim_TokenNotBridgable(uint256 amount) public {
+        BridgeTypes.FullReceipt memory receipt = BridgeTypes.FullReceipt({
             from: bytes32("SOLANA_SENDER"),
             to: bytes32(uint256(uint160(deadBeef))), // deadBeef
-            tokenAddress: bytes32("SOLANA_TOKEN"),
-            amount: amount,
-            chainFrom: 1,
+            tokenAddressFrom: bytes32("SOLANA_TOKEN"),
+            tokenAddressTo: bytes32(uint256(uint160(deadBeef))),
+            amountFrom: amount,
+            amountTo: amount,
+            chainFrom: uint256(bytes32("SOLANA")),
             chainTo: block.chainid,
             eventId: 555,
             flags: 0,
             data: new bytes(0)
         });
-        bytes memory signature = signReceipt(receipt);
+        bytes memory signature = signReceipt(receipt.asMini());
         vm.expectRevert(
             abi.encodeWithSelector(
-                ITokenManager.TokenNotMapped.selector, bytes32("SOLANA_TOKEN")
+                ITokenManager.TokenNotBridgable.selector, deadBeef
             )
         );
         bridgeInstance.claim(receipt, signature);
     }
 
     function test_revertIf_claim_wrongChain(uint256 amount) public {
+        ITokenManager.ExternalToken memory extToken = ITokenManager.ExternalToken({
+            externalTokenAddress: bytes32("SOLANA_TOKEN"),
+            chainId: uint256(bytes32("SOLANA")),
+            decimals: permittableToken.decimals()
+        });
         address token = bridgeInstance.deployExternalTokenERC20(
-            bytes32("SOLANA_TOKEN"), "solana token", "SOL", 18
+            extToken, "solana token", "SOL", 18
         );
         bridgeInstance.unpauseToken(token);
-        IBridgeTypes.Receipt memory receipt = IBridgeTypes.Receipt({
+        BridgeTypes.FullReceipt memory receipt = BridgeTypes.FullReceipt({
             from: bytes32("SOLANA_SENDER"),
             to: bytes32(uint256(uint160(deadBeef))), // deadBeef
-            tokenAddress: bytes32("SOLANA_TOKEN"),
-            amount: amount,
-            chainFrom: 1,
+            tokenAddressFrom: bytes32("SOLANA_TOKEN"),
+            tokenAddressTo: bytes32(uint256(uint160(token))),
+            amountFrom: amount,
+            amountTo: amount,
+            chainFrom: uint256(bytes32("SOLANA")),
             chainTo: block.chainid + 1,
             eventId: 555,
             flags: 0,
             data: new bytes(0)
         });
-        bytes memory signature = signReceipt(receipt);
+        bytes memory signature = signReceipt(receipt.asMini());
         vm.expectRevert(IBridge.InvalidChain.selector);
         bridgeInstance.claim(receipt, signature);
     }
 
     function test_revertIf_claim_tokenPaused(uint256 amount) public {
+        ITokenManager.ExternalToken memory extToken = ITokenManager.ExternalToken({
+            externalTokenAddress: bytes32("SOLANA_TOKEN"),
+            chainId: uint256(bytes32("SOLANA")),
+            decimals: permittableToken.decimals()
+        });
         address token = bridgeInstance.deployExternalTokenERC20(
-            bytes32("SOLANA_TOKEN"), "solana token", "SOL", 18
+            extToken, "solana token", "SOL", 18
         );
-        IBridgeTypes.Receipt memory receipt = IBridgeTypes.Receipt({
+        BridgeTypes.FullReceipt memory receipt = BridgeTypes.FullReceipt({
             from: bytes32("SOLANA_SENDER"),
             to: bytes32(uint256(uint160(deadBeef))), // deadBeef
-            tokenAddress: bytes32("SOLANA_TOKEN"),
-            amount: amount,
-            chainFrom: 1,
+            tokenAddressFrom: bytes32("SOLANA_TOKEN"),
+            tokenAddressTo: bytes32(uint256(uint160(token))),
+            amountFrom: amount,
+            amountTo: amount,
+            chainFrom: uint256(bytes32("SOLANA")),
             chainTo: block.chainid,
             eventId: 555,
             flags: 0,
             data: new bytes(0)
         });
-        bytes memory signature = signReceipt(receipt);
+        bytes memory signature = signReceipt(receipt.asMini());
         vm.expectRevert(
             abi.encodeWithSelector(
                 ITokenManager.TokenIsPaused.selector,
@@ -163,23 +189,32 @@ abstract contract BridgeClaimTest is BridgeTestBase {
 
     function test_claim_wrapped(uint256 amount) public {
         deal(address(wrappedToken), address(bridgeInstance), amount);
+        ITokenManager.ExternalToken memory extToken = ITokenManager.ExternalToken({
+            externalTokenAddress: bytes32("SOLANA_TOKEN"),
+            chainId: uint256(bytes32("SOLANA")),
+            decimals: permittableToken.decimals()
+        });
+        ITokenManager.ExternalToken[] memory tokens = new ITokenManager.ExternalToken[](1);
+        tokens[0] = extToken;
         bridgeInstance.addToken(
-            address(wrappedToken), bytes32("SOLANA_WRAPPED"), false
+           address(wrappedToken), tokens, false
         );
-        IBridgeTypes.Receipt memory receipt = IBridgeTypes.Receipt({
+        BridgeTypes.FullReceipt memory receipt = BridgeTypes.FullReceipt({
             from: bytes32("SOLANA_SENDER"),
             to: bytes32(uint256(uint160(deadBeef))), // deadBeef
-            tokenAddress: bytes32("SOLANA_WRAPPED"),
-            amount: amount,
-            chainFrom: 1,
+            tokenAddressFrom: bytes32("SOLANA_WRAPPED"),
+            tokenAddressTo: bytes32(uint256(uint160(address(wrappedToken)))),
+            amountFrom: amount,
+            amountTo: amount,
+            chainFrom: uint256(bytes32("SOLANA")),
             chainTo: block.chainid,
             eventId: 555,
             flags: 0,
             data: new bytes(0)
         });
-        bytes memory signature = signReceipt(receipt);
+        bytes memory signature = signReceipt(receipt.asMini());
         vm.expectEmit(address(bridgeInstance));
-        emit IBridge.TokenUnlocked(receipt);
+        emit IBridge.TokenUnlocked(receipt.asMini());
         bridgeInstance.claim(receipt, signature);
         assertEq(wrappedToken.balanceOf(deadBeef), amount);
         assertTrue(bridgeInstance.isClaimed(receipt));
@@ -191,24 +226,33 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         vm.startPrank(address(bridgeInstance));
         wrappedToken.deposit{value: amount}();
         vm.stopPrank();
+        ITokenManager.ExternalToken memory extToken = ITokenManager.ExternalToken({
+            externalTokenAddress: bytes32("SOLANA_TOKEN"),
+            chainId: uint256(bytes32("SOLANA")),
+            decimals: permittableToken.decimals()
+        });
+        ITokenManager.ExternalToken[] memory tokens = new ITokenManager.ExternalToken[](1);
+        tokens[0] = extToken;
         bridgeInstance.addToken(
-            address(wrappedToken), bytes32("SOLANA_WRAPPED"), false
+           address(wrappedToken), tokens, false
         );
         uint256 beefBalanceB = deadBeef.balance;
-        IBridgeTypes.Receipt memory receipt = IBridgeTypes.Receipt({
+        BridgeTypes.FullReceipt memory receipt = BridgeTypes.FullReceipt({
             from: bytes32("SOLANA_SENDER"),
             to: bytes32(uint256(uint160(deadBeef))), // deadBeef
-            tokenAddress: bytes32("SOLANA_WRAPPED"),
-            amount: amount,
-            chainFrom: 1,
+            tokenAddressFrom: bytes32("SOLANA_WRAPPED"),
+            tokenAddressTo: bytes32(uint256(uint160(address(wrappedToken)))),
+            amountFrom: amount,
+            amountTo: amount,
+            chainFrom: uint256(bytes32("SOLANA")),
             chainTo: block.chainid,
             eventId: 555,
-            flags: BridgeFlags.SHOULD_UNWRAP >> 65,
+            flags: BridgeFlags.SHOULD_UNWRAP,
             data: new bytes(0)
         });
-        bytes memory signature = signReceipt(receipt);
+        bytes memory signature = signReceipt(receipt.asMini());
         vm.expectEmit(address(bridgeInstance));
-        emit IBridge.TokenUnlocked(receipt);
+        emit IBridge.TokenUnlocked(receipt.asMini());
         bridgeInstance.claim(receipt, signature);
         assertEq(deadBeef.balance, beefBalanceB + amount);
         assertTrue(bridgeInstance.isClaimed(receipt));
@@ -224,46 +268,62 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         vm.startPrank(address(bridgeInstance));
         wrappedToken.deposit{value: amount}();
         vm.stopPrank();
+        ITokenManager.ExternalToken memory extToken = ITokenManager.ExternalToken({
+            externalTokenAddress: bytes32("SOLANA_TOKEN"),
+            chainId: uint256(bytes32("SOLANA")),
+            decimals: permittableToken.decimals()
+        });
+        ITokenManager.ExternalToken[] memory tokens = new ITokenManager.ExternalToken[](1);
+        tokens[0] = extToken;
         bridgeInstance.addToken(
-            address(wrappedToken), bytes32("SOLANA_WRAPPED"), false
+            address(wrappedToken), tokens, false
         );
-        IBridgeTypes.Receipt memory receipt = IBridgeTypes.Receipt({
+        BridgeTypes.FullReceipt memory receipt = BridgeTypes.FullReceipt({
             from: bytes32("SOLANA_SENDER"),
             to: bytes32(uint256(uint160(address(badReceiver)))), // deadBeef
-            tokenAddress: bytes32("SOLANA_WRAPPED"),
-            amount: amount,
-            chainFrom: 1,
+            tokenAddressFrom: bytes32("SOLANA_WRAPPED"),
+            tokenAddressTo: bytes32(uint256(uint160(address(wrappedToken)))),
+            amountFrom: amount,
+            amountTo: amount,
+            chainFrom: uint256(bytes32("SOLANA")),
             chainTo: block.chainid,
             eventId: 555,
-            flags: BridgeFlags.SHOULD_UNWRAP >> 65,
+            flags: BridgeFlags.SHOULD_UNWRAP,
             data: new bytes(0)
         });
-        bytes memory signature = signReceipt(receipt);
+        bytes memory signature = signReceipt(receipt.asMini());
         vm.expectRevert(IBridge.TransferFailed.selector);
         bridgeInstance.claim(receipt, signature);
     }
 
     function test_claim_withSendNativeFlag(uint256 amount) public {
         vm.deal(address(bridgeInstance), 100 ether);
+        ITokenManager.ExternalToken memory extToken = ITokenManager.ExternalToken({
+            externalTokenAddress: bytes32("SOLANA_TOKEN"),
+            chainId: uint256(bytes32("SOLANA")),
+            decimals: permittableToken.decimals()
+        });
         address token = bridgeInstance.deployExternalTokenERC20(
-            bytes32("SOLANA_TOKEN"), "solana token", "SOL", 18
+            extToken, "solana token", "SOL", 18
         );
         bridgeInstance.unpauseToken(token);
         uint256 beefBalanceB = deadBeef.balance;
-        IBridgeTypes.Receipt memory receipt = IBridgeTypes.Receipt({
+        BridgeTypes.FullReceipt memory receipt = BridgeTypes.FullReceipt({
             from: bytes32("SOLANA_SENDER"),
             to: bytes32(uint256(uint160(address(deadBeef)))), // deadBeef
-            tokenAddress: bytes32("SOLANA_TOKEN"),
-            amount: amount,
-            chainFrom: 1,
+            tokenAddressFrom: bytes32("SOLANA_TOKEN"),
+            tokenAddressTo: bytes32(uint256(uint160(token))),
+            amountFrom: amount,
+            amountTo: amount,
+            chainFrom: uint256(bytes32("SOLANA")),
             chainTo: block.chainid,
             eventId: 555,
-            flags: BridgeFlags.SEND_NATIVE_TO_RECEIVER >> 65,
+            flags: BridgeFlags.SEND_NATIVE_TO_RECEIVER,
             data: new bytes(0)
         });
-        bytes memory signature = signReceipt(receipt);
+        bytes memory signature = signReceipt(receipt.asMini());
         vm.expectEmit(address(bridgeInstance));
-        emit IBridge.TokenUnlocked(receipt);
+        emit IBridge.TokenUnlocked(receipt.asMini());
         bridgeInstance.claim(receipt, signature);
         assertEq(ERC20Bridged(token).balanceOf(deadBeef), amount);
         assertEq(
@@ -279,22 +339,29 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         public
     {
         vm.deal(address(bridgeInstance), amount);
+         ITokenManager.ExternalToken memory extToken = ITokenManager.ExternalToken({
+            externalTokenAddress: bytes32("SOLANA_TOKEN"),
+            chainId: uint256(bytes32("SOLANA")),
+            decimals: permittableToken.decimals()
+        });
         address token = bridgeInstance.deployExternalTokenERC20(
-            bytes32("SOLANA_TOKEN"), "solana token", "SOL", 18
+            extToken, "solana token", "SOL", 18
         );
         bridgeInstance.unpauseToken(token);
-        IBridgeTypes.Receipt memory receipt = IBridgeTypes.Receipt({
+        BridgeTypes.FullReceipt memory receipt = BridgeTypes.FullReceipt({
             from: bytes32("SOLANA_SENDER"),
             to: bytes32(uint256(uint160(address(badReceiver)))), // deadBeef
-            tokenAddress: bytes32("SOLANA_TOKEN"),
-            amount: amount,
-            chainFrom: 1,
+            tokenAddressFrom: bytes32("SOLANA_TOKEN"),
+            tokenAddressTo: bytes32(uint256(uint160(token))),
+            amountFrom: amount,
+            amountTo: amount,
+            chainFrom: uint256(bytes32("SOLANA")),
             chainTo: block.chainid,
             eventId: 555,
-            flags: BridgeFlags.SEND_NATIVE_TO_RECEIVER >> 65,
+            flags: BridgeFlags.SEND_NATIVE_TO_RECEIVER,
             data: new bytes(0)
         });
-        bytes memory signature = signReceipt(receipt);
+        bytes memory signature = signReceipt(receipt.asMini());
         vm.expectRevert(IBridge.SendFailed.selector);
         bridgeInstance.claim(receipt, signature);
     }

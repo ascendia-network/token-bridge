@@ -1,5 +1,5 @@
 # PayloadUtils
-[Git Source](https://github.com/ambrosus/token-bridge/blob/fd78173c03bc3176acad331d668a382df87c32fd/contracts/utils/PayloadUtils.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/91bb52a526c0f112baf68a5b9e3a3c70d76246d0/contracts/utils/PayloadUtils.sol)
 
 
 ## Functions
@@ -11,7 +11,7 @@ Shortcut to convert payload to hash
 
 
 ```solidity
-function toHash(IBridgeTypes.SendPayload memory payload)
+function toHash(BridgeTypes.SendPayload memory payload)
     internal
     pure
     returns (bytes32 hash);
@@ -20,7 +20,7 @@ function toHash(IBridgeTypes.SendPayload memory payload)
 
 |Name|Type|Description|
 |----|----|-----------|
-|`payload`|`IBridgeTypes.SendPayload`|payload to convert|
+|`payload`|`BridgeTypes.SendPayload`|payload to convert|
 
 **Returns**
 
@@ -37,7 +37,7 @@ Convert payload to hash via toEthSignedMessageHash
 
 
 ```solidity
-function toEthSignedMessageHash(IBridgeTypes.SendPayload memory payload)
+function toEthSignedMessageHash(BridgeTypes.SendPayload memory payload)
     internal
     pure
     returns (bytes32 hash);
@@ -46,7 +46,7 @@ function toEthSignedMessageHash(IBridgeTypes.SendPayload memory payload)
 
 |Name|Type|Description|
 |----|----|-----------|
-|`payload`|`IBridgeTypes.SendPayload`|payload to convert|
+|`payload`|`BridgeTypes.SendPayload`|payload to convert|
 
 **Returns**
 

@@ -4,29 +4,43 @@ pragma abicoder v2;
 
 interface ITokenManager {
 
+    struct ExternalToken {
+        uint256 chainId;
+        bytes32 externalTokenAddress;
+        uint8 decimals;
+    }
+
     /// Emits when token is added to the bridge
     /// @param token address of the token
-    /// @param externalTokenAddress external token address
-    event TokenAdded(address indexed token, bytes32 indexed externalTokenAddress);
+    event TokenAdded(address indexed token);
 
     /// Emits when external token is mapped to the bridge
     /// @param token address of the token
+    /// @param chainId chain id of the external token
     /// @param externalTokenAddress external token address
-    event TokenMapped(address indexed token, bytes32 indexed externalTokenAddress);
+    event TokenMapped(
+        address indexed token,
+        uint256 chainId,
+        bytes32 indexed externalTokenAddress
+    );
 
     /// Emits when external token is unmapped from the bridge
+    /// @param chainId chain id of the external token
     /// @param externalTokenAddress external token address
-    event TokenUnmapped(bytes32 indexed externalTokenAddress);
+    event TokenUnmapped(uint256 chainId, bytes32 indexed externalTokenAddress);
 
     /// Emits when token is deployed from the bridge
-    /// @param token address of the token
-    /// @param externalTokenAddress external token address
-    event TokenDeployed(bytes32 indexed externalTokenAddress, string name, string symbol, uint8 decimals, address token);
-    
+    /// @param name name of the token
+    /// @param symbol symbol of the token
+    /// @param decimals decimals of the token
+    /// @param token address of the token deployed
+    event TokenDeployed(
+        string name, string symbol, uint8 decimals, address token
+    );
+
     /// Emits when token is removed from the bridge
     /// @param token address of the token
-    /// @param externalTokenAddress external token address
-    event TokenRemoved(address indexed token, bytes32 indexed externalTokenAddress);
+    event TokenRemoved(address indexed token);
 
     /// Emits when token is paused
     /// @param token address of the token
@@ -75,17 +89,36 @@ interface ITokenManager {
         view
         returns (bool isBridgable);
 
-    // /// Get external token address
-    // /// @param token address of the token
-    // /// @return externalTokenAddress external token address
-    // function token2external(
-    //     address token
-    // ) external view returns (bytes32 externalTokenAddress);
+    /// Check if the token is bridgable
+    /// @param token address of the token
+    /// @return isBridgable true if the token is bridgable
+    function bridgableTokenTo(
+        address token,
+        uint256 chainId
+    )
+        external
+        view
+        returns (bool isBridgable);
+
+    /// Get external token address
+    /// @param token address of the token
+    /// @param chainId chain id of the external token
+    /// @return externalToken external token structure
+    function token2external(
+        address token,
+        uint256 chainId
+    )
+        external
+        view
+        returns (ExternalToken memory externalToken);
 
     /// Get token address by external token address
     /// @param externalTokenAddress external token address
     /// @return token address of the token
-    function external2token(bytes32 externalTokenAddress)
+    function external2token(
+        uint256 chainId,
+        bytes32 externalTokenAddress
+    )
         external
         view
         returns (address token);
@@ -100,34 +133,34 @@ interface ITokenManager {
 
     /// Add token to the bridge
     /// @param token address of the token
-    /// @param externalTokenAddress external token address
+    /// @param externalTokens external tokens that should be mapped to the token
     /// @param paused true if the token should be paused at the start
     /// @return success true if the token was added successfully
     function addToken(
         address token,
-        bytes32 externalTokenAddress,
+        ExternalToken[] calldata externalTokens,
         bool paused
     )
         external
         returns (bool success);
 
-    /// Add token to the bridge
+    /// Add token to the bridge with default paused state
     /// @param token address of the token
-    /// @param externalTokenAddress external token address
+    /// @param externalTokens external tokens that should be mapped to the token
     /// @return success true if the token was added
     function addToken(
         address token,
-        bytes32 externalTokenAddress
+        ExternalToken[] calldata externalTokens
     )
         external
         returns (bool success);
 
     /// Map external token address to token
-    /// @param externalTokenAddress external token address
+    /// @param externalTokens external tokens that should be mapped to the token
     /// @param token address of the token
     /// @return success true if the token was added
-    function mapExternalToken(
-        bytes32 externalTokenAddress,
+    function mapExternalTokens(
+        ExternalToken[] calldata externalTokens,
         address token
     )
         external
@@ -136,20 +169,23 @@ interface ITokenManager {
     /// Unmap external token address to token
     /// @param externalTokenAddress external token address
     /// @return success true if the token was removed
-    function unmapExternalToken(bytes32 externalTokenAddress)
+    function unmapExternalToken(
+        uint256 chainId,
+        bytes32 externalTokenAddress
+    )
         external
         returns (bool success);
 
     /// Deploy external ERC20 token to chain
     /// @dev This function should be called by admin to deploy external token to the chain.
     /// @dev This token will be used for bridging as minting and burning. For more details see `ERC20Bridged` contract.
-    /// @param externalTokenAddress external token address
+    /// @param externalToken external token address that will mapped to the token
     /// @param name name of the token
     /// @param symbol symbol of the token
     /// @param decimals decimals of the token
     /// @return token address of the token
     function deployExternalTokenERC20(
-        bytes32 externalTokenAddress,
+        ExternalToken calldata externalToken,
         string calldata name,
         string calldata symbol,
         uint8 decimals
@@ -159,14 +195,8 @@ interface ITokenManager {
 
     /// Remove token from the bridge
     /// @param token address of the token
-    /// @param externalTokenAddress external token address
     /// @return success true if the token was removed
-    function removeToken(
-        address token,
-        bytes32 externalTokenAddress
-    )
-        external
-        returns (bool success);
+    function removeToken(address token) external returns (bool success);
 
     /// Pause token bridging
     /// @param token address of the token

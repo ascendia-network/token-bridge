@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import {MessageHashUtils} from
     "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
-import {IBridgeTypes} from "../interface/IBridgeTypes.sol";
+import {BridgeTypes} from "../interface/BridgeTypes.sol";
 
 library PayloadUtils {
 
@@ -14,7 +14,7 @@ library PayloadUtils {
     /// @param payload payload to convert
     /// @return hash converted
 
-    function toHash(IBridgeTypes.SendPayload memory payload)
+    function toHash(BridgeTypes.SendPayload memory payload)
         internal
         pure
         returns (bytes32 hash)
@@ -26,7 +26,7 @@ library PayloadUtils {
     /// @param payload payload to convert
     /// @return hash converted
 
-    function toEthSignedMessageHash(IBridgeTypes.SendPayload memory payload)
+    function toEthSignedMessageHash(BridgeTypes.SendPayload memory payload)
         internal
         pure
         returns (bytes32 hash)

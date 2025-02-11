@@ -1,8 +1,8 @@
 # IBridge
-[Git Source](https://github.com/ambrosus/token-bridge/blob/fd78173c03bc3176acad331d668a382df87c32fd/contracts/interface/IBridge.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/91bb52a526c0f112baf68a5b9e3a3c70d76246d0/contracts/interface/IBridge.sol)
 
 **Inherits:**
-[IBridgeTypes](/contracts/interface/IBridgeTypes.sol/interface.IBridgeTypes.md)
+[BridgeTypes](/contracts/interface/BridgeTypes.sol/interface.BridgeTypes.md)
 
 
 ## Functions
@@ -39,7 +39,7 @@ function send(
 )
     external
     payable
-    returns (Receipt memory receipt);
+    returns (FullReceipt memory receipt);
 ```
 **Parameters**
 
@@ -54,7 +54,7 @@ function send(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`receipt`|`Receipt`|data of the transaction which will be signed and sent to the other chain|
+|`receipt`|`FullReceipt`|data of the transaction which will be signed and sent to the other chain|
 
 
 ### send
@@ -79,7 +79,7 @@ function send(
 )
     external
     payable
-    returns (Receipt memory receipt);
+    returns (FullReceipt memory receipt);
 ```
 **Parameters**
 
@@ -98,7 +98,7 @@ function send(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`receipt`|`Receipt`|data of the transaction which will be signed and sent to the other chain|
+|`receipt`|`FullReceipt`|data of the transaction which will be signed and sent to the other chain|
 
 
 ### claim
@@ -111,7 +111,7 @@ It claims the tokens from the contract, and emits a `TokenUnlocked` event.*
 
 ```solidity
 function claim(
-    Receipt calldata receipt,
+    MiniReceipt calldata receipt,
     bytes calldata signature
 )
     external
@@ -121,8 +121,38 @@ function claim(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`receipt`|`Receipt`|Receipt of the transaction to claim|
-|`signature`|`bytes`|MPC signature of the payload|
+|`receipt`|`MiniReceipt`|`MiniReceipt` of the transaction to claim|
+|`signature`|`bytes`|signature of the payload|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`success`|`bool`|true if the claim was successful|
+
+
+### claim
+
+Claim tokens from another chain
+
+*This function should be called by the user who wants to claim tokens from another chain.
+It claims the tokens from the contract, and emits a `TokenUnlocked` event.*
+
+
+```solidity
+function claim(
+    FullReceipt calldata receipt,
+    bytes calldata signature
+)
+    external
+    returns (bool success);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`receipt`|`FullReceipt`|`MiniReceipt` of the transaction to claim|
+|`signature`|`bytes`|signature of the payload|
 
 **Returns**
 
@@ -137,7 +167,7 @@ Check if the receipt is already claimed
 
 
 ```solidity
-function isClaimed(Receipt calldata receipt)
+function isClaimed(FullReceipt calldata receipt)
     external
     view
     returns (bool claimed);
@@ -146,7 +176,31 @@ function isClaimed(Receipt calldata receipt)
 
 |Name|Type|Description|
 |----|----|-----------|
-|`receipt`|`Receipt`|Receipt of the transaction to check|
+|`receipt`|`FullReceipt`|`FullReceipt` of the transaction to check|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`claimed`|`bool`|true if the receipt is already claimed|
+
+
+### isClaimed
+
+Check if the receipt is already claimed
+
+
+```solidity
+function isClaimed(MiniReceipt calldata receipt)
+    external
+    view
+    returns (bool claimed);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`receipt`|`MiniReceipt`|`MiniReceipt` of the transaction to check|
 
 **Returns**
 
@@ -272,7 +326,7 @@ Emits when tokens are locked in the contract
 
 
 ```solidity
-event TokenLocked(Receipt receipt);
+event TokenLocked(FullReceipt receipt);
 ```
 
 ### TokenUnlocked
@@ -280,7 +334,7 @@ Emits when tokens are claimed from the contract
 
 
 ```solidity
-event TokenUnlocked(Receipt receipt);
+event TokenUnlocked(MiniReceipt receipt);
 ```
 
 ### FeeReceiverChanged

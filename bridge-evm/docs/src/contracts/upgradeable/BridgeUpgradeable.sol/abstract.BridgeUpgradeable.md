@@ -1,5 +1,5 @@
 # BridgeUpgradeable
-[Git Source](https://github.com/ambrosus/token-bridge/blob/fd78173c03bc3176acad331d668a382df87c32fd/contracts/upgradeable/BridgeUpgradeable.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/91bb52a526c0f112baf68a5b9e3a3c70d76246d0/contracts/upgradeable/BridgeUpgradeable.sol)
 
 **Inherits:**
 [IBridge](/contracts/interface/IBridge.sol/interface.IBridge.md), Initializable, AccessManagedUpgradeable, [NoncesUpgradeable](/contracts/utils/NoncesUpgradeable.sol/abstract.NoncesUpgradeable.md), [TokenManagerUpgradeable](/contracts/upgradeable/TokenManagerUpgradeable.sol/abstract.TokenManagerUpgradeable.md)
@@ -106,10 +106,10 @@ Add token to the bridge
 ```solidity
 function addToken(
     address token,
-    bytes32 externalTokenAddress
+    ExternalToken[] calldata externalTokens
 )
     external
-    virtual
+    override
     restricted
     returns (bool success);
 ```
@@ -118,7 +118,7 @@ function addToken(
 |Name|Type|Description|
 |----|----|-----------|
 |`token`|`address`|address of the token|
-|`externalTokenAddress`|`bytes32`|external token address|
+|`externalTokens`|`ExternalToken[]`|external tokens that should be mapped to the token|
 
 **Returns**
 
@@ -127,14 +127,14 @@ function addToken(
 |`success`|`bool`|true if the token was added successfully|
 
 
-### mapExternalToken
+### mapExternalTokens
 
 Map external token address to token
 
 
 ```solidity
-function mapExternalToken(
-    bytes32 externalTokenAddress,
+function mapExternalTokens(
+    ExternalToken[] calldata externalTokens,
     address token
 )
     public
@@ -146,7 +146,7 @@ function mapExternalToken(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`externalTokenAddress`|`bytes32`|external token address|
+|`externalTokens`|`ExternalToken[]`|external tokens that should be mapped to the token|
 |`token`|`address`|address of the token|
 
 **Returns**
@@ -162,7 +162,10 @@ Unmap external token address to token
 
 
 ```solidity
-function unmapExternalToken(bytes32 externalTokenAddress)
+function unmapExternalToken(
+    uint256 chainId,
+    bytes32 externalTokenAddress
+)
     public
     override
     restricted
@@ -172,6 +175,7 @@ function unmapExternalToken(bytes32 externalTokenAddress)
 
 |Name|Type|Description|
 |----|----|-----------|
+|`chainId`|`uint256`||
 |`externalTokenAddress`|`bytes32`|external token address|
 
 **Returns**
@@ -189,7 +193,7 @@ Add token to the bridge
 ```solidity
 function addToken(
     address token,
-    bytes32 externalTokenAddress,
+    ExternalToken[] calldata externalTokens,
     bool paused
 )
     public
@@ -202,7 +206,7 @@ function addToken(
 |Name|Type|Description|
 |----|----|-----------|
 |`token`|`address`|address of the token|
-|`externalTokenAddress`|`bytes32`|external token address|
+|`externalTokens`|`ExternalToken[]`|external tokens that should be mapped to the token|
 |`paused`|`bool`|true if the token should be paused at the start|
 
 **Returns**
@@ -268,10 +272,7 @@ Remove token from the bridge
 
 
 ```solidity
-function removeToken(
-    address token,
-    bytes32 externalTokenAddress
-)
+function removeToken(address token)
     public
     override
     restricted
@@ -282,7 +283,6 @@ function removeToken(
 |Name|Type|Description|
 |----|----|-----------|
 |`token`|`address`|address of the token|
-|`externalTokenAddress`|`bytes32`|external token address|
 
 **Returns**
 
@@ -300,7 +300,7 @@ Deploy external ERC20 token to chain
 
 ```solidity
 function deployExternalTokenERC20(
-    bytes32 externalTokenAddress,
+    ExternalToken calldata externalToken,
     string calldata name,
     string calldata symbol,
     uint8 decimals
@@ -314,7 +314,7 @@ function deployExternalTokenERC20(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`externalTokenAddress`|`bytes32`|external token address|
+|`externalToken`|`ExternalToken`|external token address that will mapped to the token|
 |`name`|`string`|name of the token|
 |`symbol`|`string`|symbol of the token|
 |`decimals`|`uint8`|decimals of the token|
@@ -415,7 +415,7 @@ Check if the receipt is already claimed
 
 
 ```solidity
-function isClaimed(Receipt calldata receipt)
+function isClaimed(MiniReceipt memory receipt)
     public
     view
     override
@@ -425,7 +425,32 @@ function isClaimed(Receipt calldata receipt)
 
 |Name|Type|Description|
 |----|----|-----------|
-|`receipt`|`Receipt`|Receipt of the transaction to check|
+|`receipt`|`MiniReceipt`|`FullReceipt` of the transaction to check|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`claimed`|`bool`|true if the receipt is already claimed|
+
+
+### isClaimed
+
+Check if the receipt is already claimed
+
+
+```solidity
+function isClaimed(FullReceipt calldata receipt)
+    external
+    view
+    override
+    returns (bool claimed);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`receipt`|`FullReceipt`|`FullReceipt` of the transaction to check|
 
 **Returns**
 
@@ -459,6 +484,36 @@ function isClaimed(bytes32 receiptHash)
 |`claimed`|`bool`|true if the receipt is already claimed|
 
 
+### _convertAmount
+
+Convert the amount based on token decimals
+
+
+```solidity
+function _convertAmount(
+    address tokenFrom,
+    uint256 amount,
+    uint8 decimalsTo
+)
+    private
+    view
+    returns (uint256 convertedAmount);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`tokenFrom`|`address`|address of the token|
+|`amount`|`uint256`|amount to convert|
+|`decimalsTo`|`uint8`|token decimals|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`convertedAmount`|`uint256`|converted amount|
+
+
 ### _validateSendValues
 
 Guard for validate the send values
@@ -489,7 +544,7 @@ Validate the claim values
 
 ```solidity
 function _validateClaim(
-    Receipt calldata receipt,
+    MiniReceipt memory receipt,
     bytes calldata signature
 )
     private
@@ -499,7 +554,7 @@ function _validateClaim(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`receipt`|`Receipt`|receipt data|
+|`receipt`|`MiniReceipt`|receipt data|
 |`signature`|`bytes`|signature of the receipt|
 
 
@@ -509,13 +564,13 @@ Mark the receipt as claimed
 
 
 ```solidity
-function _markClaimed(Receipt calldata receipt) private;
+function _markClaimed(MiniReceipt memory receipt) private;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`receipt`|`Receipt`|receipt data|
+|`receipt`|`MiniReceipt`|receipt data|
 
 
 ### _transferTokenToBridge
@@ -592,7 +647,7 @@ function _send(
     bytes calldata payloadSignature
 )
     private
-    returns (Receipt memory receipt);
+    returns (FullReceipt memory receipt);
 ```
 **Parameters**
 
@@ -602,6 +657,27 @@ function _send(
 |`chainTo`|`uint256`|destination chain id|
 |`payload`|`SendPayload`|send payload|
 |`payloadSignature`|`bytes`|signature of the payload|
+
+
+### _claim
+
+Perform the claim operation (transfer tokens and mark receipt as claimed)
+
+
+```solidity
+function _claim(
+    MiniReceipt memory receipt,
+    bytes calldata signature
+)
+    internal
+    returns (bool success);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`receipt`|`MiniReceipt`|cropped receipt data|
+|`signature`|`bytes`|signature of the receipt|
 
 
 ### send
@@ -623,7 +699,7 @@ function send(
     external
     payable
     override
-    returns (Receipt memory receipt);
+    returns (FullReceipt memory receipt);
 ```
 **Parameters**
 
@@ -638,7 +714,7 @@ function send(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`receipt`|`Receipt`|data of the transaction which will be signed and sent to the other chain|
+|`receipt`|`FullReceipt`|data of the transaction which will be signed and sent to the other chain|
 
 
 ### send
@@ -664,7 +740,7 @@ function send(
     external
     payable
     override
-    returns (Receipt memory receipt);
+    returns (FullReceipt memory receipt);
 ```
 **Parameters**
 
@@ -683,7 +759,7 @@ function send(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`receipt`|`Receipt`|data of the transaction which will be signed and sent to the other chain|
+|`receipt`|`FullReceipt`|data of the transaction which will be signed and sent to the other chain|
 
 
 ### claim
@@ -696,19 +772,52 @@ It claims the tokens from the contract, and emits a `TokenUnlocked` event.*
 
 ```solidity
 function claim(
-    Receipt calldata receipt,
+    FullReceipt calldata receipt,
     bytes calldata signature
 )
     external
     override
+    isBridgable(receipt.tokenAddressTo)
     returns (bool success);
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`receipt`|`Receipt`|Receipt of the transaction to claim|
-|`signature`|`bytes`|MPC signature of the payload|
+|`receipt`|`FullReceipt`|`MiniReceipt` of the transaction to claim|
+|`signature`|`bytes`|signature of the payload|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`success`|`bool`|true if the claim was successful|
+
+
+### claim
+
+Claim tokens from another chain
+
+*This function should be called by the user who wants to claim tokens from another chain.
+It claims the tokens from the contract, and emits a `TokenUnlocked` event.*
+
+
+```solidity
+function claim(
+    MiniReceipt calldata receipt,
+    bytes calldata signature
+)
+    external
+    override
+    isBridgable(receipt.tokenAddressTo)
+    returns (bool success);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`receipt`|`MiniReceipt`|`MiniReceipt` of the transaction to claim|
+|`signature`|`bytes`|signature of the payload|
 
 **Returns**
 

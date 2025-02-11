@@ -10,8 +10,8 @@ import {IAccessManaged} from
 import {EnumerableSet} from
     "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-import {ITokenManager} from "../../contracts/interface/ITokenManager.sol";
 import {IBridge} from "../../contracts/interface/IBridge.sol";
+import {ITokenManager} from "../../contracts/interface/ITokenManager.sol";
 import {IValidation} from "../../contracts/interface/IValidation.sol";
 import {IWrapped} from "../../contracts/interface/IWrapped.sol";
 
@@ -131,23 +131,30 @@ abstract contract BridgeRestrictedTest is BridgeTestBase {
         bridgeInstance.setNativeSendAmount(2 ether);
         assertEq(bridgeInstance.nativeSendAmount(), 2 ether);
         bridgeInstance.setValidator(Validator(address(0x0)));
+        ITokenManager.ExternalToken memory extToken = ITokenManager.ExternalToken({
+            externalTokenAddress: bytes32("SOLANA_TOKEN"),
+            chainId: uint256(bytes32("SOLANA")),
+            decimals: 6
+        });
+        ITokenManager.ExternalToken[] memory extTokens = new ITokenManager.ExternalToken[](1);
+        extTokens[0] = extToken;
         vm.expectRevert(
             abi.encodeWithSelector(
                 IAccessManaged.AccessManagedUnauthorized.selector, bob
             ),
             7
         );
-        bridgeInstance.addToken(address(wrappedToken), bytes32("sAMB"));
-        bridgeInstance.removeToken(address(wrappedToken), bytes32("sAMB"));
+        bridgeInstance.addToken(address(wrappedToken), extTokens);
+        bridgeInstance.removeToken(address(wrappedToken));
         bridgeInstance.deployExternalTokenERC20(
-            bytes32("SOLANA"), "Wrapped Solana", "wSOL", 18
+            extToken, "Wrapped Solana", "wSOL", 18
         );
         bridgeInstance.pauseToken(address(wrappedToken));
         bridgeInstance.unpauseToken(address(wrappedToken));
-        bridgeInstance.mapExternalToken(
-            bytes32("SOLANA"), address(wrappedToken)
+        bridgeInstance.mapExternalTokens(
+            extTokens, address(wrappedToken)
         );
-        bridgeInstance.unmapExternalToken(bytes32("SOLANA"));
+        bridgeInstance.unmapExternalToken(uint256(bytes32("SOLANA")), bytes32("SOLANA_TOKEN"));
         vm.stopPrank();
     }
 

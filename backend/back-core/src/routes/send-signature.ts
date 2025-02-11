@@ -24,10 +24,11 @@ sendSignatureRoutes.get(
   sendSignatureControllerDep.middleware('sendSignatureController'),
   async (c) => {
     try {
-      const { networkFrom, networkTo, tokenAddress, amount, isMaxAmount } = c.req.query()
+      const { networkFrom, networkTo, tokenAddress, amount, isMaxAmount, externalTokenAddress } = c.req.query()
       const { sendSignatureController } = c.var
       const data = await sendSignatureController.getSendSignature({
         networkFrom,
+        externalTokenAddress,
         networkTo,
         tokenAddress,
         amount,

@@ -17,20 +17,22 @@ import { bigIntToBuffer } from '../utils/buffer'
 const EVM_NETWORKS = ['ambrosus', 'base', 'ethereum', 'bsc']
 
 interface SendSignatureArgs {
-  networkFrom: string
-  networkTo: string
-  tokenAddress: string
-  amount: string
-  isMaxAmount: boolean
+  networkFrom: string;
+  networkTo: string;
+  tokenAddress: string;
+  externalTokenAddress: string;
+  amount: string;
+  isMaxAmount: boolean;
 }
 
 interface SendPayload {
-  tokenAddress: string,
-  amountToSend: string,
-  feeAmount: string,
-  timestamp: number,
-  flags: string,
-  flagData: string,
+  tokenAddress: string;
+  externalTokenAddress: string;
+  amountToSend: string;
+  feeAmount: string;
+  timestamp: number;
+  flags: string;
+  flagData: string;
 }
 
 export class SendSignatureController {
@@ -38,7 +40,14 @@ export class SendSignatureController {
   constructor() {
   }
 
-  async getSendSignature({ networkFrom, networkTo, tokenAddress, amount, isMaxAmount }: SendSignatureArgs) {
+  async getSendSignature({
+                           networkFrom,
+                           networkTo,
+                           tokenAddress,
+                           amount,
+                           isMaxAmount,
+                           externalTokenAddress,
+                         }: SendSignatureArgs) {
     const { feeAmount, amountToSend } = await getFees(networkFrom, networkTo, tokenAddress, amount, isMaxAmount)
     const timestamp = Date.now() / 1000
     const flags = '0x0'
@@ -46,6 +55,7 @@ export class SendSignatureController {
 
     const sendPayload: SendPayload = {
       tokenAddress,
+      externalTokenAddress,
       amountToSend,
       feeAmount,
       timestamp,
@@ -64,9 +74,10 @@ export class SendSignatureController {
 
   async signEvmSendPayload(sendPayload: SendPayload, sendSignerPK: string) {
     const payload = ethers.AbiCoder.defaultAbiCoder().encode(
-      ['bytes32', 'uint', 'uint', 'uint', 'uint', 'bytes'],
+      ['bytes32', 'bytes32', 'uint', 'uint', 'uint', 'uint', 'bytes'],
       [
         sendPayload.tokenAddress,
+        sendPayload.externalTokenAddress,
         sendPayload.amountToSend,
         sendPayload.feeAmount,
         sendPayload.timestamp,
@@ -83,6 +94,7 @@ export class SendSignatureController {
 
     const payload = Buffer.concat([
       Buffer.from(sendPayload.tokenAddress, 'hex'),
+      Buffer.from(sendPayload.externalTokenAddress, 'hex'),
       bigIntToBuffer(BigInt(sendPayload.amountToSend), 8),
       bigIntToBuffer(BigInt(sendPayload.feeAmount), 8),
       bigIntToBuffer(BigInt(sendPayload.timestamp), 8),

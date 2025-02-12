@@ -23,6 +23,8 @@ import {IValidatorV1} from "../../contracts/interface/IValidatorV1.sol";
 import {IWrapped} from "../../contracts/interface/IWrapped.sol";
 
 import {Bridge} from "../../contracts/Bridge.sol";
+import {TokenBeacon} from "../../contracts/token/TokenBeacon.sol";
+import {ERC20Bridged} from "../../contracts/token/ERC20Bridged.sol";
 import {Validator} from "../../contracts/Validator.sol";
 
 import {MockBadNativeReceiver} from "../mocks/MockBadNativeReceiver.sol";
@@ -47,6 +49,8 @@ abstract contract BridgeTestBase is Test {
     Bridge bridgeInstance;
     IWrapped wrappedToken;
     MockBadNativeReceiver badReceiver;
+
+    TokenBeacon tokenBeacon;
 
     ERC20Permit permittableToken;
 
@@ -75,6 +79,12 @@ abstract contract BridgeTestBase is Test {
     function setUpPermittable() public virtual returns (ERC20Permit) {
         permittableToken = new MockERC20Permit();
         return permittableToken;
+    }
+
+    function setUpTokenBeacon() public virtual returns (TokenBeacon) {
+        address implementation = address(new ERC20Bridged());
+        tokenBeacon = new TokenBeacon(address(this), implementation);
+        return tokenBeacon;
     }
 
     function setUpValidator(
@@ -136,6 +146,7 @@ abstract contract BridgeTestBase is Test {
 
     function setUpBridge(
         address authorityAddress,
+        address tokenBeac,
         IWrapped samb,
         IValidation validation,
         address payable feeReceiver,
@@ -162,6 +173,7 @@ abstract contract BridgeTestBase is Test {
                             Bridge.initialize,
                             (
                                 authorityAddress,
+                                address(tokenBeac),
                                 address(samb),
                                 validation,
                                 feeReceiver,
@@ -180,6 +192,7 @@ abstract contract BridgeTestBase is Test {
                             Bridge.initialize,
                             (
                                 authorityAddress,
+                                address(tokenBeac),
                                 address(samb),
                                 validation,
                                 feeReceiver,
@@ -209,6 +222,7 @@ abstract contract BridgeTestBase is Test {
         payloadSigner = Signer({Address: signerP, PK: signerPPk});
         setUpPermittable();
         setUpWrappedToken();
+        setUpTokenBeacon();
         setUpValidator(
             address(authority),
             validatorSet.values(),
@@ -217,6 +231,7 @@ abstract contract BridgeTestBase is Test {
         );
         setUpBridge(
             address(authority),
+            address(tokenBeacon),
             wrappedToken,
             validatorInstance,
             fee,

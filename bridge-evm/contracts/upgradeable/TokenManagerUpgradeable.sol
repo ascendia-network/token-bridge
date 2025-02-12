@@ -9,6 +9,7 @@ import {IWrapped} from "../interface/IWrapped.sol";
 import {AddressUtils} from "../utils/AddressUtils.sol";
 
 import {ERC20Bridged} from "../token/ERC20Bridged.sol";
+import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 
 abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
 
@@ -21,6 +22,7 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         mapping(address => bool) unpausedTokens; // paused tokens where 0 is paused and 1 is unpaused
         address bridge;
         address SAMB;
+        address tokenBeacon;
     }
 
     // keccak256(abi.encode(uint256(keccak256("airdao.bridge.token-manager.storage")) - 1)) & ~bytes32(uint256(0xff))
@@ -38,16 +40,18 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     }
 
     function __TokenManager_init(
+        address tokenBeacon_,
         address bridge_,
         address SAMB
     )
         internal
         onlyInitializing
     {
-        __TokenManager_init_unchained(bridge_, SAMB);
+        __TokenManager_init_unchained(tokenBeacon_, bridge_, SAMB);
     }
 
     function __TokenManager_init_unchained(
+        address tokenBeacon_,
         address bridge_,
         address SAMB
     )
@@ -57,6 +61,7 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         $.bridge = bridge_;
         $.SAMB = SAMB;
+        $.tokenBeacon = tokenBeacon_;
     }
 
     modifier isBridgable(bytes32 token) {
@@ -147,7 +152,8 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         override
         returns (address token)
     {
-        return _deployExternalTokenERC20(externalToken_, name, symbol, decimals);
+        // authority set to 0x0 to premissionless token
+        return _deployExternalTokenERC20(address(0), externalToken_, name, symbol, decimals);
     }
 
     /// Used to wrap AMB to SAMB
@@ -334,17 +340,20 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     /// @param decimals decimals of the token
     /// @return token address of the token
     function _deployExternalTokenERC20(
+        address authority,
         ExternalTokenUnmapped memory externalToken_,
         string calldata name,
         string calldata symbol,
         uint8 decimals
     )
-        private
+        internal
         returns (address token)
     {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         address bridge = $.bridge;
-        token = address(new ERC20Bridged(name, symbol, decimals, bridge));
+        bytes memory initData = abi.encodeWithSignature("initialize(address,string,string,uint8,address)", authority, name, symbol, decimals, bridge);
+        address tokenBeacon = $.tokenBeacon;
+        token = address(new BeaconProxy(tokenBeacon, initData));
         _addToken(token, externalToken_, true);
         emit TokenDeployed(name, symbol, decimals, token);
         return token;

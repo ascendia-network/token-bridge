@@ -7,8 +7,14 @@ import {IERC20Errors} from
     "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
 import {ERC20Bridged} from "../contracts/token/ERC20Bridged.sol";
+import {TokenBeacon} from "../contracts/token/TokenBeacon.sol";
+import {AccessManager} from
+    "@openzeppelin/contracts/access/manager/AccessManager.sol";
+import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 
 contract ERC20BridgedTest is Test {
+
+    AccessManager authority;
 
     ERC20Bridged token;
 
@@ -17,7 +23,16 @@ contract ERC20BridgedTest is Test {
     address bob = address(0xB0b);
 
     function setUp() public {
-        token = new ERC20Bridged("Test", "TST", 18, fakeBridge);
+        authority = new AccessManager(address(this));
+        string memory name = "Test";
+        string memory symbol = "TST";
+        uint8 decimals = 18;
+        address bridge = fakeBridge;
+        address implementation = address(new ERC20Bridged());
+        TokenBeacon beacon = new TokenBeacon(address(this), implementation);
+        bytes memory initData = abi.encodeWithSignature("initialize(address,string,string,uint8,address)", address(this), name, symbol, decimals, bridge);
+        address tokenBeacon = address(beacon);
+        token = ERC20Bridged(address(new BeaconProxy(tokenBeacon, initData)));
     }
 
     function test_constructor() public view {

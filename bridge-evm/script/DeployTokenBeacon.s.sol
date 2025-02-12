@@ -8,20 +8,17 @@ import {AccessManager} from
     "@openzeppelin/contracts/access/manager/AccessManager.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-contract DeployBridge is DeployerBase {
+contract DeployTokenBeacon is DeployerBase {
 
     function run() public override {
         getDeployer();
         vm.startBroadcast(deployer.privateKey);
-        getAuthority();
-        getValidator();
-        getTokenBeacon();
 
-        (bool deployed, address bridgeAddress) = checkDeployed("Bridge");
+        (bool deployed, address beaconAddress) = checkDeployed("TokenBeacon");
         if (deployed && !vm.envOr("FORCE_DEPLOY", false)) {
-            console.log("Bridge already deployed at", bridgeAddress);
+            console.log("TokenBeacon already deployed at", beaconAddress);
         } else {
-            deployBridge();
+            deployTokenBeacon();
         }
         vm.stopBroadcast();
     }

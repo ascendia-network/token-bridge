@@ -11,6 +11,8 @@ import {AccessManager} from
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 import {Bridge} from "../contracts/Bridge.sol";
+import {TokenBeacon} from "../contracts/token/TokenBeacon.sol";
+import {ERC20Bridged} from "../contracts/token/ERC20Bridged.sol";
 import {Validator} from "../contracts/Validator.sol";
 
 contract DeployerBase is Script {
@@ -18,7 +20,7 @@ contract DeployerBase is Script {
     AccessManager authority;
     Validator validator;
     Bridge bridge;
-
+    TokenBeacon tokenBeacon;
     VmSafe.Wallet deployer;
 
     function getDeployer() public returns (VmSafe.Wallet memory) {
@@ -134,6 +136,15 @@ contract DeployerBase is Script {
         return validator;
     }
 
+    function deployTokenBeacon() public returns (TokenBeacon) {
+        address owner = vm.envOr("TOKEN_BEACON_OWNER", deployer.addr);
+        address implementation = address(new ERC20Bridged());
+        tokenBeacon = new TokenBeacon(owner, implementation);
+        console.log("TokenBeacon deployed at:", address(tokenBeacon));
+        return tokenBeacon;
+    }
+
+
     function deployBridge() public returns (Bridge) {
         address wrappedToken = vm.envAddress("WRAPPED_TOKEN");
         address payable feeReceiver =
@@ -147,6 +158,7 @@ contract DeployerBase is Script {
                         Bridge.initialize,
                         (
                             address(authority),
+                            address(tokenBeacon),
                             wrappedToken,
                             validator,
                             feeReceiver,
@@ -184,6 +196,17 @@ contract DeployerBase is Script {
             validator = deployValidator();
         }
         return validator;
+    }
+
+    function getTokenBeacon() public returns (TokenBeacon) {
+        (bool deployed, address tokenBeaconAddress) =
+            checkDeployed("TokenBeacon");
+        if (deployed) {
+            tokenBeacon = TokenBeacon(tokenBeaconAddress);
+        } else {
+            tokenBeacon = deployTokenBeacon();
+        }
+        return tokenBeacon;
     }
 
     function getBridge() public returns (Bridge) {

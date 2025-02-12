@@ -61,6 +61,7 @@ abstract contract BridgeUpgradeable is
 
     function __Bridge_init(
         address authority_,
+        address tokenBeacon_,
         address SAMB_,
         IValidation validator_,
         address payable feeReceiver_,
@@ -71,7 +72,7 @@ abstract contract BridgeUpgradeable is
     {
         __AccessManaged_init(authority_);
         __Nonces_init();
-        __TokenManager_init(address(this), SAMB_);
+        __TokenManager_init(tokenBeacon_, address(this), SAMB_);
         __Bridge_init_unchained(validator_, feeReceiver_, nativeSendAmount_);
     }
 

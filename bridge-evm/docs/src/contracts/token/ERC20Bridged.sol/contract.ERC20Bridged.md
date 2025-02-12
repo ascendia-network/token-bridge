@@ -1,42 +1,80 @@
 # ERC20Bridged
-[Git Source](https://github.com/ambrosus/token-bridge/blob/2704f133ac810fd32e38846890ea517279600f52/contracts/token/ERC20Bridged.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/1106b61cbc37ad86299178c6d334722a2ad64d7d/contracts/token/ERC20Bridged.sol)
 
 **Inherits:**
-ERC20Permit
+Initializable, ERC20Upgradeable, AccessManagedUpgradeable, ERC20PermitUpgradeable
 
 
 ## State Variables
-### _decimals
-*The number of decimals for the token*
-
+### ERC20AdditionalStorageLocation
 
 ```solidity
-uint8 private _decimals;
-```
-
-
-### _bridgeAddress
-*The address of the bridge contract*
-
-
-```solidity
-address private _bridgeAddress;
+bytes32 private constant ERC20AdditionalStorageLocation =
+    0xb5ac4c0d6c28de524e1dbc51411a2e707582c4bdbfe893edf60b98f392fe9600;
 ```
 
 
 ## Functions
-### constructor
+### _getERC20AdditionalStorage
 
 
 ```solidity
-constructor(
+function _getERC20AdditionalStorage()
+    private
+    pure
+    returns (BridgedERC20Storage storage $);
+```
+
+### constructor
+
+**Note:**
+oz-upgrades-unsafe-allow: constructor
+
+
+```solidity
+constructor();
+```
+
+### initialize
+
+
+```solidity
+function initialize(
+    address authority_,
     string memory name_,
     string memory symbol_,
     uint8 decimals_,
     address bridge_
 )
-    ERC20(name_, symbol_)
-    ERC20Permit(name_);
+    public
+    initializer;
+```
+
+### __ERC20Bridged_init
+
+
+```solidity
+function __ERC20Bridged_init(
+    address authority_,
+    string memory name_,
+    string memory symbol_,
+    uint8 decimals_,
+    address bridge_
+)
+    internal
+    onlyInitializing;
+```
+
+### __ERC20Bridged_init_unchained
+
+
+```solidity
+function __ERC20Bridged_init_unchained(
+    uint8 decimals_,
+    address bridge_
+)
+    internal
+    onlyInitializing;
 ```
 
 ### decimals
@@ -75,6 +113,45 @@ function bridge() public view returns (address bridgeAddress);
 |`bridgeAddress`|`address`|the address of the bridge contract|
 
 
+### notInBlacklist
+
+*Check is the address blacklisted.*
+
+
+```solidity
+modifier notInBlacklist(address account);
+```
+
+### addBlacklist
+
+*Add an address to the blacklist*
+
+
+```solidity
+function addBlacklist(address account) public restricted;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`account`|`address`|the address to add to the blacklist|
+
+
+### removeBlacklist
+
+*Remove an address from the blacklist*
+
+
+```solidity
+function removeBlacklist(address account) public restricted;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`account`|`address`|the address to remove from the blacklist|
+
+
 ### _update
 
 *Transfers a `value` amount of tokens from `from` to `to`, or alternatively mints (or burns) if `from`
@@ -83,6 +160,37 @@ Emits a {Transfer} event.*
 
 
 ```solidity
-function _update(address from, address to, uint256 value) internal override;
+function _update(
+    address from,
+    address to,
+    uint256 value
+)
+    internal
+    override
+    notInBlacklist(from)
+    notInBlacklist(to);
+```
+
+## Errors
+### Blacklisted
+*Emitted when an address is blacklisted*
+
+
+```solidity
+error Blacklisted(address account);
+```
+
+## Structs
+### BridgedERC20Storage
+**Note:**
+storage-location: erc7201:bridged.storage.ERC20Additional
+
+
+```solidity
+struct BridgedERC20Storage {
+    uint8 _decimals;
+    address _bridge;
+    mapping(address => bool) _blacklist;
+}
 ```
 

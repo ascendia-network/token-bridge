@@ -11,6 +11,7 @@
     - [IWrapped](contracts/interface/IWrapped.sol/interface.IWrapped.md)
   - [❱ token](contracts/token/README.md)
     - [ERC20Bridged](contracts/token/ERC20Bridged.sol/contract.ERC20Bridged.md)
+    - [TokenBeacon](contracts/token/TokenBeacon.sol/contract.TokenBeacon.md)
   - [❱ upgradeable](contracts/upgradeable/README.md)
     - [BridgeUpgradeable](contracts/upgradeable/BridgeUpgradeable.sol/abstract.BridgeUpgradeable.md)
     - [TokenManagerUpgradeable](contracts/upgradeable/TokenManagerUpgradeable.sol/abstract.TokenManagerUpgradeable.md)

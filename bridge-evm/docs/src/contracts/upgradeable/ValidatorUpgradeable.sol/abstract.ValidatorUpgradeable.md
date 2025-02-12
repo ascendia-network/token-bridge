@@ -1,5 +1,5 @@
 # ValidatorUpgradeable
-[Git Source](https://github.com/ambrosus/token-bridge/blob/2704f133ac810fd32e38846890ea517279600f52/contracts/upgradeable/ValidatorUpgradeable.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/1106b61cbc37ad86299178c6d334722a2ad64d7d/contracts/upgradeable/ValidatorUpgradeable.sol)
 
 **Inherits:**
 [IValidation](/contracts/interface/IValidation.sol/interface.IValidation.md), [IValidatorV1](/contracts/interface/IValidatorV1.sol/interface.IValidatorV1.md), Initializable, AccessManagedUpgradeable

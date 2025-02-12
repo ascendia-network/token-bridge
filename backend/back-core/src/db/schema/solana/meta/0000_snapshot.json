@@ -4,23 +4,150 @@
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "indexer_solana.receipts": {
-      "name": "receipts",
+    "indexer_solana.receiptsMeta": {
+      "name": "receiptsMeta",
+      "schema": "indexer_solana",
+      "columns": {
+        "receipt_id": {
+          "name": "receipt_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "block_hash": {
+          "name": "block_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "block_number": {
+          "name": "block_number",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "transaction_hash": {
+          "name": "transaction_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "transaction_index": {
+          "name": "transaction_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "indexer_solana.receiptsClaimed": {
+      "name": "receiptsClaimed",
       "schema": "indexer_solana",
       "columns": {
         "receipt_id": {
           "name": "receipt_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "generated": {
-            "as": "((((chain_from || '_'::text) || chain_to) || '_'::text) || event_id)",
-            "type": "stored"
-          }
+          "notNull": true
         },
         "timestamp": {
           "name": "timestamp",
-          "type": "bigint",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bridge_address": {
+          "name": "bridge_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "to": {
+          "name": "to",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_address_to": {
+          "name": "token_address_to",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount_to": {
+          "name": "amount_to",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chain_from": {
+          "name": "chain_from",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chain_to": {
+          "name": "chain_to",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "flags": {
+          "name": "flags",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "receiptsClaimed_chain_from_chain_to_event_id_pk": {
+          "name": "receiptsClaimed_chain_from_chain_to_event_id_pk",
+          "columns": [
+            "chain_from",
+            "chain_to",
+            "event_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "indexer_solana.receiptsSent": {
+      "name": "receiptsSent",
+      "schema": "indexer_solana",
+      "columns": {
+        "receipt_id": {
+          "name": "receipt_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
@@ -42,39 +169,51 @@
           "primaryKey": false,
           "notNull": true
         },
-        "token_address": {
-          "name": "token_address",
+        "token_address_from": {
+          "name": "token_address_from",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "amount": {
-          "name": "amount",
-          "type": "bigint",
+        "token_address_to": {
+          "name": "token_address_to",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount_from": {
+          "name": "amount_from",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount_to": {
+          "name": "amount_to",
+          "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
         "chain_from": {
           "name": "chain_from",
-          "type": "bigint",
+          "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
         "chain_to": {
           "name": "chain_to",
-          "type": "bigint",
+          "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
         "event_id": {
           "name": "event_id",
-          "type": "bigint",
+          "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
         "flags": {
           "name": "flags",
-          "type": "bigint",
+          "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
@@ -83,20 +222,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
-        },
-        "claimed": {
-          "name": "claimed",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
         }
       },
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "receipts_chain_from_chain_to_event_id_pk": {
-          "name": "receipts_chain_from_chain_to_event_id_pk",
+        "receiptsSent_chain_from_chain_to_event_id_pk": {
+          "name": "receiptsSent_chain_from_chain_to_event_id_pk",
           "columns": [
             "chain_from",
             "chain_to",

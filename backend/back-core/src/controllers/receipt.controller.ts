@@ -21,7 +21,6 @@ export class ReceiptController {
   db: NodePgDatabase
 
   constructor(dbUrl: string) {
-    console.warn(dbUrl)
     this.db = drizzle(dbUrl)
   }
 
@@ -93,13 +92,17 @@ export class ReceiptController {
             eq(receipt.claimed, false),
             chainEnum === 'svm'
               ? eq(
-                receipt.chainTo,
-                bytesToBigInt(stringToBytes('SOLANA', { size: 32 })),
-              )
+                  receipt.chainTo,
+                  bytesToBigInt(
+                    stringToBytes("SOLANA", { size: 32 })
+                  ).toString()
+                )
               : ne(
-                receipt.chainTo,
-                bytesToBigInt(stringToBytes('SOLANA', { size: 32 })),
-              ),
+                  receipt.chainTo,
+                  bytesToBigInt(
+                    stringToBytes("SOLANA", { size: 32 })
+                  ).toString()
+                ),
             notInArray(
               receipt.receiptId,
               signedByRelayer.map((r) => r.receiptId),
@@ -125,11 +128,11 @@ export class ReceiptController {
         from: receiptToSign.from as `0x${string}`,
         to: receiptToSign.to as `0x${string}`,
         tokenAddress: receiptToSign.tokenAddress as `0x${string}`,
-        amount: receiptToSign.amount,
-        chainFrom: receiptToSign.chainFrom,
-        chainTo: receiptToSign.chainTo,
-        eventId: receiptToSign.eventId,
-        flags: receiptToSign.flags,
+        amount: BigInt(receiptToSign.amount),
+        chainFrom: BigInt(receiptToSign.chainFrom),
+        chainTo: BigInt(receiptToSign.chainTo),
+        eventId: BigInt(receiptToSign.eventId),
+        flags: BigInt(receiptToSign.flags),
         data: receiptToSign.data as `0x${string}`,
       },
     ])
@@ -180,8 +183,8 @@ export class ReceiptController {
       throw new Error('Receipt already claimed')
     }
     if (
-      receiptToSign.chainTo !==
-      bytesToBigInt(stringToBytes('SOLANA', { size: 32 }))
+      BigInt(receiptToSign.chainTo) !==
+      bytesToBigInt(stringToBytes("SOLANA", { size: 32 }))
     ) {
       const validSigner = await this.checkSignerEVM(receiptToSign, signature)
       if (!validSigner) {

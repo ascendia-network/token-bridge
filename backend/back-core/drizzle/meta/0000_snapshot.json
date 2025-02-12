@@ -1,5 +1,5 @@
 {
-  "id": "e65cf4dc-6fb0-48e4-a91f-e07af61cc350",
+  "id": "331e227b-ef74-4199-af3c-826b672f0da8",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -60,7 +60,7 @@
         },
         "timestamp": {
           "name": "timestamp",
-          "type": "bigint",
+          "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
@@ -82,39 +82,51 @@
           "primaryKey": false,
           "notNull": true
         },
-        "token_address": {
-          "name": "token_address",
+        "token_address_from": {
+          "name": "token_address_from",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "amount": {
-          "name": "amount",
-          "type": "bigint",
+        "token_address_to": {
+          "name": "token_address_to",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount_from": {
+          "name": "amount_from",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount_to": {
+          "name": "amount_to",
+          "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
         "chain_from": {
           "name": "chain_from",
-          "type": "bigint",
+          "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
         "chain_to": {
           "name": "chain_to",
-          "type": "bigint",
+          "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
         "event_id": {
           "name": "event_id",
-          "type": "bigint",
+          "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
         "flags": {
           "name": "flags",
-          "type": "bigint",
+          "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
@@ -123,16 +135,9 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
-        },
-        "claimed": {
-          "name": "claimed",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
         }
       },
-      "definition": "select distinct on (\"unioned\".\"receipt_id\") \"receipt_id\", \"timestamp\", \"bridge_address\", \"from\", \"to\", \"token_address\", \"amount\", \"chain_from\", \"chain_to\", \"event_id\", \"flags\", \"data\", \"claimed\" from ((select \"receipt_id\", \"timestamp\", \"bridge_address\", \"from\", \"to\", \"token_address\", \"amount\", \"chain_from\", \"chain_to\", \"event_id\", \"flags\", \"data\", \"claimed\" from \"indexer_evm\".\"receipts\" order by \"indexer_evm\".\"receipts\".\"claimed\" desc, \"indexer_evm\".\"receipts\".\"timestamp\") union (select \"receipt_id\", \"timestamp\", \"bridge_address\", \"from\", \"to\", \"token_address\", \"amount\", \"chain_from\", \"chain_to\", \"event_id\", \"flags\", \"data\", \"claimed\" from \"indexer_svm\".\"receipts\" order by \"indexer_svm\".\"receipts\".\"claimed\" desc, \"indexer_svm\".\"receipts\".\"timestamp\")) \"unioned\" order by \"unioned\".\"receipt_id\", \"unioned\".\"timestamp\", \"unioned\".\"claimed\" desc",
+      "definition": "select \"receipt_id\", \"timestamp\", \"bridge_address\", \"from\", \"to\", \"token_address_from\", \"token_address_to\", \"amount_from\", \"amount_to\", \"chain_from\", \"chain_to\", \"event_id\", \"flags\", \"data\", \"claimed\" from ((select \"receipt_id\", \"timestamp\", \"bridge_address\", \"from\", \"to\", \"token_address_from\", \"token_address_to\", \"amount_from\", \"amount_to\", \"chain_from\", \"chain_to\", \"event_id\", \"flags\", \"data\", exists (select 1 from \"indexer_solana\".\"receiptsClaimed\" where \"indexer_evm\".\"receiptsSent\".\"receipt_id\" = \"indexer_solana\".\"receiptsClaimed\".\"receipt_id\") as \"claimed\" from \"indexer_evm\".\"receiptsSent\" order by \"indexer_evm\".\"receiptsSent\".\"timestamp\") union all (select \"receipt_id\", \"timestamp\", \"bridge_address\", \"from\", \"to\", \"token_address_from\", \"token_address_to\", \"amount_from\", \"amount_to\", \"chain_from\", \"chain_to\", \"event_id\", \"flags\", \"data\", exists (select 1 from \"indexer_evm\".\"receiptsClaimed\" where \"indexer_solana\".\"receiptsSent\".\"receipt_id\" = \"indexer_evm\".\"receiptsClaimed\".\"receipt_id\") as \"claimed\" from \"indexer_solana\".\"receiptsSent\" order by \"indexer_solana\".\"receiptsSent\".\"timestamp\")) \"unioned\" order by \"unioned\".\"timestamp\", \"claimed\" desc",
       "name": "receipts",
       "schema": "bridge",
       "isExisting": false,

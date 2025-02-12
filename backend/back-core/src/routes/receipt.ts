@@ -60,7 +60,7 @@ receiptRoutes.get(
 );
 
 receiptRoutes.get(
-  "/:id{d+:d+:d+}",
+  "/:id{[0-9]+_[0-9]+_[0-9]+}",
   zValidator("param", receiptIdValidatorSchema),
   receiptControllerDep.middleware("receiptController"),
   async (c) => {
@@ -77,7 +77,7 @@ receiptRoutes.get(
 );
 
 receiptRoutes.post(
-  "/:id{d+:d+:d+}",
+  "/:id{[0-9]+_[0-9]+_[0-9]+}",
   zValidator("param", receiptIdValidatorSchema),
   zValidator(
     "json",

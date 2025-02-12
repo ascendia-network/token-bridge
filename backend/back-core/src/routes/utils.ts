@@ -4,7 +4,7 @@ import { Base58 } from "ox";
 export const EvmAddressRegex = /^0x[a-fA-F0-9]{40}$/;
 export const SvmAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 export const signatureRegex = /^(0x|0X)?[a-fA-F0-9]{130}$/;
-export const receiptIdRegex = /^[0-9]+-[0-9]+-[0-9]+$/;
+export const receiptIdRegex = /^[0-9]+_[0-9]+_[0-9]+$/;
 
 export const evmAddressBytes32Hex = z
   .string()
@@ -59,7 +59,7 @@ export const receiptIdValidatorSchema = z.object({
   receiptId: z
     .string()
     .regex(receiptIdRegex)
-    .transform((val) => val as `${number}-${number}-${number}`),
+    .transform((val) => val as `${number}_${number}_${number}`),
 });
 
 export const payloadValidatorSchema = z.object({

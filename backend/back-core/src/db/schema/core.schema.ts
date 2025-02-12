@@ -1,4 +1,4 @@
-import { desc, eq, exists, getTableColumns, notExists, sql } from "drizzle-orm";
+import { desc, eq, exists, getTableColumns, notExists, SQL, sql } from "drizzle-orm";
 import { pgSchema } from "drizzle-orm/pg-core";
 import * as evmSchema from "./evm.schema";
 import * as solanaSchema from "./solana.schema";
@@ -12,7 +12,7 @@ export const receipt = coreSchema.materializedView("receipts").as((qb) => {
       claimed: exists(
         qb
           .select({
-            claimed: sql`1`,
+            cl: sql`1`,
           })
           .from(solanaSchema.receiptsClaimedInIndexerSolana)
           .where(
@@ -21,7 +21,7 @@ export const receipt = coreSchema.materializedView("receipts").as((qb) => {
               solanaSchema.receiptsClaimedInIndexerSolana.receiptId
             )
           )
-      ).as("claimed"),
+      ).as("claimed") as SQL.Aliased<boolean>,
     })
     .from(evmSchema.receiptsSentInIndexerEvm)
     .orderBy(evmSchema.receiptsSentInIndexerEvm.timestamp);
@@ -40,7 +40,7 @@ export const receipt = coreSchema.materializedView("receipts").as((qb) => {
               evmSchema.receiptsClaimedInIndexerEvm.receiptId
             )
           )
-      ).as("claimed"),
+      ).as("claimed") as SQL.Aliased<boolean>,
     })
     .from(solanaSchema.receiptsSentInIndexerSolana)
     .orderBy(solanaSchema.receiptsSentInIndexerSolana.timestamp);

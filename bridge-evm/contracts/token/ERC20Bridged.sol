@@ -2,29 +2,68 @@
 
 pragma solidity ^0.8.20;
 
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {ERC20Permit} from
-    "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
+import {AccessManagedUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
+import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import {ERC20PermitUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract ERC20Bridged is ERC20Permit {
+contract ERC20Bridged is Initializable, ERC20Upgradeable, AccessManagedUpgradeable, ERC20PermitUpgradeable {
+    /// @custom:storage-location erc7201:bridged.storage.ERC20Additional
+    struct BridgedERC20Storage {
+        /// @dev The number of decimals for the token
+        uint8 _decimals;
+        /// @dev The address of the bridge contract
+        address _bridge;
+        /// @dev The blacklist of addresses (blacklisted addresses cannot send or receive tokens)
+        mapping(address => bool) _blacklist;
+    }
 
-    /// @dev The number of decimals for the token
-    uint8 private _decimals;
-    /// @dev The address of the bridge contract
-    address private _bridgeAddress;
+    /// @dev Emitted when an address is blacklisted
+    error Blacklisted(address account);
 
-    constructor(
+    // keccak256(abi.encode(uint256(keccak256("bridged.storage.ERC20Additional")) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 private constant ERC20AdditionalStorageLocation = 0xb5ac4c0d6c28de524e1dbc51411a2e707582c4bdbfe893edf60b98f392fe9600;
+
+    function _getERC20AdditionalStorage() private pure returns (BridgedERC20Storage storage $) {
+        assembly {
+            $.slot := ERC20AdditionalStorageLocation
+        }
+    }
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(
+        address authority_,
         string memory name_,
         string memory symbol_,
         uint8 decimals_,
         address bridge_
-    )
-        ERC20(name_, symbol_)
-        ERC20Permit(name_)
-    {
-        _decimals = decimals_;
-        _bridgeAddress = bridge_;
+    ) initializer public {
+        __ERC20Bridged_init(authority_, name_, symbol_, decimals_, bridge_);
     }
+
+    function __ERC20Bridged_init(
+        address authority_,
+        string memory name_,
+        string memory symbol_,
+        uint8 decimals_,
+        address bridge_
+    ) internal onlyInitializing {
+        __AccessManaged_init(authority_);
+        __ERC20_init(name_, symbol_);
+        __ERC20Permit_init(name_);
+        __ERC20Bridged_init_unchained(decimals_, bridge_);
+    }
+
+    function __ERC20Bridged_init_unchained(uint8 decimals_, address bridge_) internal onlyInitializing {
+        BridgedERC20Storage storage $ = _getERC20AdditionalStorage();
+        $._decimals = decimals_;
+        $._bridge = bridge_;
+    }
+
     /**
      * @dev Returns the number of decimals used to get its user representation.
      * For example, if `decimals` equals `2`, a balance of `505` tokens should
@@ -37,7 +76,8 @@ contract ERC20Bridged is ERC20Permit {
      */
 
     function decimals() public view override returns (uint8 decimals_) {
-        return _decimals;
+        BridgedERC20Storage storage $ = _getERC20AdditionalStorage();
+        return $._decimals;
     }
     /**
      * @dev Returns the address of the bridge contract.
@@ -46,7 +86,37 @@ contract ERC20Bridged is ERC20Permit {
      */
 
     function bridge() public view returns (address bridgeAddress) {
-        return _bridgeAddress;
+        BridgedERC20Storage storage $ = _getERC20AdditionalStorage();
+        return $._bridge;
+    }
+
+    /**
+     * @dev Check is the address blacklisted.
+     */
+    modifier notInBlacklist(address account) {
+        BridgedERC20Storage storage $ = _getERC20AdditionalStorage();
+        if ($._blacklist[account]) {
+            revert Blacklisted(account);
+        }
+        _;
+    }
+
+    /**
+     * @dev Add an address to the blacklist
+     * @param account the address to add to the blacklist
+     */
+    function addBlacklist(address account) public restricted {
+        BridgedERC20Storage storage $ = _getERC20AdditionalStorage();
+        $._blacklist[account] = true;
+    }
+
+    /**
+     * @dev Remove an address from the blacklist
+     * @param account the address to remove from the blacklist
+     */
+    function removeBlacklist(address account) public restricted {
+        BridgedERC20Storage storage $ = _getERC20AdditionalStorage();
+        delete $._blacklist[account];
     }
 
     /**
@@ -62,10 +132,13 @@ contract ERC20Bridged is ERC20Permit {
     )
         internal
         override
+        notInBlacklist(from)
+        notInBlacklist(to)
     {
+        address _bridgeAddress = bridge();
         // If token is sent from the bridge, mint it
         if (from == _bridgeAddress) {
-            if (to == address(0) || to == address(_bridgeAddress)) {
+            if (to == address(0) || to == _bridgeAddress) {
                 revert ERC20InvalidReceiver(address(to));
             }
             super._update(address(0), to, value);

@@ -15,6 +15,7 @@ contract Bridge is BridgeUpgradeable {
     /// @param nativeSendAmount_ amount of native currency to send to the receiver in destination chain (here) if needed
     function initialize(
         address authority_,
+        address tokenBeacon_,
         address SAMB_,
         IValidation validator_,
         address payable feeReceiver_,
@@ -24,7 +25,7 @@ contract Bridge is BridgeUpgradeable {
         initializer
     {
         __Bridge_init(
-            authority_, SAMB_, validator_, feeReceiver_, nativeSendAmount_
+            authority_, tokenBeacon_, SAMB_, validator_, feeReceiver_, nativeSendAmount_
         );
     }
 

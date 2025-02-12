@@ -38,6 +38,7 @@ abstract contract BridgeRestrictedTest is BridgeTestBase {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         bridgeInstance.initialize(
             address(authority),
+            address(tokenBeacon),
             address(wrappedToken),
             validatorInstance,
             payable(alice),

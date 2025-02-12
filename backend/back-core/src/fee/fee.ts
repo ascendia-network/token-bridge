@@ -23,7 +23,7 @@ export async function getFees(
 
   // try to calculate max amount of native coins that can be transferred considering fees
   if (isMaxAmount) {
-    if (tokenAddr != "0x0000000000000000000000000000000000000000" && tokenAddr != "11111111111111111111111111111111")
+    if (tokenAddr != "0x0000000000000000000000000000000000000000")
       throw new Error("isMaxAmount is only supported for native tokens");
     amountDecimal = amountDecimal.minus(bridgeFeeNative).floor();
     bridgeFeeNative = getBridgeFeeInNative(fromCoinPrice, tokenPrice, amountDecimal, networkFeeConfig.minBridgeFeeUSD);

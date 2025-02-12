@@ -14,7 +14,16 @@ import bs58 from "bs58";
 import nacl from "tweetnacl";
 import { bigIntToBuffer } from "../utils/buffer";
 
-const EVM_NETWORKS = ["ambrosus", "base", "ethereum", "bsc"];
+const EVM_NETWORKS = ["22040", "16718", "1", "56", "8453"];
+
+const CHAIN_ID_TO_CHAIN_NAME: Record<string, string> = {
+  "22040": "amb-test",
+  "16718": "amb",
+  "1": "eth",
+  "56": "bsc",
+  "8453": "base",
+  "37682073643888590243866347653768361305805979805942384833434275429159048052736": "solana"
+};
 
 interface SendSignatureArgs {
   networkFrom: string;
@@ -26,6 +35,7 @@ interface SendSignatureArgs {
 }
 
 interface SendPayload {
+  destChainId: string;
   tokenAddress: string;
   externalTokenAddress: string;
   amountToSend: string;
@@ -48,12 +58,16 @@ export class SendSignatureController {
                            isMaxAmount,
                            externalTokenAddress
                          }: SendSignatureArgs) {
-    const { feeAmount, amountToSend } = await getFees(networkFrom, networkTo, tokenAddress, amount, isMaxAmount);
+    const {
+      feeAmount,
+      amountToSend
+    } = await getFees(CHAIN_ID_TO_CHAIN_NAME[networkFrom], networkTo, tokenAddress, amount, isMaxAmount);
     const timestamp = Date.now() / 1000;
     const flags = "0x0";
     const flagData = "";
 
     const sendPayload: SendPayload = {
+      destChainId: networkTo,
       tokenAddress,
       externalTokenAddress,
       amountToSend,
@@ -65,8 +79,10 @@ export class SendSignatureController {
     let signature;
     if (EVM_NETWORKS.includes(networkFrom)) {
       signature = await this.signEvmSendPayload(sendPayload, sendSignerPK);
-    } else if (networkFrom === "solana") {
+    } else if (CHAIN_ID_TO_CHAIN_NAME[networkFrom] === "solana") {
       signature = await this.signSvmSendPayload(sendPayload, sendSignerPK);
+    } else {
+      throw new Error("Unsupported network");
     }
 
     return { sendPayload, signature };
@@ -74,8 +90,9 @@ export class SendSignatureController {
 
   async signEvmSendPayload(sendPayload: SendPayload, sendSignerPK: string) {
     const payload = ethers.AbiCoder.defaultAbiCoder().encode(
-      ["bytes32", "bytes32", "uint", "uint", "uint", "uint", "bytes"],
+      ["uint", "bytes32", "bytes32", "uint", "uint", "uint", "uint", "bytes"],
       [
+        sendPayload.destChainId,
         sendPayload.tokenAddress,
         sendPayload.externalTokenAddress,
         sendPayload.amountToSend,
@@ -93,6 +110,7 @@ export class SendSignatureController {
     const signer = Keypair.fromSecretKey(bs58.decode(sendSignerPK));
 
     const payload = Buffer.concat([
+      bigIntToBuffer(BigInt(sendPayload.destChainId), 8),
       Buffer.from(sendPayload.tokenAddress, "hex"),
       Buffer.from(sendPayload.externalTokenAddress, "hex"),
       bigIntToBuffer(BigInt(sendPayload.amountToSend), 8),

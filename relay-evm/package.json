@@ -1,0 +1,17 @@
+{
+  "name": "relay-evm",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "build": "rm -rf ./dist/ && tsc -p tsconfig.json",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npm run build && node dist/index.js",
+    "start:local": "ts-node ./src/index.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "ethers": "^6.13.5"
+  }
+}

@@ -20,7 +20,7 @@ const sendSignatureControllerDep = new Dependency(
 export const sendSignatureRoutes = new Hono()
 
 sendSignatureRoutes.get(
-  '',
+  '/',
   sendSignatureControllerDep.middleware('sendSignatureController'),
   async (c) => {
     try {

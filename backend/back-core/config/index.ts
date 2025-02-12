@@ -8,7 +8,24 @@
  */
 
 import { env } from 'process'
+import path from 'path'
+
+export interface Config {
+  networks: { [net: string]: string };
+  contracts: { [net: string]: string };
+  fees: {
+    networks: {
+      [net: string]: {
+        minBridgeFeeUSD: number;
+      }
+    }
+  };
+}
+
+export const stage = env.STAGE || 'prod'
 
 export const sendSignerPK = env.SEND_SIGNER_PK!
+export const stageConfig: Config = require(path.resolve(__dirname, `../config/${stage}.json`))
+
 
 

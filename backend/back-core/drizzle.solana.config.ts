@@ -1,8 +1,7 @@
 import type { Config } from "drizzle-kit";
 import { config } from "dotenv";
-config({
-  debug: true,
-});
+config();
+
 export default {
   dialect: "postgresql",
   schema: "./src/db/schema/solana.schema.ts",

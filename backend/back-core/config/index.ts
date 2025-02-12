@@ -7,8 +7,8 @@
  *  This Source Code Form is “Incompatible With Secondary Licenses”, as defined by the Mozilla Public License, v. 2.0.
  */
 
-import { env } from 'process'
-import path from 'path'
+import { env } from "process";
+import path from "path";
 
 export interface Config {
   networks: { [net: string]: string };
@@ -22,10 +22,10 @@ export interface Config {
   };
 }
 
-export const stage = env.STAGE || 'prod'
+export const stage = env.STAGE || "prod";
 
-export const sendSignerPK = env.SEND_SIGNER_PK!
-export const stageConfig: Config = require(path.resolve(__dirname, `../config/${stage}.json`))
+export const sendSignerPK = env.SEND_SIGNER_PK!;
+export const stageConfig: Config = require(path.resolve(__dirname, `../config/${stage}.json`));
 
 
 

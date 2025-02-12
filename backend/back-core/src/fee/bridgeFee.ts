@@ -2,14 +2,14 @@ import { Decimal } from "decimal.js";
 import { coin2Usd, usd2Coin } from "./utils";
 
 const percentFromAmount: { [key: number]: number } = {
-  0: 0.0 * 100, // 0.. ...$ => 0%
+  0: 0.0 * 100 // 0.. ...$ => 0%
 };
 
 
 export function getBridgeFeeInNative(nativeUsdPrice: Decimal, tokenUsdPrice: Decimal, amount: Decimal, minBridgeFeeUSD: number): Decimal {
   // Get fee in USD
   const amountUsd = coin2Usd(amount, tokenUsdPrice);
-  const feePercent = getFeePercent(amountUsd)
+  const feePercent = getFeePercent(amountUsd);
   let feeUsd = amountUsd.times(feePercent).dividedBy(10000);
 
   // If fee < minBridgeFee, use the minBridgeFee

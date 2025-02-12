@@ -7,40 +7,40 @@
  *  This Source Code Form is “Incompatible With Secondary Licenses”, as defined by the Mozilla Public License, v. 2.0.
  */
 
-import { Dependency } from 'hono-simple-di'
-import { Hono } from 'hono'
-import { SendSignatureController } from '../controllers/send-signature.controller'
+import { Dependency } from "hono-simple-di";
+import { Hono } from "hono";
+import { SendSignatureController } from "../controllers/send-signature.controller";
 
 const sendSignatureControllerDep = new Dependency(
   (c) => {
-    return new SendSignatureController()
-  },
-)
+    return new SendSignatureController();
+  }
+);
 
-export const sendSignatureRoutes = new Hono()
+export const sendSignatureRoutes = new Hono();
 
 sendSignatureRoutes.get(
-  '/',
-  sendSignatureControllerDep.middleware('sendSignatureController'),
+  "/",
+  sendSignatureControllerDep.middleware("sendSignatureController"),
   async (c) => {
     try {
-      const { networkFrom, networkTo, tokenAddress, amount, isMaxAmount, externalTokenAddress } = c.req.query()
-      const { sendSignatureController } = c.var
+      const { networkFrom, networkTo, tokenAddress, amount, isMaxAmount, externalTokenAddress } = c.req.query();
+      const { sendSignatureController } = c.var;
       const data = await sendSignatureController.getSendSignature({
         networkFrom,
         externalTokenAddress,
         networkTo,
         tokenAddress,
         amount,
-        isMaxAmount: Boolean(isMaxAmount),
-      })
-      return c.json(data, 200)
+        isMaxAmount: Boolean(isMaxAmount)
+      });
+      return c.json(data, 200);
     } catch (error) {
-      console.log(error)
-      return c.json((error as Error), 400)
+      console.log(error);
+      return c.json((error as Error), 400);
     }
-  },
-)
+  }
+);
 
 
-export default sendSignatureRoutes
+export default sendSignatureRoutes;

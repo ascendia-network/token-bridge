@@ -8,12 +8,12 @@
  */
 
 export function bigIntToBuffer(value: bigint, byteLength: number): Buffer {
-  const buffer = Buffer.alloc(byteLength)
+  const buffer = Buffer.alloc(byteLength);
   if (byteLength === 8) {
-    buffer.writeBigUInt64BE(value)
+    buffer.writeBigUInt64BE(value);
   } else if (byteLength === 4) {
-    buffer.writeUInt32BE(Number(value))
+    buffer.writeUInt32BE(Number(value));
   }
-  return buffer
+  return buffer;
 }
 

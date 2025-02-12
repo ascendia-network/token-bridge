@@ -82,12 +82,9 @@ contract ERC20BridgedTest is Test {
         public
     {
         vm.assume(
-            from != to 
-            && from != address(0) 
-            && to != address(0)
-            && amount <= initialBalance 
-            && from != fakeBridge
-            && to != fakeBridge
+            from != to && from != address(0) && to != address(0)
+                && amount <= initialBalance && from != fakeBridge
+                && to != fakeBridge
         );
         vm.startPrank(fakeBridge);
         token.transfer(from, initialBalance);

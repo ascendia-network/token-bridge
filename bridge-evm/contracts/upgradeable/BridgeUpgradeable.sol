@@ -147,9 +147,7 @@ abstract contract BridgeUpgradeable is
     }
 
     /// @inheritdoc ITokenManager
-    function unmapExternalToken(
-        bytes32 externalTokenAddress
-    )
+    function unmapExternalToken(bytes32 externalTokenAddress)
         public
         override
         restricted
@@ -459,12 +457,10 @@ abstract contract BridgeUpgradeable is
 
     /// Perform the send operation (receive tokens and save receipt)
     /// @param recipient address of the recipient on the other chain
-    /// @param chainTo destination chain id
     /// @param payload send payload
     /// @param payloadSignature signature of the payload
     function _send(
         bytes32 recipient,
-        uint256 chainTo,
         SendPayload calldata payload,
         bytes calldata payloadSignature
     )
@@ -472,7 +468,7 @@ abstract contract BridgeUpgradeable is
         returns (FullReceipt memory receipt)
     {
         uint256 amountTo =
-            _validateSendValues(chainTo, payload, payloadSignature);
+            _validateSendValues(payload.destChainId, payload, payloadSignature);
         address sender = payload.flags & BridgeFlags.SENDER_IS_TXORIGIN != 0
             ? tx.origin
             : msg.sender;
@@ -488,7 +484,7 @@ abstract contract BridgeUpgradeable is
             amountFrom: payload.amountToSend,
             amountTo: amountTo,
             chainFrom: block.chainid,
-            chainTo: chainTo,
+            chainTo: payload.destChainId,
             eventId: _useNonce(address(this)),
             flags: payload.flags >> 65, // remove sender flags
             data: abi.encodePacked(_useNonce(recipient).toUint64())
@@ -523,7 +519,6 @@ abstract contract BridgeUpgradeable is
     /// @inheritdoc IBridge
     function send(
         bytes32 recipient,
-        uint256 chainTo,
         SendPayload calldata payload,
         bytes calldata payloadSignature
     )
@@ -532,13 +527,12 @@ abstract contract BridgeUpgradeable is
         override
         returns (FullReceipt memory receipt)
     {
-        return _send(recipient, chainTo, payload, payloadSignature);
+        return _send(recipient, payload, payloadSignature);
     }
 
     /// @inheritdoc IBridge
     function send(
         bytes32 recipient,
-        uint256 chainTo,
         SendPayload calldata payload,
         bytes calldata payloadSignature,
         uint256 _deadline,
@@ -569,7 +563,7 @@ abstract contract BridgeUpgradeable is
                 revert InvalidPermitFlag();
             }
         }
-        return _send(recipient, chainTo, payload, payloadSignature);
+        return _send(recipient, payload, payloadSignature);
     }
 
     /// @inheritdoc IBridge

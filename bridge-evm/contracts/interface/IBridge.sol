@@ -66,7 +66,6 @@ interface IBridge is BridgeTypes {
     /// @return receipt data of the transaction which will be signed and sent to the other chain
     function send(
         bytes32 recipient,
-        uint256 chainTo,
         SendPayload calldata payload,
         bytes calldata payloadSignature
     )
@@ -88,7 +87,6 @@ interface IBridge is BridgeTypes {
     /// @return receipt data of the transaction which will be signed and sent to the other chain
     function send(
         bytes32 recipient,
-        uint256 chainTo,
         SendPayload calldata payload,
         bytes calldata payloadSignature,
         uint256 _deadline,

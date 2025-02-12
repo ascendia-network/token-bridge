@@ -23,8 +23,7 @@ interface ITokenManager {
     /// @param token address of the token
     /// @param externalTokenAddress external token address
     event TokenMapped(
-        address indexed token,
-        bytes32 indexed externalTokenAddress
+        address indexed token, bytes32 indexed externalTokenAddress
     );
 
     /// Emits when external token is unmapped from the bridge
@@ -94,9 +93,7 @@ interface ITokenManager {
     /// Get external token address
     /// @param externalTokenAddress address of the external token
     /// @return externalToken external token structure
-    function externalToken(
-        bytes32 externalTokenAddress
-    )
+    function externalToken(bytes32 externalTokenAddress)
         external
         view
         returns (ExternalToken memory externalToken);
@@ -104,9 +101,7 @@ interface ITokenManager {
     /// Get token address by external token address
     /// @param externalTokenAddress external token address
     /// @return token address of the token
-    function external2token(
-        bytes32 externalTokenAddress
-    )
+    function external2token(bytes32 externalTokenAddress)
         external
         view
         returns (address token);
@@ -157,9 +152,7 @@ interface ITokenManager {
     /// Unmap external token address to token
     /// @param externalTokenAddress external token address
     /// @return success true if the token was removed
-    function unmapExternalToken(
-        bytes32 externalTokenAddress
-    )
+    function unmapExternalToken(bytes32 externalTokenAddress)
         external
         returns (bool success);
 

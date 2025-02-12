@@ -104,27 +104,26 @@ abstract contract BridgeSendTest is BridgeTestBase {
         )
     {
         payload = BridgeTypes.SendPayload({
+            destChainId: chainDest,
             tokenAddress: bytes32(uint256(uint160(token))),
-            externalTokenAddress: token == address(wrappedToken) ? bytes32("AMB_EXT") : bytes32("PMT_EXT"),
+            externalTokenAddress: token == address(wrappedToken)
+                ? bytes32("AMB_EXT")
+                : bytes32("PMT_EXT"),
             amountToSend: amountToSend,
             feeAmount: feeAmount,
             timestamp: block.timestamp,
             flags: flags,
             flagData: new bytes(0)
         });
-        ITokenManager.ExternalToken memory extToken = bridgeInstance.externalToken(payload.externalTokenAddress);
+        ITokenManager.ExternalToken memory extToken =
+            bridgeInstance.externalToken(payload.externalTokenAddress);
         receipt = BridgeTypes.FullReceipt({
             from: bytes32(uint256(uint160(address(sender)))),
             to: recipient,
             tokenAddressFrom: payload.tokenAddress,
-            tokenAddressTo: extToken
-                .externalTokenAddress,
+            tokenAddressTo: extToken.externalTokenAddress,
             amountFrom: payload.amountToSend,
-            amountTo: _convertAmount(
-                token,
-                payload.amountToSend,
-                extToken.decimals
-            ),
+            amountTo: _convertAmount(token, payload.amountToSend, extToken.decimals),
             chainFrom: block.chainid,
             chainTo: chainDest,
             eventId: bridgeInstance.nextEventID(),
@@ -182,13 +181,12 @@ abstract contract BridgeSendTest is BridgeTestBase {
     function prepareSend(uint256 tokenAmount) public returns (Signer memory) {
         Signer memory signer = getSigner("sender");
         vm.warp(1000);
-        ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager.ExternalTokenUnmapped({
+        ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
+            .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("PMT_EXT"),
             decimals: permittableToken.decimals()
         });
-        bridgeInstance.addToken(
-            address(permittableToken), extToken, false
-        );
+        bridgeInstance.addToken(address(permittableToken), extToken, false);
         vm.startPrank(signer.Address);
         vm.deal(signer.Address, 100 ether);
         deal(address(permittableToken), signer.Address, tokenAmount);
@@ -203,13 +201,13 @@ abstract contract BridgeSendTest is BridgeTestBase {
         returns (Signer memory)
     {
         vm.warp(1000);
-        ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager.ExternalTokenUnmapped({
+        ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
+            .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("PMT_EXT"),
             decimals: permittableToken.decimals()
         });
-        try bridgeInstance.addToken(
-            address(permittableToken), extToken, false
-        ) {} catch (bytes memory lowLevelData) {
+        try bridgeInstance.addToken(address(permittableToken), extToken, false)
+        {} catch (bytes memory lowLevelData) {
             if (
                 bytes4(
                     abi.encodeWithSelector(
@@ -230,13 +228,12 @@ abstract contract BridgeSendTest is BridgeTestBase {
     function prepareSendNative(uint256 amount) public returns (Signer memory) {
         Signer memory signer = getSigner("sender");
         vm.warp(1000);
-        ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager.ExternalTokenUnmapped({
+        ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
+            .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("AMB_EXT"),
             decimals: permittableToken.decimals()
         });
-        bridgeInstance.addToken(
-            address(wrappedToken), extToken, false
-        );
+        bridgeInstance.addToken(address(wrappedToken), extToken, false);
         vm.startPrank(signer.Address);
         vm.deal(signer.Address, amount + 1 ether);
         return signer;
@@ -246,8 +243,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
         Signer memory signer,
         BridgeTypes.SendPayload memory payload,
         BridgeTypes.FullReceipt memory receipt,
-        bytes memory payloadSignature,
-        uint256 destinationChain
+        bytes memory payloadSignature
     )
         public
     {
@@ -257,7 +253,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
         vm.expectEmit(address(bridgeInstance));
         emit IBridge.TokenLocked(receipt);
         bridgeInstance.send{value: payload.feeAmount}(
-            receipt.to, destinationChain, payload, payloadSignature
+            receipt.to, payload, payloadSignature
         );
         assertEq(
             balanceTokenBefore - payload.amountToSend,
@@ -280,8 +276,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
         Signer memory signer,
         BridgeTypes.SendPayload memory payload,
         BridgeTypes.FullReceipt memory receipt,
-        bytes memory payloadSignature,
-        uint256 destinationChain
+        bytes memory payloadSignature
     )
         public
     {
@@ -290,10 +285,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
         vm.expectEmit(address(bridgeInstance));
         emit IBridge.TokenLocked(receipt);
         bridgeInstance.send{value: payload.feeAmount + payload.amountToSend}(
-            bytes32("SOLANA_ADDRESS"),
-            destinationChain,
-            payload,
-            payloadSignature
+            bytes32("SOLANA_ADDRESS"), payload, payloadSignature
         );
         assertEq(balanceFeeBefore + payload.feeAmount, fee.balance);
         assertApproxEqRel(
@@ -311,7 +303,6 @@ abstract contract BridgeSendTest is BridgeTestBase {
         BridgeTypes.SendPayload memory payload,
         BridgeTypes.FullReceipt memory receipt,
         bytes memory payloadSignature,
-        uint256 destinationChain,
         uint8 vP,
         bytes32 rP,
         bytes32 sP
@@ -325,7 +316,6 @@ abstract contract BridgeSendTest is BridgeTestBase {
         emit IBridge.TokenLocked(receipt);
         bridgeInstance.send{value: payload.feeAmount}(
             bytes32("SOLANA_ADDRESS"),
-            destinationChain,
             payload,
             payloadSignature,
             block.timestamp + 1000,
@@ -374,17 +364,8 @@ abstract contract BridgeSendTest is BridgeTestBase {
             destinationChain
         );
         !isPermit
-            ? send(signer, payload, receipt, payloadSignature, destinationChain)
-            : send(
-                signer,
-                payload,
-                receipt,
-                payloadSignature,
-                destinationChain,
-                vP,
-                rP,
-                sP
-            );
+            ? send(signer, payload, receipt, payloadSignature)
+            : send(signer, payload, receipt, payloadSignature, vP, rP, sP);
     }
 
     function test_sendingToBridge_multiple(uint256 amountToSend) public {
@@ -413,7 +394,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
             bytes32("SOLANA_ADDRESS"),
             destinationChain
         );
-        send(signer, payload, receipt, payloadSignature, destinationChain);
+        send(signer, payload, receipt, payloadSignature);
         // User nonce and contract nonce was incremented after the first send
         (payload, receipt, payloadSignature) = generateSendingValues(
             address(permittableToken),
@@ -424,7 +405,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
             bytes32("SOLANA_ADDRESS"),
             destinationChain
         );
-        send(signer, payload, receipt, payloadSignature, destinationChain);
+        send(signer, payload, receipt, payloadSignature);
         vm.stopPrank();
         // Other User nonce will be 2 here (same recepient) but contract nonce will be 3 after the second send
         signer = getSigner("singer2");
@@ -445,7 +426,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
             bytes32("SOLANA_ADDRESS"),
             destinationChain
         );
-        send(signer, payload, receipt, payloadSignature, destinationChain);
+        send(signer, payload, receipt, payloadSignature);
         // Other User nonce will be 0 here (other recepient) but contract nonce will be 4 after the third send
         (payload, receipt, payloadSignature) = generateSendingValues(
             address(permittableToken),
@@ -456,7 +437,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
             bytes32("SOLANA_ADDRESS2"),
             destinationChain
         );
-        send(signer, payload, receipt, payloadSignature, destinationChain);
+        send(signer, payload, receipt, payloadSignature);
     }
 
     function test_sendingToBridge_native(uint256 amountToSend) public {
@@ -477,7 +458,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
             bytes32("SOLANA_ADDRESS"),
             destinationChain
         );
-        sendNative(signer, payload, receipt, payloadSignature, destinationChain);
+        sendNative(signer, payload, receipt, payloadSignature);
     }
 
     function test_revertWhen_sendingToBridge_native_wrongAmount(
@@ -507,10 +488,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
             )
         );
         bridgeInstance.send{value: payload.feeAmount + payload.amountToSend + 1}(
-            bytes32("SOLANA_ADDRESS"),
-            destinationChain,
-            payload,
-            payloadSignature
+            bytes32("SOLANA_ADDRESS"), payload, payloadSignature
         );
     }
 
@@ -540,7 +518,6 @@ abstract contract BridgeSendTest is BridgeTestBase {
         vm.expectRevert(IBridge.InvalidPermitFlag.selector);
         bridgeInstance.send{value: payload.feeAmount}(
             bytes32("SOLANA_ADDRESS"),
-            destinationChain,
             payload,
             payloadSignature,
             block.timestamp + 1000,
@@ -575,10 +552,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
         );
         vm.expectRevert(IBridge.InvalidAmount.selector);
         bridgeInstance.send{value: payload.feeAmount}(
-            bytes32("SOLANA_ADDRESS"),
-            destinationChain,
-            payload,
-            payloadSignature
+            bytes32("SOLANA_ADDRESS"), payload, payloadSignature
         );
     }
 
@@ -607,10 +581,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
         );
         vm.expectRevert(IBridge.InvalidChain.selector);
         bridgeInstance.send{value: payload.feeAmount}(
-            bytes32("SOLANA_ADDRESS"),
-            destinationChain,
-            payload,
-            payloadSignature
+            bytes32("SOLANA_ADDRESS"), payload, payloadSignature
         );
     }
 
@@ -646,10 +617,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
             )
         );
         bridgeInstance.send{value: payload.feeAmount}(
-            bytes32("SOLANA_ADDRESS"),
-            destinationChain,
-            payload,
-            payloadSignature
+            bytes32("SOLANA_ADDRESS"), payload, payloadSignature
         );
     }
 
@@ -684,10 +652,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
             )
         );
         bridgeInstance.send{value: payload.feeAmount + 1}(
-            bytes32("SOLANA_ADDRESS"),
-            destinationChain,
-            payload,
-            payloadSignature
+            bytes32("SOLANA_ADDRESS"), payload, payloadSignature
         );
     }
 
@@ -716,10 +681,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
         );
         vm.expectRevert(IBridge.SendFailed.selector);
         bridgeInstance.send{value: payload.feeAmount}(
-            bytes32("SOLANA_ADDRESS"),
-            destinationChain,
-            payload,
-            payloadSignature
+            bytes32("SOLANA_ADDRESS"), payload, payloadSignature
         );
     }
 
@@ -758,10 +720,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
         );
         vm.expectRevert(IBridge.TransferFailed.selector);
         bridgeInstance.send{value: payload.feeAmount}(
-            bytes32("SOLANA_ADDRESS"),
-            destinationChain,
-            payload,
-            payloadSignature
+            bytes32("SOLANA_ADDRESS"), payload, payloadSignature
         );
     }
 

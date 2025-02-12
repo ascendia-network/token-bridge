@@ -26,6 +26,7 @@ contract PayloadUtilsTest is Test {
     }
 
     function test_fuzz_payload2hash(
+        uint256 destChainId, // destination chain id
         bytes32 tokenAddress, // address of the token contract
         bytes32 externalTokenAddress, // address of the external token contract
         uint256 amountToSend, // amount of the tokens to be sent
@@ -36,8 +37,9 @@ contract PayloadUtilsTest is Test {
     )
         public
     {
-        string[] memory runJsInputs = new string[](9);
+        string[] memory runJsInputs = new string[](10);
         BridgeTypes.SendPayload memory payload = BridgeTypes.SendPayload({
+            destChainId: destChainId,
             tokenAddress: tokenAddress,
             externalTokenAddress: externalTokenAddress,
             amountToSend: amountToSend,
@@ -50,13 +52,14 @@ contract PayloadUtilsTest is Test {
         // Build ffi command string
         runJsInputs[0] = "node";
         runJsInputs[1] = "./test/differential_testing/payload2hash.js";
-        runJsInputs[2] = Strings.toHexString(uint256(tokenAddress), 32);
-        runJsInputs[3] = Strings.toHexString(uint256(externalTokenAddress), 32);
-        runJsInputs[4] = Strings.toHexString(amountToSend, 32);
-        runJsInputs[5] = Strings.toHexString(feeAmount, 32);
-        runJsInputs[6] = Strings.toHexString(timestamp, 32);
-        runJsInputs[7] = Strings.toHexString(flags, 32);
-        runJsInputs[8] = iToHex(flagData);
+        runJsInputs[2] = Strings.toHexString(uint256(destChainId), 32);
+        runJsInputs[3] = Strings.toHexString(uint256(tokenAddress), 32);
+        runJsInputs[4] = Strings.toHexString(uint256(externalTokenAddress), 32);
+        runJsInputs[5] = Strings.toHexString(amountToSend, 32);
+        runJsInputs[6] = Strings.toHexString(feeAmount, 32);
+        runJsInputs[7] = Strings.toHexString(timestamp, 32);
+        runJsInputs[8] = Strings.toHexString(flags, 32);
+        runJsInputs[9] = iToHex(flagData);
 
         // Run command and capture output
         bytes memory jsResult = vm.ffi(runJsInputs);

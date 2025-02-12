@@ -1,5 +1,5 @@
 # IBridge
-[Git Source](https://github.com/ambrosus/token-bridge/blob/1106b61cbc37ad86299178c6d334722a2ad64d7d/contracts/interface/IBridge.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/c9e5c0649869e1d0d7d463cf7e74634fda87430d/contracts/interface/IBridge.sol)
 
 **Inherits:**
 [BridgeTypes](/contracts/interface/BridgeTypes.sol/interface.BridgeTypes.md)
@@ -147,7 +147,7 @@ function claim(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`receipt`|`FullReceipt`|`MiniReceipt` of the transaction to claim|
+|`receipt`|`FullReceipt`|`FullReceipt` of the transaction to claim|
 |`signature`|`bytes`|signature of the payload|
 
 **Returns**

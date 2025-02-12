@@ -113,7 +113,7 @@ interface IBridge is BridgeTypes {
     /// Claim tokens from another chain
     /// @dev This function should be called by the user who wants to claim tokens from another chain.
     /// It claims the tokens from the contract, and emits a `TokenUnlocked` event.
-    /// @param receipt `MiniReceipt` of the transaction to claim
+    /// @param receipt `FullReceipt` of the transaction to claim
     /// @param signature signature of the payload
     /// @return success true if the claim was successful
     function claim(

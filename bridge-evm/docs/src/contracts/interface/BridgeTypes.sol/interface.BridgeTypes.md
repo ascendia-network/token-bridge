@@ -1,5 +1,5 @@
 # BridgeTypes
-[Git Source](https://github.com/ambrosus/token-bridge/blob/1106b61cbc37ad86299178c6d334722a2ad64d7d/contracts/interface/BridgeTypes.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/c9e5c0649869e1d0d7d463cf7e74634fda87430d/contracts/interface/BridgeTypes.sol)
 
 
 ## Structs

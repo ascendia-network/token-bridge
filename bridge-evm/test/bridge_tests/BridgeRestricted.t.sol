@@ -131,7 +131,8 @@ abstract contract BridgeRestrictedTest is BridgeTestBase {
         bridgeInstance.setNativeSendAmount(2 ether);
         assertEq(bridgeInstance.nativeSendAmount(), 2 ether);
         bridgeInstance.setValidator(Validator(address(0x0)));
-         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager.ExternalTokenUnmapped({
+        ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
+            .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("SOLANA_TOKEN"),
             decimals: 6
         });
@@ -148,9 +149,7 @@ abstract contract BridgeRestrictedTest is BridgeTestBase {
         );
         bridgeInstance.pauseToken(address(wrappedToken));
         bridgeInstance.unpauseToken(address(wrappedToken));
-        bridgeInstance.mapExternalToken(
-            extToken, address(wrappedToken)
-        );
+        bridgeInstance.mapExternalToken(extToken, address(wrappedToken));
         bridgeInstance.unmapExternalToken(bytes32("SOLANA_TOKEN"));
         vm.stopPrank();
     }

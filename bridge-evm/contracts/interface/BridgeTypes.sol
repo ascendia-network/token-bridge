@@ -82,6 +82,7 @@ interface BridgeTypes {
     /// @param flags flags of the sending operation
     /// @param data additional data of the sending operation
     struct SendPayload {
+        uint256 destChainId; // chain id of the destination chain
         bytes32 tokenAddress; // address of the token contract
         bytes32 externalTokenAddress; // address of the external token contract (in destination chain)
         uint256 amountToSend; // amount of the tokens to be sent

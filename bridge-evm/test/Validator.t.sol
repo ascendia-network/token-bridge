@@ -61,6 +61,7 @@ contract ValidatorTest is Test {
     address chris = address(0xC14);
     address deadBeef = address(0xDeadBeef);
     address payable fee = payable(address(0xFee));
+    address fakeToken = address(0xF4143);
 
     Signer[] signers;
     Signer payloadSigner;
@@ -217,8 +218,9 @@ contract ValidatorTest is Test {
         );
 
         payloadCommon = BridgeTypes.SendPayload({
-            tokenAddress: bytes32("SOLANA"),
-            externalTokenAddress: bytes32("sAMB"),
+            destChainId: uint256(bytes32("SOLANA")),
+            tokenAddress: bytes32(uint256(uint160(fakeToken))),
+            externalTokenAddress: bytes32("SOLANA_TOKEN"),
             amountToSend: 100 ether,
             feeAmount: 1 ether,
             timestamp: block.timestamp,

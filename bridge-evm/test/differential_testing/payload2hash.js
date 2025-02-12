@@ -1,6 +1,7 @@
 const { hashMessage, AbiCoder, keccak256, getBytes } = require('ethers');
 
 function payload2hash(
+  destChainId,
   tokenAddress,
   externalTokenAddress,
   amountToSend,
@@ -10,8 +11,8 @@ function payload2hash(
   flagData
 ) {
   const encoded = AbiCoder.defaultAbiCoder().encode(
-    ['bytes32', 'bytes32', 'uint256', 'uint256', 'uint256', 'uint256', 'bytes'],
-    [tokenAddress, externalTokenAddress, amountToSend, feeAmount, timestamp, flags, flagData]
+    ['uint256','bytes32', 'bytes32', 'uint256', 'uint256', 'uint256', 'uint256', 'bytes'],
+    [destChainId, tokenAddress, externalTokenAddress, amountToSend, feeAmount, timestamp, flags, flagData]
   );
   const messageHash = keccak256(encoded);
   return hashMessage(
@@ -19,8 +20,8 @@ function payload2hash(
   );
 }
 
-if (process.argv.length < 9) {
-  console.log('Usage: node payload2Hash.js <tokenAddress> <externalTokenAddress> <amountToSend> <feeAmount> <timestamp> <flags> <flagData>');
+if (process.argv.length < 10) {
+  console.log('Usage: node payload2Hash.js <destChainId> <tokenAddress> <externalTokenAddress> <amountToSend> <feeAmount> <timestamp> <flags> <flagData>');
   process.exit(1);
 }
-process.stdout.write(payload2hash(process.argv[2], process.argv[3], process.argv[4], process.argv[5], process.argv[6], process.argv[7], process.argv[8]));
+process.stdout.write(payload2hash(process.argv[2], process.argv[3], process.argv[4], process.argv[5], process.argv[6], process.argv[7], process.argv[8], process.argv[9]));

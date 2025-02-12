@@ -1,16 +1,3 @@
-function bytes2AddressLE(bytes) {
-  if (bytes.startsWith('0x')) {
-    bytes = bytes.slice(2);
-  }
-  return `0x${bytes.slice(0, 40).toString('hex')}`;
-}
-function bytes2AddressBE(bytes) {
-  if (bytes.startsWith('0x')) {
-    bytes = bytes.slice(2);
-  }
-  return ;
-}
-
 function bytes2Address(bytes, isLE = false) {
   if (bytes.startsWith('0x')) {
     bytes = bytes.slice(2);

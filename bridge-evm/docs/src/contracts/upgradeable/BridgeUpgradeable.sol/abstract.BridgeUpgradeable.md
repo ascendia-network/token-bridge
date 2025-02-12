@@ -1,5 +1,5 @@
 # BridgeUpgradeable
-[Git Source](https://github.com/ambrosus/token-bridge/blob/2704f133ac810fd32e38846890ea517279600f52/contracts/upgradeable/BridgeUpgradeable.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/c9e5c0649869e1d0d7d463cf7e74634fda87430d/contracts/upgradeable/BridgeUpgradeable.sol)
 
 **Inherits:**
 [IBridge](/contracts/interface/IBridge.sol/interface.IBridge.md), Initializable, AccessManagedUpgradeable, [NoncesUpgradeable](/contracts/utils/NoncesUpgradeable.sol/abstract.NoncesUpgradeable.md), [TokenManagerUpgradeable](/contracts/upgradeable/TokenManagerUpgradeable.sol/abstract.TokenManagerUpgradeable.md)
@@ -28,6 +28,7 @@ function _getBridgeStorage() private pure returns (BridgeStorage storage $);
 ```solidity
 function __Bridge_init(
     address authority_,
+    address tokenBeacon_,
     address SAMB_,
     IValidation validator_,
     address payable feeReceiver_,
@@ -639,7 +640,6 @@ Perform the send operation (receive tokens and save receipt)
 ```solidity
 function _send(
     bytes32 recipient,
-    uint256 chainTo,
     SendPayload calldata payload,
     bytes calldata payloadSignature
 )
@@ -651,7 +651,6 @@ function _send(
 |Name|Type|Description|
 |----|----|-----------|
 |`recipient`|`bytes32`|address of the recipient on the other chain|
-|`chainTo`|`uint256`|destination chain id|
 |`payload`|`SendPayload`|send payload|
 |`payloadSignature`|`bytes`|signature of the payload|
 
@@ -689,7 +688,6 @@ The function should be payable to receive the fee in native currency.*
 ```solidity
 function send(
     bytes32 recipient,
-    uint256 chainTo,
     SendPayload calldata payload,
     bytes calldata payloadSignature
 )
@@ -703,7 +701,6 @@ function send(
 |Name|Type|Description|
 |----|----|-----------|
 |`recipient`|`bytes32`|address of the recipient on the other chain (string because of cross-chain compatibility)|
-|`chainTo`|`uint256`||
 |`payload`|`SendPayload`|payload of sending operation bridge|
 |`payloadSignature`|`bytes`|signature of the payload values to validate|
 
@@ -726,7 +723,6 @@ The function should be payable to receive the fee in native currency.*
 ```solidity
 function send(
     bytes32 recipient,
-    uint256 chainTo,
     SendPayload calldata payload,
     bytes calldata payloadSignature,
     uint256 _deadline,
@@ -744,7 +740,6 @@ function send(
 |Name|Type|Description|
 |----|----|-----------|
 |`recipient`|`bytes32`|address of the recipient on the other chain (string because of cross-chain compatibility)|
-|`chainTo`|`uint256`||
 |`payload`|`SendPayload`|payload of sending operation bridge|
 |`payloadSignature`|`bytes`|signature of the payload values to validate|
 |`_deadline`|`uint256`||

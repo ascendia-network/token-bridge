@@ -1,5 +1,5 @@
 # Bridge
-[Git Source](https://github.com/ambrosus/token-bridge/blob/2704f133ac810fd32e38846890ea517279600f52/contracts/Bridge.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/c9e5c0649869e1d0d7d463cf7e74634fda87430d/contracts/Bridge.sol)
 
 **Inherits:**
 [BridgeUpgradeable](/contracts/upgradeable/BridgeUpgradeable.sol/abstract.BridgeUpgradeable.md)
@@ -14,6 +14,7 @@ Initialize the contract with the given parameters
 ```solidity
 function initialize(
     address authority_,
+    address tokenBeacon_,
     address SAMB_,
     IValidation validator_,
     address payable feeReceiver_,
@@ -27,6 +28,7 @@ function initialize(
 |Name|Type|Description|
 |----|----|-----------|
 |`authority_`|`address`|address of the authority contract [AccessManager](https://docs.openzeppelin.com/contracts/5.x/access-control#access-management)|
+|`tokenBeacon_`|`address`||
 |`SAMB_`|`address`|address of the Wrapped token contract|
 |`validator_`|`IValidation`|address of the validator contract|
 |`feeReceiver_`|`address payable`|address of the fee receiver|

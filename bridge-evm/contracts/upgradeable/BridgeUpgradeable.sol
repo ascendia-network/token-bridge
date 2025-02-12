@@ -213,8 +213,9 @@ abstract contract BridgeUpgradeable is
         restricted
         returns (address token)
     {
-        return super.deployExternalTokenERC20(
-            externalToken_, name, symbol, decimals
+        address authority_ = authority();
+        return _deployExternalTokenERC20(
+            authority_, externalToken_, name, symbol, decimals
         );
     }
 
@@ -509,8 +510,8 @@ abstract contract BridgeUpgradeable is
         address token = receipt.tokenAddressTo.toAddress();
         uint256 receivedFlags = receipt.flags << 65; // restore flags position
         address receiver = receipt.to.toAddress();
-        _transferClaim(receivedFlags, token, receipt.amountTo, receiver);
         _markClaimed(receipt);
+        _transferClaim(receivedFlags, token, receipt.amountTo, receiver);
         emit TokenUnlocked(receipt);
         return true;
     }

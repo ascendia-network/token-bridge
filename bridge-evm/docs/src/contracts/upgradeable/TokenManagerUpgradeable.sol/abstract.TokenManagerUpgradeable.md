@@ -1,5 +1,5 @@
 # TokenManagerUpgradeable
-[Git Source](https://github.com/ambrosus/token-bridge/blob/2704f133ac810fd32e38846890ea517279600f52/contracts/upgradeable/TokenManagerUpgradeable.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/c9e5c0649869e1d0d7d463cf7e74634fda87430d/contracts/upgradeable/TokenManagerUpgradeable.sol)
 
 **Inherits:**
 [ITokenManager](/contracts/interface/ITokenManager.sol/interface.ITokenManager.md), Initializable
@@ -30,6 +30,7 @@ function _getTokenManagerStorage()
 
 ```solidity
 function __TokenManager_init(
+    address tokenBeacon_,
     address bridge_,
     address SAMB
 )
@@ -42,6 +43,7 @@ function __TokenManager_init(
 
 ```solidity
 function __TokenManager_init_unchained(
+    address tokenBeacon_,
     address bridge_,
     address SAMB
 )
@@ -513,18 +515,20 @@ Deploy external ERC20 token to chain
 
 ```solidity
 function _deployExternalTokenERC20(
+    address authority,
     ExternalTokenUnmapped memory externalToken_,
     string calldata name,
     string calldata symbol,
     uint8 decimals
 )
-    private
+    internal
     returns (address token);
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
+|`authority`|`address`||
 |`externalToken_`|`ExternalTokenUnmapped`|external token that will be mapped to the token|
 |`name`|`string`|name of the token|
 |`symbol`|`string`|symbol of the token|
@@ -592,6 +596,7 @@ struct TokenManagerStorage {
     mapping(address => bool) unpausedTokens;
     address bridge;
     address SAMB;
+    address tokenBeacon;
 }
 ```
 

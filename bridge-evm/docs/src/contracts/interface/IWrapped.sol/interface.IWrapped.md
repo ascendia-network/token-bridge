@@ -1,5 +1,5 @@
 # IWrapped
-[Git Source](https://github.com/ambrosus/token-bridge/blob/2704f133ac810fd32e38846890ea517279600f52/contracts/interface/IWrapped.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/c9e5c0649869e1d0d7d463cf7e74634fda87430d/contracts/interface/IWrapped.sol)
 
 **Inherits:**
 IERC20

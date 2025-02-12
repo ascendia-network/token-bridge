@@ -1,5 +1,5 @@
 # IBridge
-[Git Source](https://github.com/ambrosus/token-bridge/blob/2704f133ac810fd32e38846890ea517279600f52/contracts/interface/IBridge.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/c9e5c0649869e1d0d7d463cf7e74634fda87430d/contracts/interface/IBridge.sol)
 
 **Inherits:**
 [BridgeTypes](/contracts/interface/BridgeTypes.sol/interface.BridgeTypes.md)
@@ -33,7 +33,6 @@ The function should be payable to receive the fee in native currency.*
 ```solidity
 function send(
     bytes32 recipient,
-    uint256 chainTo,
     SendPayload calldata payload,
     bytes calldata payloadSignature
 )
@@ -46,7 +45,6 @@ function send(
 |Name|Type|Description|
 |----|----|-----------|
 |`recipient`|`bytes32`|address of the recipient on the other chain (string because of cross-chain compatibility)|
-|`chainTo`|`uint256`||
 |`payload`|`SendPayload`|payload of sending operation bridge|
 |`payloadSignature`|`bytes`|signature of the payload values to validate|
 
@@ -69,7 +67,6 @@ The function should be payable to receive the fee in native currency.*
 ```solidity
 function send(
     bytes32 recipient,
-    uint256 chainTo,
     SendPayload calldata payload,
     bytes calldata payloadSignature,
     uint256 _deadline,
@@ -86,7 +83,6 @@ function send(
 |Name|Type|Description|
 |----|----|-----------|
 |`recipient`|`bytes32`|address of the recipient on the other chain (string because of cross-chain compatibility)|
-|`chainTo`|`uint256`||
 |`payload`|`SendPayload`|payload of sending operation bridge|
 |`payloadSignature`|`bytes`|signature of the payload values to validate|
 |`_deadline`|`uint256`|deadline of the permit|
@@ -151,7 +147,7 @@ function claim(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`receipt`|`FullReceipt`|`MiniReceipt` of the transaction to claim|
+|`receipt`|`FullReceipt`|`FullReceipt` of the transaction to claim|
 |`signature`|`bytes`|signature of the payload|
 
 **Returns**

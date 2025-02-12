@@ -16,6 +16,7 @@ contract SetValidatorRelaySigner is DeployerBase {
         getValidator();
         address[] memory signers = vm.envAddress("VALIDATORS", ",");
         for (uint256 i = 0; i < signers.length; i++) {
+            require(signers[i] != address(0), "Zero address not allowed");
             validator.addValidator(signers[i]);
         }
         vm.stopBroadcast();

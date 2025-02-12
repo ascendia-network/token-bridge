@@ -58,7 +58,7 @@ interface IBridge is BridgeTypes {
 
     /// Send tokens to another chain
     /// @dev This function should be called by the user who wants to send tokens to another chain.
-    /// It transfers the tokens to the contract, and validates fee amount that was sent and emits a `TokensLocked` event.
+    /// It transfers the tokens to the contract, and validates fee amount that was sent and emits a `TokenLocked` event.
     /// The function should be payable to receive the fee in native currency.
     /// @param recipient address of the recipient on the other chain (string because of cross-chain compatibility)
     /// @param payload payload of sending operation bridge
@@ -72,7 +72,6 @@ interface IBridge is BridgeTypes {
         external
         payable
         returns (FullReceipt memory receipt);
-
     /// Send tokens to another chain with permit params
     /// @dev This function should be called by the user who wants to send tokens to another chain.
     /// It transfers the tokens to the contract, and validates fee amount that was sent and emits a `TokensLocked` event.
@@ -114,7 +113,7 @@ interface IBridge is BridgeTypes {
     /// Claim tokens from another chain
     /// @dev This function should be called by the user who wants to claim tokens from another chain.
     /// It claims the tokens from the contract, and emits a `TokenUnlocked` event.
-    /// @param receipt `MiniReceipt` of the transaction to claim
+    /// @param receipt `FullReceipt` of the transaction to claim
     /// @param signature signature of the payload
     /// @return success true if the claim was successful
     function claim(

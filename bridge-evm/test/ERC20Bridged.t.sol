@@ -28,7 +28,7 @@ contract ERC20BridgedTest is Test {
     }
 
     function test_fuzz_send_from_bridge(uint256 amount, address to) public {
-        vm.assume(to != address(0) && amount > 0);
+        vm.assume(to != address(0) && amount > 0 && to != fakeBridge);
         vm.startPrank(fakeBridge);
         token.transfer(to, amount);
         vm.stopPrank();
@@ -59,7 +59,9 @@ contract ERC20BridgedTest is Test {
     )
         public
     {
-        vm.assume(from != address(0) && amount <= initialBalance);
+        vm.assume(
+            from != address(0) && amount <= initialBalance && from != fakeBridge
+        );
         vm.startPrank(fakeBridge);
         token.transfer(from, initialBalance);
         vm.stopPrank();
@@ -80,8 +82,12 @@ contract ERC20BridgedTest is Test {
         public
     {
         vm.assume(
-            from != to && from != address(0) && to != address(0)
-                && amount <= initialBalance
+            from != to 
+            && from != address(0) 
+            && to != address(0)
+            && amount <= initialBalance 
+            && from != fakeBridge
+            && to != fakeBridge
         );
         vm.startPrank(fakeBridge);
         token.transfer(from, initialBalance);

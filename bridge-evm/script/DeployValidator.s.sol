@@ -11,7 +11,8 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 contract DeployValidator is DeployerBase {
 
     function run() public override {
-        vm.startBroadcast();
+        getDeployer();
+        vm.startBroadcast(deployer.privateKey);
 
         getAuthority();
 

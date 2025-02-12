@@ -34,6 +34,7 @@ library PayloadUtils {
         bytes32 messageHash = keccak256(
             abi.encode(
                 payload.tokenAddress,
+                payload.externalTokenAddress,
                 payload.amountToSend,
                 payload.feeAmount,
                 payload.timestamp,

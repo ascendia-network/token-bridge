@@ -1,5 +1,4 @@
 const { hashMessage, AbiCoder, keccak256, getBytes } = require('ethers');
-
 function full2mini(
   from,
   to,

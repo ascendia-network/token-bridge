@@ -27,6 +27,7 @@ contract PayloadUtilsTest is Test {
 
     function test_fuzz_payload2hash(
         bytes32 tokenAddress, // address of the token contract
+        bytes32 externalTokenAddress, // address of the external token contract
         uint256 amountToSend, // amount of the tokens to be sent
         uint256 feeAmount, // amount of the fee
         uint256 timestamp, // timestamp of the fee was generated
@@ -35,9 +36,10 @@ contract PayloadUtilsTest is Test {
     )
         public
     {
-        string[] memory runJsInputs = new string[](8);
+        string[] memory runJsInputs = new string[](9);
         BridgeTypes.SendPayload memory payload = BridgeTypes.SendPayload({
             tokenAddress: tokenAddress,
+            externalTokenAddress: externalTokenAddress,
             amountToSend: amountToSend,
             feeAmount: feeAmount,
             timestamp: timestamp,
@@ -49,11 +51,12 @@ contract PayloadUtilsTest is Test {
         runJsInputs[0] = "node";
         runJsInputs[1] = "./test/differential_testing/payload2hash.js";
         runJsInputs[2] = Strings.toHexString(uint256(tokenAddress), 32);
-        runJsInputs[3] = Strings.toHexString(amountToSend, 32);
-        runJsInputs[4] = Strings.toHexString(feeAmount, 32);
-        runJsInputs[5] = Strings.toHexString(timestamp, 32);
-        runJsInputs[6] = Strings.toHexString(flags, 32);
-        runJsInputs[7] = iToHex(flagData);
+        runJsInputs[3] = Strings.toHexString(uint256(externalTokenAddress), 32);
+        runJsInputs[4] = Strings.toHexString(amountToSend, 32);
+        runJsInputs[5] = Strings.toHexString(feeAmount, 32);
+        runJsInputs[6] = Strings.toHexString(timestamp, 32);
+        runJsInputs[7] = Strings.toHexString(flags, 32);
+        runJsInputs[8] = iToHex(flagData);
 
         // Run command and capture output
         bytes memory jsResult = vm.ffi(runJsInputs);

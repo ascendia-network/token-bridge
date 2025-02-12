@@ -5,7 +5,12 @@ pragma abicoder v2;
 interface ITokenManager {
 
     struct ExternalToken {
-        uint256 chainId;
+        bytes32 externalTokenAddress;
+        address tokenAddress;
+        uint8 decimals;
+    }
+
+    struct ExternalTokenUnmapped {
         bytes32 externalTokenAddress;
         uint8 decimals;
     }
@@ -16,18 +21,15 @@ interface ITokenManager {
 
     /// Emits when external token is mapped to the bridge
     /// @param token address of the token
-    /// @param chainId chain id of the external token
     /// @param externalTokenAddress external token address
     event TokenMapped(
         address indexed token,
-        uint256 chainId,
         bytes32 indexed externalTokenAddress
     );
 
     /// Emits when external token is unmapped from the bridge
-    /// @param chainId chain id of the external token
     /// @param externalTokenAddress external token address
-    event TokenUnmapped(uint256 chainId, bytes32 indexed externalTokenAddress);
+    event TokenUnmapped(bytes32 indexed externalTokenAddress);
 
     /// Emits when token is deployed from the bridge
     /// @param name name of the token
@@ -89,24 +91,11 @@ interface ITokenManager {
         view
         returns (bool isBridgable);
 
-    /// Check if the token is bridgable
-    /// @param token address of the token
-    /// @return isBridgable true if the token is bridgable
-    function bridgableTokenTo(
-        address token,
-        uint256 chainId
-    )
-        external
-        view
-        returns (bool isBridgable);
-
     /// Get external token address
-    /// @param token address of the token
-    /// @param chainId chain id of the external token
+    /// @param externalTokenAddress address of the external token
     /// @return externalToken external token structure
-    function token2external(
-        address token,
-        uint256 chainId
+    function externalToken(
+        bytes32 externalTokenAddress
     )
         external
         view
@@ -116,7 +105,6 @@ interface ITokenManager {
     /// @param externalTokenAddress external token address
     /// @return token address of the token
     function external2token(
-        uint256 chainId,
         bytes32 externalTokenAddress
     )
         external
@@ -133,12 +121,12 @@ interface ITokenManager {
 
     /// Add token to the bridge
     /// @param token address of the token
-    /// @param externalTokens external tokens that should be mapped to the token
+    /// @param externalToken external token that should be mapped to the token
     /// @param paused true if the token should be paused at the start
     /// @return success true if the token was added successfully
     function addToken(
         address token,
-        ExternalToken[] calldata externalTokens,
+        ExternalTokenUnmapped calldata externalToken,
         bool paused
     )
         external
@@ -146,21 +134,21 @@ interface ITokenManager {
 
     /// Add token to the bridge with default paused state
     /// @param token address of the token
-    /// @param externalTokens external tokens that should be mapped to the token
+    /// @param externalToken external token that should be mapped to the token
     /// @return success true if the token was added
     function addToken(
         address token,
-        ExternalToken[] calldata externalTokens
+        ExternalTokenUnmapped calldata externalToken
     )
         external
         returns (bool success);
 
     /// Map external token address to token
-    /// @param externalTokens external tokens that should be mapped to the token
+    /// @param externalToken external token that should be mapped to the token
     /// @param token address of the token
     /// @return success true if the token was added
-    function mapExternalTokens(
-        ExternalToken[] calldata externalTokens,
+    function mapExternalToken(
+        ExternalTokenUnmapped calldata externalToken,
         address token
     )
         external
@@ -170,7 +158,6 @@ interface ITokenManager {
     /// @param externalTokenAddress external token address
     /// @return success true if the token was removed
     function unmapExternalToken(
-        uint256 chainId,
         bytes32 externalTokenAddress
     )
         external
@@ -179,13 +166,13 @@ interface ITokenManager {
     /// Deploy external ERC20 token to chain
     /// @dev This function should be called by admin to deploy external token to the chain.
     /// @dev This token will be used for bridging as minting and burning. For more details see `ERC20Bridged` contract.
-    /// @param externalToken external token address that will mapped to the token
+    /// @param externalToken external token data
     /// @param name name of the token
     /// @param symbol symbol of the token
     /// @param decimals decimals of the token
     /// @return token address of the token
     function deployExternalTokenERC20(
-        ExternalToken calldata externalToken,
+        ExternalTokenUnmapped calldata externalToken,
         string calldata name,
         string calldata symbol,
         uint8 decimals

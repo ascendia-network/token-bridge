@@ -1,6 +1,6 @@
 import { type Context, type Event } from "ponder:registry";
 
-import { claimed, receipt, receiptMeta } from "ponder:schema";
+import { receiptsClaimed, receiptsSent, receiptMeta } from "ponder:schema";
 
 export async function saveReceiptSend(
   context: Context,
@@ -13,7 +13,7 @@ export async function saveReceiptSend(
   };
 
   const entity = await context.db
-    .insert(receipt)
+    .insert(receiptsSent)
     .values(receiptEntry)
     .onConflictDoNothing();
 
@@ -51,7 +51,7 @@ export async function saveReceiptWithdraw(
   };
 
   const entity = await context.db
-    .insert(claimed)
+    .insert(receiptsClaimed)
     .values(receiptEntry)
     .onConflictDoNothing();
   if (entity) {

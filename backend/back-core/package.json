@@ -17,7 +17,6 @@
     "@hono/zod-validator": "^0.4.2",
     "@ponder/client": "^0.9.2",
     "@solana/web3.js": "^1.98.0",
-    "b58": "^4.0.3",
     "bs58": "^6.0.0",
     "decimal.js": "^10.5.0",
     "drizzle-orm": "^0.39.1",
@@ -32,12 +31,12 @@
     "@typescript-eslint/eslint-plugin": "^8.24.0",
     "@typescript-eslint/parser": "^8.24.0",
     "eslint": "^9.20.1",
-    "eslint-config-prettier": "^10.0.1"
+    "eslint-config-prettier": "^10.0.1",
+    "dotenv": "^16.4.7"
   },
   "devDependencies": {
     "@types/node": "^20.11.17",
     "@types/pg": "^8.11.11",
-    "dotenv": "^16.4.7",
     "drizzle-kit": "^0.30.4",
     "postgres": "^3.4.5",
     "tsx": "^4.7.1"

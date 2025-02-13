@@ -52,7 +52,16 @@ export const receiptsClaimed = indexerSolana.table(
 export const receiptsSent = indexerSolana.table(
   "receiptsSent",
   {
-    receiptId: text("receipt_id").notNull(),
+    receiptId: text("receipt_id")
+      .notNull()
+      .$defaultFn(
+        (): string =>
+          `${receiptsClaimed.chainFrom}_${receiptsClaimed.chainTo}_${receiptsClaimed.eventId}`
+      )
+      .$onUpdateFn(
+        (): string =>
+          `${receiptsClaimed.chainFrom}_${receiptsClaimed.chainTo}_${receiptsClaimed.eventId}`
+      ),
     timestamp: numeric({ precision: 78, scale: 0 }).notNull(),
     bridgeAddress: text("bridge_address").notNull(),
     from: text().notNull(),

@@ -26,8 +26,8 @@ pub mod multisig_nonce {
         instructions::set_pause(ctx, pause)
     }
 
-    pub fn lock(ctx: Context<Lock>, amount: u64, destination: String) -> Result<()> {
-        instructions::lock(ctx, amount, destination)
+    pub fn lock(ctx: Context<Lock>, serialized_args: Vec<u8>, recipient: [u8; 20]) -> Result<()> {
+        instructions::lock(ctx, serialized_args, recipient)
     }
 
    pub fn unlock(ctx: Context<Unlock>, serialized_args: Vec<u8>) -> Result<()> {

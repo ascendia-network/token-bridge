@@ -49,10 +49,27 @@ pub enum CustomError {
 }
 
 
+
+#[derive(BorshSerialize, BorshDeserialize, Debug)]
+pub struct SendPayload {
+    pub token_address: Pubkey,
+    pub token_address_to: [u8; 20],
+    pub amount_to_send: u64,
+    pub fee_amount: u64,
+    pub chainFrom: u64,
+    pub timestamp: u64,
+    pub flags: [u8; 32],
+    pub flag_data: Vec<u8>,
+}
+
+
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct ReceivePayload {
     pub to: Pubkey,
     pub token_address_to: Pubkey,
-    pub amount: u64,
+    pub amount_to: u64,
+    pub chainTo: u64,
+    pub flags: [u8; 32],
+    pub flag_data: Vec<u8>,
     pub nonce: u64,
 }

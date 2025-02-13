@@ -67,6 +67,8 @@ pub fn unlock(ctx: Context<Unlock>, serialized_args: Vec<u8>) -> Result<()> {
     let deserialized_args = ReceivePayload::try_from_slice(&serialized_args).map_err(|_| error!(CustomError::InvalidSerialization))?;
     let args_hash = hash(&serialized_args);
 
+
+    // check signature
     let ix = load_instruction_at_checked(0, &ctx.accounts.ix_sysvar.to_account_info())?;
     let signed_message = &ix.data[ix.data.len().saturating_sub(32)..];
     let signer_pubkey = Pubkey::try_from_slice(&ix.data[ix.data.len().saturating_sub(32+32)..ix.data.len().saturating_sub(32)]);
@@ -74,8 +76,13 @@ pub fn unlock(ctx: Context<Unlock>, serialized_args: Vec<u8>) -> Result<()> {
     require!(signed_message == args_hash.to_bytes(), CustomError::InvalidSignature);
     require!(signer_pubkey? == ctx.accounts.state.admin, CustomError::InvalidSignature);
     require!(deserialized_args.nonce == nonce.nonce_counter, CustomError::InvalidNonce);
+    // todo check chain id
 
 
+    // todo native token bridgring
+
+
+    // transfer tokens
     let seeds = &[TokenConfig::SEED_PREFIX.as_bytes(), bridge_token.token.as_ref(), &[bridge_token.bump]];
     let signer_seeds = &[&seeds[..]];
 
@@ -86,15 +93,19 @@ pub fn unlock(ctx: Context<Unlock>, serialized_args: Vec<u8>) -> Result<()> {
     };
 
     let cpi_ctx = CpiContext::new_with_signer(ctx.accounts.token_program.to_account_info(), cpi_accounts,            signer_seeds        );
-    token::transfer(cpi_ctx, deserialized_args.amount)?;
+    token::transfer(cpi_ctx, deserialized_args.amount_to)?;
 
 
+    // update user nonce
     nonce.nonce_counter += 1;
+
+
+    // event
     msg!(
         "Unlock, token: {}, to: {}, amount: {}",
         ctx.accounts.mint.key(),
         ctx.accounts.receiver.key(),
-        deserialized_args.amount
+        deserialized_args.amount_to
     );
     Ok(())
 }

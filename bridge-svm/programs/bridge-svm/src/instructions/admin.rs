@@ -62,10 +62,6 @@ pub struct UpdateState<'info> {
 }
 
 
-
-
-
-
 pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
     let state = &mut ctx.accounts.state;
     state.admin = ctx.accounts.admin.key();
@@ -88,5 +84,19 @@ pub fn initialize_token(ctx: Context<CreateTokenAccount>, amb_token: [u8; 20]) -
 
 pub fn set_pause(ctx: Context<UpdateState>, pause: bool) -> Result<()> {
     ctx.accounts.state.pause = pause;
+    Ok(())
+}
+
+pub fn withdraw(ctx: Context<UpdateState>, amount: u64) -> Result<()> {
+    let vault = &ctx.accounts.state;
+    let user = &ctx.accounts.authority;
+
+    // Ensure the vault has enough balance
+    require!(**vault.to_account_info().lamports.borrow() >= amount, ErrorCode::RequireGteViolated);
+
+    // Transfer SOL from vault to user
+    **vault.to_account_info().try_borrow_mut_lamports()? -= amount;
+    **user.to_account_info().try_borrow_mut_lamports()? += amount;
+
     Ok(())
 }

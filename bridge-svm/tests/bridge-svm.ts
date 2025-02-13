@@ -24,7 +24,14 @@ import nacl from "tweetnacl";
 
 import assert from "assert";
 import { Buffer } from "buffer";
-import { hexToUint8Array, newEd25519Instruction, serializeReceivePayload } from "./utils";
+import {
+  hexToUint8Array,
+  newEd25519Instruction,
+  ReceivePayload,
+  SendPayload,
+  serializeReceivePayload,
+  serializeSendPayload
+} from "./utils";
 import { keccak_256 } from '@noble/hashes/sha3';
 
 describe("my-project", () => {
@@ -131,8 +138,29 @@ describe("my-project", () => {
     console.log("tokenBalanceBridge", tokenBalanceBridge)
 
 
+
+    const ambTokenAddress = hexToUint8Array("0x1111472FCa4260505EcE4AcD07717CADa41c1111");
+    const receiverAddress = hexToUint8Array("0x1111472FCa4260505EcE4AcD07717CADa41c1111");
+
+    const value: SendPayload = {
+      tokenAddress: tokenMint1.publicKey.toBytes(),
+      tokenAddressTo: ambTokenAddress,
+      amountToSend: 50,
+      feeAmount: 20,
+      chainFrom: 0x736F6C616E61,
+      timestamp: Date.now(),
+      flags: new Uint8Array(32),
+      flagData: new Uint8Array(0),
+    };
+    const encoded = serializeSendPayload(value);
+    const message = keccak_256(encoded)
+    const signature = nacl.sign.detached(message, admin.secretKey);
+
+
+    const verifyInstruction = newEd25519Instruction(1, message, [admin.publicKey.toBytes()], [signature]);
+
     // Lock tokens
-    await program.methods.lock(new anchor.BN(100), "0x228").accounts({
+    const sendInstruction = await program.methods.lock(encoded, receiverAddress).accounts({
       state: state_pda,
       sender: user.publicKey,
       sender_token_account: user_token1_ata,
@@ -141,11 +169,17 @@ describe("my-project", () => {
       mint: tokenMint1.publicKey,
       tokenProgram: TOKEN_PROGRAM_ID,
       system_program: SystemProgram.programId,
-    }).signers([user]).rpc();
+    }).signers([user]).instruction();
+
+
+
+    const tx = new Transaction().add(verifyInstruction, sendInstruction);
+    tx.feePayer = user.publicKey;
+    const txSignature = await sendAndConfirmTransaction(connection, tx, [user], { commitment: 'confirmed' }); // wait for transaction to be confirmed
+
 
     const accountState = await program.account.globalState.fetch(state_pda);
     assert.ok(+accountState.nonce === 1);
-
 
     const tokenBalance2 = await connection.getTokenAccountBalance(user_token1_ata);
     console.log(tokenBalance2)
@@ -161,19 +195,26 @@ describe("my-project", () => {
     const [nonceAccount] = PublicKey.findProgramAddressSync([Buffer.from("nonce"), user.publicKey.toBuffer()], program.programId);
     console.log("nonceAccount", nonceAccount.toBase58());
 
-    const value = {
+
+
+    const value: ReceivePayload = {
       to: user.publicKey.toBytes(),
       tokenAddressTo: tokenMint1.publicKey.toBytes(),
-      amount: 50,
+      amountTo: 50,
+      chainTo: 0x736F6C616E61,
+      flags: new Uint8Array(32),
+      flagData: new Uint8Array(0),
       nonce: 0,
     };
     const encoded = serializeReceivePayload(value);
-    const message = keccak_256(Buffer.from(encoded))
+    const message = keccak_256(encoded)
     const signature = nacl.sign.detached(message, admin.secretKey);
 
 
     const verifyInstruction = newEd25519Instruction(1, message, [admin.publicKey.toBytes()], [signature]);
-    const receiveInstruction = await program.methods.unlock(Buffer.from(encoded)).accounts({
+
+
+    const receiveInstruction = await program.methods.unlock(encoded).accounts({
       state: state_pda,
       receiver: user.publicKey,
       receiver_token_account: user_token1_ata,

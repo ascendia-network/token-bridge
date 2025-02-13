@@ -9,11 +9,9 @@
 
 export function bigIntToBuffer(value: bigint, byteLength: number): Buffer {
   const buffer = Buffer.alloc(byteLength);
-  if (byteLength === 8) {
-    buffer.writeBigUInt64BE(value);
-  } else if (byteLength === 4) {
-    buffer.writeUInt32BE(Number(value));
-  }
+  const valueBuffer = Buffer.from(value.toString(16).padStart(byteLength * 2, "0"), "hex");
+  valueBuffer.copy(buffer, byteLength - valueBuffer.length);
   return buffer;
 }
+
 

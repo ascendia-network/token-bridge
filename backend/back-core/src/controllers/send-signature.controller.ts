@@ -110,13 +110,13 @@ export class SendSignatureController {
     const signer = Keypair.fromSecretKey(bs58.decode(sendSignerPK));
 
     const payload = Buffer.concat([
-      bigIntToBuffer(BigInt(sendPayload.destChainId), 8),
+      bigIntToBuffer(BigInt(sendPayload.destChainId), 32),
       Buffer.from(sendPayload.tokenAddress, "hex"),
       Buffer.from(sendPayload.externalTokenAddress, "hex"),
-      bigIntToBuffer(BigInt(sendPayload.amountToSend), 8),
-      bigIntToBuffer(BigInt(sendPayload.feeAmount), 8),
-      bigIntToBuffer(BigInt(sendPayload.timestamp), 8),
-      bigIntToBuffer(BigInt(sendPayload.flags), 4),
+      bigIntToBuffer(BigInt(sendPayload.amountToSend), 32),
+      bigIntToBuffer(BigInt(sendPayload.feeAmount), 32),
+      bigIntToBuffer(BigInt(sendPayload.timestamp), 32),
+      bigIntToBuffer(BigInt(sendPayload.flags), 32),
       Buffer.from(sendPayload.flagData, "hex")
     ]);
 

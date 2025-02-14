@@ -3,6 +3,11 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 
+import {
+    UnsafeUpgrades,
+    Upgrades
+} from "openzeppelin-foundry-upgrades/Upgrades.sol";
+
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 import {ERC20Permit} from
@@ -17,8 +22,6 @@ import {
 } from "../../contracts/interface/BridgeTypes.sol";
 import {ITokenManager} from "../../contracts/interface/ITokenManager.sol";
 
-import {Bridge} from "../../contracts/Bridge.sol";
-
 import {PayloadUtils} from "../../contracts/utils/PayloadUtils.sol";
 import {ReceiptUtils} from "../../contracts/utils/ReceiptUtils.sol";
 
@@ -26,7 +29,7 @@ import {SigUtils} from "../SigUtils.sol";
 import {BridgeTestBase} from "./BridgeBase.t.sol";
 
 // Huge mess cuz Stack too deep error
-abstract contract BridgeSendTest is BridgeTestBase {
+abstract contract BridgeSolanaSendTest is BridgeTestBase {
 
     using ReceiptUtils for BridgeTypes.FullReceipt;
     using ReceiptUtils for BridgeTypes.MiniReceipt;
@@ -128,7 +131,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
             chainTo: chainDest,
             eventId: bridgeInstance.nextEventID(),
             flags: 0,
-            data: ""
+            data: abi.encodePacked(uint64(bridgeInstance.nonces(recipient)))
         });
         payloadSignature = signPayload(payload, payloadSigner.PK);
     }
@@ -267,6 +270,9 @@ abstract contract BridgeSendTest is BridgeTestBase {
         );
         // Next event ID incremented
         assertEq(bridgeInstance.nextEventID(), receipt.eventId + 1);
+        assertEq(
+            bridgeInstance.nonces(receipt.to), bytesToUint(receipt.data) + 1
+        );
     }
 
     function sendNative(
@@ -293,6 +299,9 @@ abstract contract BridgeSendTest is BridgeTestBase {
         );
         // Next event ID incremented
         assertEq(bridgeInstance.nextEventID(), 1);
+        assertEq(
+            bridgeInstance.nonces(receipt.to), bytesToUint(receipt.data) + 1
+        );
     }
 
     function send(

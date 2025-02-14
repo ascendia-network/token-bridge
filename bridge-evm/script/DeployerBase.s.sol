@@ -36,8 +36,8 @@ contract DeployerBase is Script {
 
     struct Deployment {
         string contractName;
-        address proxyAddress;
         address implementationAddress;
+        address proxyAddress;
     }
     string deploymentsKey = "deployments";
 

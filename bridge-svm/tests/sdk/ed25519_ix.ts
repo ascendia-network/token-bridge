@@ -20,7 +20,16 @@ const ED25519_INSTRUCTION_LAYOUT = BufferLayout.struct<any>([
 
 // multuple signatures but only one message!
 // https://docs.rs/solana-sdk/2.1.5/src/solana_sdk/ed25519_instruction.rs.html
-export function newEd25519Instruction(numSignatures, message, pubkeys, signatures, instructionIndex = 0xffff) {
+export function newEd25519Instruction(
+  message: Uint8Array,
+  pubkeys: Uint8Array[],
+  signatures: Uint8Array[],
+  instructionIndex: number = 0xffff
+) {
+
+  const numSignatures = signatures.length;
+  if (numSignatures !== pubkeys.length) throw new Error(`number of signatures and public keys must match`);
+
   // Calculate offsets
   const offsetsDataEnd = SIGNATURE_OFFSETS_START + (numSignatures * SIGNATURE_OFFSETS_SERIALIZED_SIZE);
   const signsOffset = offsetsDataEnd;

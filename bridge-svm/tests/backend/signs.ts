@@ -10,11 +10,11 @@ export const receiveSigners = [anchor.web3.Keypair.generate(), anchor.web3.Keypa
 
 
 
-export async function getReceivePayload(user: PublicKey, token: PublicKey) {
+export async function getReceivePayload(user: PublicKey) {
   // get from db
   const value: ReceivePayload = {
     to: user.toBytes(),
-    tokenAddressTo: token.toBytes(),
+    tokenAddressTo: hexToUint8Array("0x999999999988888888888888777777777777776666666666666665555555555"),
     amountTo: 50,
     chainTo: SOLANA_CHAIN_ID,
     flags: new Uint8Array(32),  // todo
@@ -23,7 +23,7 @@ export async function getReceivePayload(user: PublicKey, token: PublicKey) {
   };
 
   const payload = serializeReceivePayload(value);
-  return signMessage(payload, receiveSigners)
+  return {value, ...signMessage(payload, receiveSigners)};
 }
 
 

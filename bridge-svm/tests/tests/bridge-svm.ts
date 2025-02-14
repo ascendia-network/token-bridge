@@ -148,7 +148,7 @@ describe("my-project", () => {
     const payload = serializeSendPayload(value);
     const { message, signers, signatures } = signMessage(payload, [sendSigner]);
 
-    const verifyInstruction = newEd25519Instruction(1, message, signers, signatures);
+    const verifyInstruction = newEd25519Instruction(message, signers, signatures);
     // Lock tokens
     const sendInstruction = await bridgeProgram.methods.lock(payload, userTo).accounts({
       sender: user.publicKey,
@@ -201,7 +201,7 @@ describe("my-project", () => {
 
     const payload = serializeReceivePayload(value);
     const {message, signers, signatures} = signMessage(payload, receiveSigners);
-    const verifyInstruction = newEd25519Instruction(5, message, signers, signatures);
+    const verifyInstruction = newEd25519Instruction(message, signers, signatures);
 
     const receiveInstruction = await bridgeProgram.methods.unlock(payload).accounts({
       receiver: user.publicKey,

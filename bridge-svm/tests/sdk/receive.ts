@@ -8,15 +8,15 @@ import { getReceivePayload } from "../backend/signs";
 async function receive(
   connection: Connection,
   user: Signer,
-  token: PublicKey,
   bridgeProgram: Program<MultisigNonce>,
-  flags: any  // todo
 ) {
+  const {value, payload, message, signers, signatures} = await getReceivePayload(user.publicKey);
+  const token = new PublicKey(value.tokenAddressTo)
+
   const user_token_ata = (await getOrCreateUserATA(connection, user, token)).address;
   const nonceAccount = getUserNoncePda(user.publicKey, bridgeProgram.programId);
 
-  const {payload, message, signers, signatures} = await getReceivePayload(user.publicKey, token);
-  const verifyInstruction = newEd25519Instruction(5, message, signers, signatures);
+  const verifyInstruction = newEd25519Instruction(message, signers, signatures);
 
   const receiveInstruction = await bridgeProgram.methods.unlock(payload).accounts({
     receiver: user.publicKey,

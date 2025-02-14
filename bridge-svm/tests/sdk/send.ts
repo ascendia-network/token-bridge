@@ -19,7 +19,7 @@ async function send(
   const user_token_ata = (await getOrCreateUserATA(connection, userFrom, tokenFrom)).address;
 
   const { payload, message, signers, signatures } = await getSendPayload(tokenFrom, tokenTo, amountToSend, flags);
-  const verifyInstruction = newEd25519Instruction(1, message, signers, signatures);
+  const verifyInstruction = newEd25519Instruction(message, signers, signatures);
 
   // Lock tokens
   const sendInstruction = await bridgeProgram.methods.lock(payload, hexToUint8Array(userTo)).accounts({

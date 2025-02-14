@@ -7,9 +7,9 @@
   },
   "fees": {
     "networks": {
-        "amb": {
-            "minBridgeFeeUSD": 0.01,
-        }
+      "amb": {
+        "minBridgeFeeUSD": 0.01
+      }
     }
   }
 }

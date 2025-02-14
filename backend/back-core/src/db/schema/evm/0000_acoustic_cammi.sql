@@ -18,18 +18,18 @@ CREATE TABLE "indexer_evm"."receiptsMeta" (
 	"transaction_index" integer
 );
 --> statement-breakpoint
-CREATE TABLE "indexer_evm"."bridged_tokens" (
-	"token_address_hex" text PRIMARY KEY NOT NULL,
-	"token_address" text,
-	"is_bridged" boolean DEFAULT false NOT NULL,
-	"is_paused" boolean DEFAULT true NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE "indexer_evm"."bridges" (
 	"bridge_address" text PRIMARY KEY NOT NULL,
 	"fee_receiver" text NOT NULL,
 	"native_send_amount" numeric(78, 0) NOT NULL,
 	"validator_address" text NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "indexer_evm"."bridged_tokens" (
+	"token_address_hex" text PRIMARY KEY NOT NULL,
+	"token_address" text,
+	"is_bridged" boolean DEFAULT false NOT NULL,
+	"is_paused" boolean DEFAULT true NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "indexer_evm"."bridge_to_token" (

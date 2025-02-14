@@ -19,18 +19,18 @@ export const receiptsMetaInIndexerEvm = indexerEvm.table("receiptsMeta", {
 	transactionIndex: integer("transaction_index"),
 });
 
-export const bridgedTokensInIndexerEvm = indexerEvm.table("bridged_tokens", {
-	tokenAddressHex: text("token_address_hex").primaryKey().notNull(),
-	tokenAddress: text("token_address"),
-	isBridged: boolean("is_bridged").default(false).notNull(),
-	isPaused: boolean("is_paused").default(true).notNull(),
-});
-
 export const bridgesInIndexerEvm = indexerEvm.table("bridges", {
 	bridgeAddress: text("bridge_address").primaryKey().notNull(),
 	feeReceiver: text("fee_receiver").notNull(),
 	nativeSendAmount: numeric("native_send_amount", { precision: 78, scale:  0 }).notNull(),
 	validatorAddress: text("validator_address").notNull(),
+});
+
+export const bridgedTokensInIndexerEvm = indexerEvm.table("bridged_tokens", {
+	tokenAddressHex: text("token_address_hex").primaryKey().notNull(),
+	tokenAddress: text("token_address"),
+	isBridged: boolean("is_bridged").default(false).notNull(),
+	isPaused: boolean("is_paused").default(true).notNull(),
 });
 
 export const bridgeToTokenInIndexerEvm = indexerEvm.table("bridge_to_token", {

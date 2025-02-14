@@ -23,11 +23,12 @@ export interface Config {
   };
 }
 
-export const stage = env.STAGE || "prod";
+export const stage = env.STAGE || "test";
 
 export const sendSignerPK = env.SEND_SIGNER_PK!;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-export const stageConfig: Config = require(path.resolve(__dirname, `../config/${stage}.json`));
+export const stageConfig: Config = await import(`../config/${stage}.json`, { assert: { type: "json" } }).then(m => m.default);
+
+
 
 
 

@@ -53,6 +53,43 @@
       "policies": {},
       "isRLSEnabled": false
     },
+    "indexer_evm.bridges": {
+      "name": "bridges",
+      "schema": "indexer_evm",
+      "columns": {
+        "bridge_address": {
+          "name": "bridge_address",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "fee_receiver": {
+          "name": "fee_receiver",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "native_send_amount": {
+          "name": "native_send_amount",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "validator_address": {
+          "name": "validator_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
     "indexer_evm.bridged_tokens": {
       "name": "bridged_tokens",
       "schema": "indexer_evm",
@@ -82,43 +119,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {},
-      "policies": {},
-      "isRLSEnabled": false
-    },
-    "indexer_evm.bridges": {
-      "name": "bridges",
-      "schema": "indexer_evm",
-      "columns": {
-        "bridge_address": {
-          "name": "bridge_address",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "fee_receiver": {
-          "name": "fee_receiver",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "native_send_amount": {
-          "name": "native_send_amount",
-          "type": "numeric(78, 0)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "validator_address": {
-          "name": "validator_address",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
         }
       },
       "indexes": {},

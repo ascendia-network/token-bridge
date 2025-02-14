@@ -11,7 +11,6 @@ import {IERC20Metadata} from
     "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IERC20Permit} from
     "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
-import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import {BridgeFlags} from "../interface/BridgeTypes.sol";
 import {IBridge} from "../interface/IBridge.sol";
@@ -35,7 +34,6 @@ abstract contract BridgeUpgradeable is
     using AddressUtils for bytes32;
     using ReceiptUtils for FullReceipt;
     using ReceiptUtils for MiniReceipt;
-    using SafeCast for uint256;
     /// @custom:storage-location erc7201:airdao.bridge.main.storage
 
     struct BridgeStorage {
@@ -454,6 +452,34 @@ abstract contract BridgeUpgradeable is
             }
         }
     }
+    /// Generate the receipt data
+    /// @param sender address of the sender
+    /// @param recipient address of the recipient on the other chain
+    /// @param amountTo amount of tokens to receive
+    /// @param payload send payload
+    /// @param externalToken_ external token data
+    /// @return receipt receipt data
+    function generateReceipt(
+        address sender,
+        bytes32 recipient,
+        uint256 amountTo,
+        SendPayload calldata payload,
+        ExternalToken memory externalToken_
+    ) internal virtual returns (FullReceipt memory){
+        return FullReceipt({
+            from: bytes32(uint256(uint160(sender))),
+            to: recipient,
+            tokenAddressFrom: payload.tokenAddress,
+            tokenAddressTo: externalToken_.externalTokenAddress,
+            amountFrom: payload.amountToSend,
+            amountTo: amountTo,
+            chainFrom: block.chainid,
+            chainTo: payload.destChainId,
+            eventId: _useNonce(address(this)),
+            flags: payload.flags >> 65, // remove sender flags
+            data: ""
+        });
+    }
 
     // -- common internals
 
@@ -478,19 +504,7 @@ abstract contract BridgeUpgradeable is
         ExternalToken memory externalToken_ =
             externalToken(payload.externalTokenAddress);
         _transferTokenToBridge(sender, tokenFrom, payload);
-        FullReceipt memory _receipt = FullReceipt({
-            from: bytes32(uint256(uint160(sender))),
-            to: recipient,
-            tokenAddressFrom: payload.tokenAddress,
-            tokenAddressTo: externalToken_.externalTokenAddress,
-            amountFrom: payload.amountToSend,
-            amountTo: amountTo,
-            chainFrom: block.chainid,
-            chainTo: payload.destChainId,
-            eventId: _useNonce(address(this)),
-            flags: payload.flags >> 65, // remove sender flags
-            data: abi.encodePacked(_useNonce(recipient).toUint64())
-        });
+        FullReceipt memory _receipt = generateReceipt(sender, recipient, amountTo, payload, externalToken_);
         _sendFee(payload.feeAmount);
         emit TokenLocked(_receipt);
         return _receipt;

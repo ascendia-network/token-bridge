@@ -256,7 +256,7 @@ contract DeployerBase is Script {
         addDeployment(
             Deployment({
                 contractName: "Validator",
-                proxyAddress: address(validator),
+                proxyAddress: proxy,
                 implementationAddress: Upgrades.getImplementationAddress(proxy)
             })
         );
@@ -314,7 +314,7 @@ contract DeployerBase is Script {
         addDeployment(
             Deployment({
                 contractName: "Bridge",
-                proxyAddress: address(bridge),
+                proxyAddress: proxy,
                 implementationAddress: Upgrades.getImplementationAddress(proxy)
             })
         );

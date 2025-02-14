@@ -19,11 +19,6 @@
       "contractName": "Bridge",
       "implementationAddress": "0x6D10438D535b9d8d279ea6be187366c42026d37b",
       "proxyAddress": "0x9579d503193b31b5E2d41B4820dc3154268219c0"
-    },
-    {
-      "contractName": "",
-      "implementationAddress": "0x0000000000000000000000000000000000000000",
-      "proxyAddress": "0x0000000000000000000000000000000000000000"
     }
   ]
 }

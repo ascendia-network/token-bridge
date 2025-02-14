@@ -1,9 +1,9 @@
-import type { AbiItem } from "viem";
+import { type AbiItem } from "viem";
 
 export const bridgeAbi = [
   {
     type: "receive",
-    stateMutability: "payable"
+    stateMutability: "payable",
   },
   {
     type: "function",
@@ -12,7 +12,7 @@ export const bridgeAbi = [
       {
         name: "token",
         type: "address",
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "externalToken_",
@@ -22,29 +22,29 @@ export const bridgeAbi = [
           {
             name: "externalTokenAddress",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "decimals",
             type: "uint8",
-            internalType: "uint8"
-          }
-        ]
+            internalType: "uint8",
+          },
+        ],
       },
       {
         name: "paused",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
     outputs: [
       {
         name: "success",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -53,7 +53,7 @@ export const bridgeAbi = [
       {
         name: "token",
         type: "address",
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "externalToken_",
@@ -63,24 +63,24 @@ export const bridgeAbi = [
           {
             name: "externalTokenAddress",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "decimals",
             type: "uint8",
-            internalType: "uint8"
-          }
-        ]
-      }
+            internalType: "uint8",
+          },
+        ],
+      },
     ],
     outputs: [
       {
         name: "success",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -90,10 +90,10 @@ export const bridgeAbi = [
       {
         name: "",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -102,17 +102,17 @@ export const bridgeAbi = [
       {
         name: "token",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
     outputs: [
       {
         name: "isBridgable_",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -126,74 +126,74 @@ export const bridgeAbi = [
           {
             name: "from",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "to",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "tokenAddressFrom",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "tokenAddressTo",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "amountFrom",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "amountTo",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "chainFrom",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "chainTo",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "eventId",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "flags",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "data",
             type: "bytes",
-            internalType: "bytes"
-          }
-        ]
+            internalType: "bytes",
+          },
+        ],
       },
       {
         name: "signature",
         type: "bytes",
-        internalType: "bytes"
-      }
+        internalType: "bytes",
+      },
     ],
     outputs: [
       {
         name: "success",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -207,59 +207,59 @@ export const bridgeAbi = [
           {
             name: "to",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "tokenAddressTo",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "amountTo",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "chainFrom",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "chainTo",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "eventId",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "flags",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "data",
             type: "bytes",
-            internalType: "bytes"
-          }
-        ]
+            internalType: "bytes",
+          },
+        ],
       },
       {
         name: "signature",
         type: "bytes",
-        internalType: "bytes"
-      }
+        internalType: "bytes",
+      },
     ],
     outputs: [
       {
         name: "success",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -273,39 +273,39 @@ export const bridgeAbi = [
           {
             name: "externalTokenAddress",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "decimals",
             type: "uint8",
-            internalType: "uint8"
-          }
-        ]
+            internalType: "uint8",
+          },
+        ],
       },
       {
         name: "name",
         type: "string",
-        internalType: "string"
+        internalType: "string",
       },
       {
         name: "symbol",
         type: "string",
-        internalType: "string"
+        internalType: "string",
       },
       {
         name: "decimals",
         type: "uint8",
-        internalType: "uint8"
-      }
+        internalType: "uint8",
+      },
     ],
     outputs: [
       {
         name: "token",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -314,17 +314,17 @@ export const bridgeAbi = [
       {
         name: "externalTokenAddress",
         type: "bytes32",
-        internalType: "bytes32"
-      }
+        internalType: "bytes32",
+      },
     ],
     outputs: [
       {
         name: "token",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -333,8 +333,8 @@ export const bridgeAbi = [
       {
         name: "externalTokenAddress",
         type: "bytes32",
-        internalType: "bytes32"
-      }
+        internalType: "bytes32",
+      },
     ],
     outputs: [
       {
@@ -345,22 +345,22 @@ export const bridgeAbi = [
           {
             name: "externalTokenAddress",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "tokenAddress",
             type: "address",
-            internalType: "address"
+            internalType: "address",
           },
           {
             name: "decimals",
             type: "uint8",
-            internalType: "uint8"
-          }
-        ]
-      }
+            internalType: "uint8",
+          },
+        ],
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -370,10 +370,10 @@ export const bridgeAbi = [
       {
         name: "feeReceiver_",
         type: "address",
-        internalType: "address payable"
-      }
+        internalType: "address payable",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -383,10 +383,10 @@ export const bridgeAbi = [
       {
         name: "validityWindow",
         type: "uint256",
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -395,31 +395,31 @@ export const bridgeAbi = [
       {
         name: "authority_",
         type: "address",
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "SAMB_",
         type: "address",
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "validator_",
         type: "address",
-        internalType: "contract IValidation"
+        internalType: "contract IValidation",
       },
       {
         name: "feeReceiver_",
         type: "address",
-        internalType: "address payable"
+        internalType: "address payable",
       },
       {
         name: "nativeSendAmount_",
         type: "uint256",
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
     outputs: [],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -433,69 +433,69 @@ export const bridgeAbi = [
           {
             name: "from",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "to",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "tokenAddressFrom",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "tokenAddressTo",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "amountFrom",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "amountTo",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "chainFrom",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "chainTo",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "eventId",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "flags",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "data",
             type: "bytes",
-            internalType: "bytes"
-          }
-        ]
-      }
+            internalType: "bytes",
+          },
+        ],
+      },
     ],
     outputs: [
       {
         name: "claimed",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -509,54 +509,54 @@ export const bridgeAbi = [
           {
             name: "to",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "tokenAddressTo",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "amountTo",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "chainFrom",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "chainTo",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "eventId",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "flags",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "data",
             type: "bytes",
-            internalType: "bytes"
-          }
-        ]
-      }
+            internalType: "bytes",
+          },
+        ],
+      },
     ],
     outputs: [
       {
         name: "claimed",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -565,17 +565,17 @@ export const bridgeAbi = [
       {
         name: "receiptHash",
         type: "bytes32",
-        internalType: "bytes32"
-      }
+        internalType: "bytes32",
+      },
     ],
     outputs: [
       {
         name: "claimed",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -585,10 +585,10 @@ export const bridgeAbi = [
       {
         name: "",
         type: "bytes4",
-        internalType: "bytes4"
-      }
+        internalType: "bytes4",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -602,29 +602,29 @@ export const bridgeAbi = [
           {
             name: "externalTokenAddress",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "decimals",
             type: "uint8",
-            internalType: "uint8"
-          }
-        ]
+            internalType: "uint8",
+          },
+        ],
       },
       {
         name: "token",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
     outputs: [
       {
         name: "success",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -634,10 +634,10 @@ export const bridgeAbi = [
       {
         name: "nativeSendAmount_",
         type: "uint256",
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -647,10 +647,10 @@ export const bridgeAbi = [
       {
         name: "nonce",
         type: "uint256",
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -659,17 +659,17 @@ export const bridgeAbi = [
       {
         name: "key",
         type: "uint256",
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
     outputs: [
       {
         name: "",
         type: "uint256",
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -678,17 +678,17 @@ export const bridgeAbi = [
       {
         name: "owner",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
     outputs: [
       {
         name: "",
         type: "uint256",
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -697,17 +697,17 @@ export const bridgeAbi = [
       {
         name: "key",
         type: "bytes32",
-        internalType: "bytes32"
-      }
+        internalType: "bytes32",
+      },
     ],
     outputs: [
       {
         name: "",
         type: "uint256",
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -716,17 +716,17 @@ export const bridgeAbi = [
       {
         name: "token",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
     outputs: [
       {
         name: "success",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -735,17 +735,17 @@ export const bridgeAbi = [
       {
         name: "token",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
     outputs: [
       {
         name: "isPaused",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -754,17 +754,17 @@ export const bridgeAbi = [
       {
         name: "token",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
     outputs: [
       {
         name: "success",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -774,10 +774,10 @@ export const bridgeAbi = [
       {
         name: "SAMB",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -786,12 +786,12 @@ export const bridgeAbi = [
       {
         name: "recipient",
         type: "bytes32",
-        internalType: "bytes32"
+        internalType: "bytes32",
       },
       {
         name: "chainTo",
         type: "uint256",
-        internalType: "uint256"
+        internalType: "uint256",
       },
       {
         name: "payload",
@@ -801,45 +801,45 @@ export const bridgeAbi = [
           {
             name: "tokenAddress",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "externalTokenAddress",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "amountToSend",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "feeAmount",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "timestamp",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "flags",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "flagData",
             type: "bytes",
-            internalType: "bytes"
-          }
-        ]
+            internalType: "bytes",
+          },
+        ],
       },
       {
         name: "payloadSignature",
         type: "bytes",
-        internalType: "bytes"
-      }
+        internalType: "bytes",
+      },
     ],
     outputs: [
       {
@@ -850,62 +850,62 @@ export const bridgeAbi = [
           {
             name: "from",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "to",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "tokenAddressFrom",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "tokenAddressTo",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "amountFrom",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "amountTo",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "chainFrom",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "chainTo",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "eventId",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "flags",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "data",
             type: "bytes",
-            internalType: "bytes"
-          }
-        ]
-      }
+            internalType: "bytes",
+          },
+        ],
+      },
     ],
-    stateMutability: "payable"
+    stateMutability: "payable",
   },
   {
     type: "function",
@@ -914,12 +914,12 @@ export const bridgeAbi = [
       {
         name: "recipient",
         type: "bytes32",
-        internalType: "bytes32"
+        internalType: "bytes32",
       },
       {
         name: "chainTo",
         type: "uint256",
-        internalType: "uint256"
+        internalType: "uint256",
       },
       {
         name: "payload",
@@ -929,65 +929,65 @@ export const bridgeAbi = [
           {
             name: "tokenAddress",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "externalTokenAddress",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "amountToSend",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "feeAmount",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "timestamp",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "flags",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "flagData",
             type: "bytes",
-            internalType: "bytes"
-          }
-        ]
+            internalType: "bytes",
+          },
+        ],
       },
       {
         name: "payloadSignature",
         type: "bytes",
-        internalType: "bytes"
+        internalType: "bytes",
       },
       {
         name: "_deadline",
         type: "uint256",
-        internalType: "uint256"
+        internalType: "uint256",
       },
       {
         name: "v",
         type: "uint8",
-        internalType: "uint8"
+        internalType: "uint8",
       },
       {
         name: "r",
         type: "bytes32",
-        internalType: "bytes32"
+        internalType: "bytes32",
       },
       {
         name: "s",
         type: "bytes32",
-        internalType: "bytes32"
-      }
+        internalType: "bytes32",
+      },
     ],
     outputs: [
       {
@@ -998,62 +998,62 @@ export const bridgeAbi = [
           {
             name: "from",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "to",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "tokenAddressFrom",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "tokenAddressTo",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "amountFrom",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "amountTo",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "chainFrom",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "chainTo",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "eventId",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "flags",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "data",
             type: "bytes",
-            internalType: "bytes"
-          }
-        ]
-      }
+            internalType: "bytes",
+          },
+        ],
+      },
     ],
-    stateMutability: "payable"
+    stateMutability: "payable",
   },
   {
     type: "function",
@@ -1062,11 +1062,11 @@ export const bridgeAbi = [
       {
         name: "newAuthority",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
     outputs: [],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -1075,11 +1075,11 @@ export const bridgeAbi = [
       {
         name: "newFeeReceiver",
         type: "address",
-        internalType: "address payable"
-      }
+        internalType: "address payable",
+      },
     ],
     outputs: [],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -1088,11 +1088,11 @@ export const bridgeAbi = [
       {
         name: "amount",
         type: "uint256",
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
     outputs: [],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -1101,11 +1101,11 @@ export const bridgeAbi = [
       {
         name: "newValidator",
         type: "address",
-        internalType: "contract IValidation"
-      }
+        internalType: "contract IValidation",
+      },
     ],
     outputs: [],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -1114,17 +1114,17 @@ export const bridgeAbi = [
       {
         name: "externalTokenAddress",
         type: "bytes32",
-        internalType: "bytes32"
-      }
+        internalType: "bytes32",
+      },
     ],
     outputs: [
       {
         name: "success",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -1133,17 +1133,17 @@ export const bridgeAbi = [
       {
         name: "token",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
     outputs: [
       {
         name: "success",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -1153,10 +1153,10 @@ export const bridgeAbi = [
       {
         name: "",
         type: "address",
-        internalType: "contract IValidation"
-      }
+        internalType: "contract IValidation",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "event",
@@ -1166,10 +1166,10 @@ export const bridgeAbi = [
         name: "authority",
         type: "address",
         indexed: false,
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "event",
@@ -1179,16 +1179,16 @@ export const bridgeAbi = [
         name: "changer",
         type: "address",
         indexed: true,
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "newFeeReceiver",
         type: "address",
         indexed: true,
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "event",
@@ -1198,10 +1198,10 @@ export const bridgeAbi = [
         name: "version",
         type: "uint64",
         indexed: false,
-        internalType: "uint64"
-      }
+        internalType: "uint64",
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "event",
@@ -1211,16 +1211,16 @@ export const bridgeAbi = [
         name: "changer",
         type: "address",
         indexed: true,
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "newNativeSendAmount",
         type: "uint256",
         indexed: false,
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "event",
@@ -1230,10 +1230,10 @@ export const bridgeAbi = [
         name: "token",
         type: "address",
         indexed: true,
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "event",
@@ -1243,28 +1243,28 @@ export const bridgeAbi = [
         name: "name",
         type: "string",
         indexed: false,
-        internalType: "string"
+        internalType: "string",
       },
       {
         name: "symbol",
         type: "string",
         indexed: false,
-        internalType: "string"
+        internalType: "string",
       },
       {
         name: "decimals",
         type: "uint8",
         indexed: false,
-        internalType: "uint8"
+        internalType: "uint8",
       },
       {
         name: "token",
         type: "address",
         indexed: false,
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "event",
@@ -1279,62 +1279,62 @@ export const bridgeAbi = [
           {
             name: "from",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "to",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "tokenAddressFrom",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "tokenAddressTo",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "amountFrom",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "amountTo",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "chainFrom",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "chainTo",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "eventId",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "flags",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "data",
             type: "bytes",
-            internalType: "bytes"
-          }
-        ]
-      }
+            internalType: "bytes",
+          },
+        ],
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "event",
@@ -1344,16 +1344,16 @@ export const bridgeAbi = [
         name: "token",
         type: "address",
         indexed: true,
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "externalTokenAddress",
         type: "bytes32",
         indexed: true,
-        internalType: "bytes32"
-      }
+        internalType: "bytes32",
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "event",
@@ -1363,10 +1363,10 @@ export const bridgeAbi = [
         name: "token",
         type: "address",
         indexed: true,
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "event",
@@ -1376,10 +1376,10 @@ export const bridgeAbi = [
         name: "token",
         type: "address",
         indexed: true,
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "event",
@@ -1394,47 +1394,47 @@ export const bridgeAbi = [
           {
             name: "to",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "tokenAddressTo",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "amountTo",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "chainFrom",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "chainTo",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "eventId",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "flags",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "data",
             type: "bytes",
-            internalType: "bytes"
-          }
-        ]
-      }
+            internalType: "bytes",
+          },
+        ],
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "event",
@@ -1444,10 +1444,10 @@ export const bridgeAbi = [
         name: "externalTokenAddress",
         type: "bytes32",
         indexed: true,
-        internalType: "bytes32"
-      }
+        internalType: "bytes32",
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "event",
@@ -1457,10 +1457,10 @@ export const bridgeAbi = [
         name: "token",
         type: "address",
         indexed: true,
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "event",
@@ -1470,16 +1470,16 @@ export const bridgeAbi = [
         name: "changer",
         type: "address",
         indexed: true,
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "newValidator",
         type: "address",
         indexed: true,
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "error",
@@ -1488,9 +1488,9 @@ export const bridgeAbi = [
       {
         name: "authority",
         type: "address",
-        internalType: "address"
-      }
-    ]
+        internalType: "address",
+      },
+    ],
   },
   {
     type: "error",
@@ -1499,14 +1499,14 @@ export const bridgeAbi = [
       {
         name: "caller",
         type: "address",
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "delay",
         type: "uint32",
-        internalType: "uint32"
-      }
-    ]
+        internalType: "uint32",
+      },
+    ],
   },
   {
     type: "error",
@@ -1515,9 +1515,9 @@ export const bridgeAbi = [
       {
         name: "caller",
         type: "address",
-        internalType: "address"
-      }
-    ]
+        internalType: "address",
+      },
+    ],
   },
   {
     type: "error",
@@ -1526,9 +1526,9 @@ export const bridgeAbi = [
       {
         name: "hash",
         type: "bytes32",
-        internalType: "bytes32"
-      }
-    ]
+        internalType: "bytes32",
+      },
+    ],
   },
   {
     type: "error",
@@ -1537,34 +1537,34 @@ export const bridgeAbi = [
       {
         name: "key",
         type: "uint256",
-        internalType: "uint256"
+        internalType: "uint256",
       },
       {
         name: "currentNonce",
         type: "uint256",
-        internalType: "uint256"
-      }
-    ]
+        internalType: "uint256",
+      },
+    ],
   },
   {
     type: "error",
     name: "InvalidAmount",
-    inputs: []
+    inputs: [],
   },
   {
     type: "error",
     name: "InvalidChain",
-    inputs: []
+    inputs: [],
   },
   {
     type: "error",
     name: "InvalidInitialization",
-    inputs: []
+    inputs: [],
   },
   {
     type: "error",
     name: "InvalidPermitFlag",
-    inputs: []
+    inputs: [],
   },
   {
     type: "error",
@@ -1573,19 +1573,19 @@ export const bridgeAbi = [
       {
         name: "value",
         type: "uint256",
-        internalType: "uint256"
+        internalType: "uint256",
       },
       {
         name: "expectedValue",
         type: "uint256",
-        internalType: "uint256"
-      }
-    ]
+        internalType: "uint256",
+      },
+    ],
   },
   {
     type: "error",
     name: "NotInitializing",
-    inputs: []
+    inputs: [],
   },
   {
     type: "error",
@@ -1594,19 +1594,19 @@ export const bridgeAbi = [
       {
         name: "bits",
         type: "uint8",
-        internalType: "uint8"
+        internalType: "uint8",
       },
       {
         name: "value",
         type: "uint256",
-        internalType: "uint256"
-      }
-    ]
+        internalType: "uint256",
+      },
+    ],
   },
   {
     type: "error",
     name: "SendFailed",
-    inputs: []
+    inputs: [],
   },
   {
     type: "error",
@@ -1615,9 +1615,9 @@ export const bridgeAbi = [
       {
         name: "token",
         type: "address",
-        internalType: "address"
-      }
-    ]
+        internalType: "address",
+      },
+    ],
   },
   {
     type: "error",
@@ -1626,9 +1626,9 @@ export const bridgeAbi = [
       {
         name: "externalTokenAddress",
         type: "bytes32",
-        internalType: "bytes32"
-      }
-    ]
+        internalType: "bytes32",
+      },
+    ],
   },
   {
     type: "error",
@@ -1637,9 +1637,9 @@ export const bridgeAbi = [
       {
         name: "token",
         type: "address",
-        internalType: "address"
-      }
-    ]
+        internalType: "address",
+      },
+    ],
   },
   {
     type: "error",
@@ -1648,9 +1648,9 @@ export const bridgeAbi = [
       {
         name: "token",
         type: "address",
-        internalType: "address"
-      }
-    ]
+        internalType: "address",
+      },
+    ],
   },
   {
     type: "error",
@@ -1659,9 +1659,9 @@ export const bridgeAbi = [
       {
         name: "token",
         type: "address",
-        internalType: "address"
-      }
-    ]
+        internalType: "address",
+      },
+    ],
   },
   {
     type: "error",
@@ -1670,9 +1670,9 @@ export const bridgeAbi = [
       {
         name: "externalTokenAddress",
         type: "bytes32",
-        internalType: "bytes32"
-      }
-    ]
+        internalType: "bytes32",
+      },
+    ],
   },
   {
     type: "error",
@@ -1681,18 +1681,18 @@ export const bridgeAbi = [
       {
         name: "token",
         type: "address",
-        internalType: "address"
-      }
-    ]
+        internalType: "address",
+      },
+    ],
   },
   {
     type: "error",
     name: "TokenZeroAddress",
-    inputs: []
+    inputs: [],
   },
   {
     type: "error",
     name: "TransferFailed",
-    inputs: []
-  }
+    inputs: [],
+  },
 ] as const satisfies AbiItem[];

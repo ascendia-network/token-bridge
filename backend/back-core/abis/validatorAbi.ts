@@ -1,4 +1,4 @@
-import type { AbiItem } from "viem";
+import { type AbiItem } from "viem";
 
 export const validatorAbi = [
   {
@@ -8,17 +8,17 @@ export const validatorAbi = [
       {
         name: "validator_",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
     outputs: [
       {
         name: "added",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -28,10 +28,10 @@ export const validatorAbi = [
       {
         name: "",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -41,10 +41,10 @@ export const validatorAbi = [
       {
         name: "",
         type: "uint256",
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -53,26 +53,26 @@ export const validatorAbi = [
       {
         name: "authority_",
         type: "address",
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "validators_",
         type: "address[]",
-        internalType: "address[]"
+        internalType: "address[]",
       },
       {
         name: "payloadSigner_",
         type: "address",
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "feeValidityWindow_",
         type: "uint256",
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
     outputs: [],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -82,10 +82,10 @@ export const validatorAbi = [
       {
         name: "",
         type: "bytes4",
-        internalType: "bytes4"
-      }
+        internalType: "bytes4",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -94,17 +94,17 @@ export const validatorAbi = [
       {
         name: "validator_",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
     outputs: [
       {
         name: "isValidator_",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -114,10 +114,10 @@ export const validatorAbi = [
       {
         name: "",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -126,17 +126,17 @@ export const validatorAbi = [
       {
         name: "validator_",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
     outputs: [
       {
         name: "removed",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -145,11 +145,11 @@ export const validatorAbi = [
       {
         name: "newAuthority",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
     outputs: [],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -158,17 +158,17 @@ export const validatorAbi = [
       {
         name: "feeValidityWindow_",
         type: "uint256",
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
     outputs: [
       {
         name: "success",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -177,17 +177,17 @@ export const validatorAbi = [
       {
         name: "payloadSigner_",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
     outputs: [
       {
         name: "success",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -201,64 +201,64 @@ export const validatorAbi = [
           {
             name: "from",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "to",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "tokenAddress",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "amount",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "chainFrom",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "chainTo",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "eventId",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "flags",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "data",
             type: "bytes",
-            internalType: "bytes"
-          }
-        ]
+            internalType: "bytes",
+          },
+        ],
       },
       {
         name: "combinedSignatures",
         type: "bytes",
-        internalType: "bytes"
-      }
+        internalType: "bytes",
+      },
     ],
     outputs: [
       {
         name: "isValid",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -272,49 +272,49 @@ export const validatorAbi = [
           {
             name: "tokenAddress",
             type: "bytes32",
-            internalType: "bytes32"
+            internalType: "bytes32",
           },
           {
             name: "amountToSend",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "feeAmount",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "timestamp",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "flags",
             type: "uint256",
-            internalType: "uint256"
+            internalType: "uint256",
           },
           {
             name: "flagData",
             type: "bytes",
-            internalType: "bytes"
-          }
-        ]
+            internalType: "bytes",
+          },
+        ],
       },
       {
         name: "signature",
         type: "bytes",
-        internalType: "bytes"
-      }
+        internalType: "bytes",
+      },
     ],
     outputs: [
       {
         name: "isValid",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "event",
@@ -324,10 +324,10 @@ export const validatorAbi = [
         name: "authority",
         type: "address",
         indexed: false,
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "event",
@@ -337,16 +337,16 @@ export const validatorAbi = [
         name: "changer",
         type: "address",
         indexed: false,
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "validityWindow",
         type: "uint256",
         indexed: false,
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "event",
@@ -356,10 +356,10 @@ export const validatorAbi = [
         name: "version",
         type: "uint64",
         indexed: false,
-        internalType: "uint64"
-      }
+        internalType: "uint64",
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "event",
@@ -369,16 +369,16 @@ export const validatorAbi = [
         name: "changer",
         type: "address",
         indexed: false,
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "payloadSigner",
         type: "address",
         indexed: false,
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "event",
@@ -388,10 +388,10 @@ export const validatorAbi = [
         name: "validator",
         type: "address",
         indexed: false,
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "event",
@@ -401,10 +401,10 @@ export const validatorAbi = [
         name: "validator",
         type: "address",
         indexed: false,
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "error",
@@ -413,9 +413,9 @@ export const validatorAbi = [
       {
         name: "authority",
         type: "address",
-        internalType: "address"
-      }
-    ]
+        internalType: "address",
+      },
+    ],
   },
   {
     type: "error",
@@ -424,14 +424,14 @@ export const validatorAbi = [
       {
         name: "caller",
         type: "address",
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "delay",
         type: "uint32",
-        internalType: "uint32"
-      }
-    ]
+        internalType: "uint32",
+      },
+    ],
   },
   {
     type: "error",
@@ -440,14 +440,14 @@ export const validatorAbi = [
       {
         name: "caller",
         type: "address",
-        internalType: "address"
-      }
-    ]
+        internalType: "address",
+      },
+    ],
   },
   {
     type: "error",
     name: "ECDSAInvalidSignature",
-    inputs: []
+    inputs: [],
   },
   {
     type: "error",
@@ -456,9 +456,9 @@ export const validatorAbi = [
       {
         name: "length",
         type: "uint256",
-        internalType: "uint256"
-      }
-    ]
+        internalType: "uint256",
+      },
+    ],
   },
   {
     type: "error",
@@ -467,14 +467,14 @@ export const validatorAbi = [
       {
         name: "s",
         type: "bytes32",
-        internalType: "bytes32"
-      }
-    ]
+        internalType: "bytes32",
+      },
+    ],
   },
   {
     type: "error",
     name: "InvalidInitialization",
-    inputs: []
+    inputs: [],
   },
   {
     type: "error",
@@ -483,29 +483,29 @@ export const validatorAbi = [
       {
         name: "length",
         type: "uint256",
-        internalType: "uint256"
-      }
-    ]
+        internalType: "uint256",
+      },
+    ],
   },
   {
     type: "error",
     name: "NoFeeValidityWindow",
-    inputs: []
+    inputs: [],
   },
   {
     type: "error",
     name: "NoPayloadSigner",
-    inputs: []
+    inputs: [],
   },
   {
     type: "error",
     name: "NoValidators",
-    inputs: []
+    inputs: [],
   },
   {
     type: "error",
     name: "NotInitializing",
-    inputs: []
+    inputs: [],
   },
   {
     type: "error",
@@ -514,14 +514,14 @@ export const validatorAbi = [
       {
         name: "count",
         type: "uint256",
-        internalType: "uint256"
+        internalType: "uint256",
       },
       {
         name: "required",
         type: "uint256",
-        internalType: "uint256"
-      }
-    ]
+        internalType: "uint256",
+      },
+    ],
   },
   {
     type: "error",
@@ -530,8 +530,8 @@ export const validatorAbi = [
       {
         name: "signer",
         type: "address",
-        internalType: "address"
-      }
-    ]
-  }
+        internalType: "address",
+      },
+    ],
+  },
 ] as const satisfies AbiItem[];

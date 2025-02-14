@@ -22,7 +22,8 @@ export async function saveBridgeToken(
     case "TokenAdded": {
       await context.db.insert(bridgedTokens).values({
         tokenAddress: event.args.token,
-        chainId: numberToHex(context.network.chainId, { size: 32 }),
+        tokenAddressHex: numberToHex(BigInt(event.args.token), { size: 32 }),
+        isBridged: true,
       });
       await context.db.insert(bridgeToToken).values({
         bridgeAddress,
@@ -36,14 +37,14 @@ export async function saveBridgeToken(
         bridgeAddress: bridgeAddress,
       });
       await context.db.delete(bridgedTokens, {
-        tokenAddress: event.args.token,
+        tokenAddressHex: numberToHex(BigInt(event.args.token), { size: 32 }),
       });
       break;
     }
     case "TokenPaused": {
       await context.db
         .update(bridgedTokens, {
-          tokenAddress: event.args.token,
+          tokenAddressHex: numberToHex(BigInt(event.args.token), { size: 32 }),
         })
         .set({
           isPaused: true,
@@ -53,7 +54,7 @@ export async function saveBridgeToken(
     case "TokenUnpaused": {
       await context.db
         .update(bridgedTokens, {
-          tokenAddress: event.args.token,
+          tokenAddressHex: numberToHex(BigInt(event.args.token), { size: 32 }),
         })
         .set({
           isPaused: false,
@@ -62,14 +63,14 @@ export async function saveBridgeToken(
     }
     case "TokenDeployed": {
       await context.db.insert(bridgedTokens).values({
+        tokenAddressHex: numberToHex(BigInt(event.args.token), { size: 32 }),
         tokenAddress: event.args.token,
-        chainId: numberToHex(context.network.chainId, { size: 32 }),
         isBridged: true,
-      });
+      }).onConflictDoNothing();
       await context.db.insert(bridgeToToken).values({
         bridgeAddress,
         tokenAddress: event.args.token,
-      });
+      }).onConflictDoNothing();
       break;
     }
     // TODO: deal with mapping and unmapping

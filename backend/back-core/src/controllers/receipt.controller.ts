@@ -127,8 +127,10 @@ export class ReceiptController {
       {
         from: receiptToSign.from as `0x${string}`,
         to: receiptToSign.to as `0x${string}`,
-        tokenAddress: receiptToSign.tokenAddress as `0x${string}`,
-        amount: BigInt(receiptToSign.amount),
+        tokenAddressFrom: receiptToSign.tokenAddressFrom as `0x${string}`,
+        tokenAddressTo: receiptToSign.tokenAddressTo as `0x${string}`,
+        amountFrom: BigInt(receiptToSign.amountFrom),
+        amountTo: BigInt(receiptToSign.amountTo),
         chainFrom: BigInt(receiptToSign.chainFrom),
         chainTo: BigInt(receiptToSign.chainTo),
         eventId: BigInt(receiptToSign.eventId),
@@ -142,10 +144,11 @@ export class ReceiptController {
     if (
       Object.hasOwn(getContext().env as object, `RPC_NODE_${receipt.chainTo}`)
     ) {
+      const nodeURL = getContext().env[`RPC_NODE_${receipt.chainTo}`] as string;
       const client = createPublicClient({
-        transport: `RPC_NODE_${receipt.chainTo}`.startsWith("ws")
-          ? webSocket(`RPC_NODE_${receipt.chainTo}`)
-          : http(`RPC_NODE_${receipt.chainTo}`)
+        transport: nodeURL.startsWith("ws")
+          ? webSocket(nodeURL)
+          : http(nodeURL),
       });
       const validatorAddress = await client.readContract({
         abi: bridgeAbi,

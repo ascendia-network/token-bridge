@@ -1,19 +1,12 @@
-import { onchainTable, primaryKey, relations } from "ponder";
+import { SQL } from "drizzle-orm";
+import { onchainTable, primaryKey, relations, sql } from "ponder";
 
 export const receiptsSent = onchainTable(
   "receiptsSent",
   (t) => ({
     receiptId: t
       .text("receipt_id")
-      .notNull()
-      .$defaultFn(
-        (): string =>
-          `${receiptsSent.chainFrom}_${receiptsSent.chainTo}_${receiptsSent.eventId}`
-      )
-      .$onUpdateFn(
-        (): string =>
-          `${receiptsSent.chainFrom}_${receiptsSent.chainTo}_${receiptsSent.eventId}`
-      ),
+      .notNull(),
     timestamp: t.bigint().notNull(),
     bridgeAddress: t.hex().notNull(),
     // .references(() => bridgeParams.bridgeAddress), // Not supported in ponder
@@ -42,15 +35,7 @@ export const receiptsClaimed = onchainTable(
   (t) => ({
     receiptId: t
       .text("receipt_id")
-      .notNull()
-      .$defaultFn(
-        (): string =>
-          `${receiptsClaimed.chainFrom}_${receiptsClaimed.chainTo}_${receiptsClaimed.eventId}`
-      )
-      .$onUpdateFn(
-        (): string =>
-          `${receiptsClaimed.chainFrom}_${receiptsClaimed.chainTo}_${receiptsClaimed.eventId}`
-      ),
+      .notNull(),
     // .references(() => receipt.receiptId), // Not supported in ponder
     timestamp: t.bigint().notNull(),
     bridgeAddress: t.hex().notNull(),

@@ -7,6 +7,12 @@ export async function saveReceiptSend(
   event: Event<"bridge:TokenLocked">
 ): Promise<string> {
   const receiptEntry = {
+    receiptId:
+      event.args.receipt.chainFrom +
+      "_" +
+      event.args.receipt.chainTo +
+      "_" +
+      event.args.receipt.eventId,
     timestamp: event.block.timestamp,
     bridgeAddress: event.log.address,
     ...event.args.receipt,
@@ -45,6 +51,12 @@ export async function saveReceiptWithdraw(
   event: Event<"bridge:TokenUnlocked">
 ) {
   const receiptEntry = {
+    receiptId:
+      event.args.receipt.chainFrom +
+      "_" +
+      event.args.receipt.chainTo +
+      "_" +
+      event.args.receipt.eventId,
     timestamp: event.block.timestamp,
     bridgeAddress: event.log.address,
     ...event.args.receipt,

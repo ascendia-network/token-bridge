@@ -2,12 +2,23 @@
 
 pragma solidity ^0.8.20;
 
-import {AccessManagedUpgradeable} from "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
-import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import {ERC20PermitUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {AccessManagedUpgradeable} from
+    "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
 
-contract ERC20Bridged is Initializable, ERC20Upgradeable, AccessManagedUpgradeable, ERC20PermitUpgradeable {
+import {Initializable} from
+    "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {ERC20Upgradeable} from
+    "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import {ERC20PermitUpgradeable} from
+    "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
+
+contract ERC20Bridged is
+    Initializable,
+    AccessManagedUpgradeable,
+    ERC20Upgradeable,
+    ERC20PermitUpgradeable
+{
+
     /// @custom:storage-location erc7201:bridged.storage.ERC20Additional
     struct BridgedERC20Storage {
         /// @dev The number of decimals for the token
@@ -22,9 +33,14 @@ contract ERC20Bridged is Initializable, ERC20Upgradeable, AccessManagedUpgradeab
     error Blacklisted(address account);
 
     // keccak256(abi.encode(uint256(keccak256("bridged.storage.ERC20Additional")) - 1)) & ~bytes32(uint256(0xff))
-    bytes32 private constant ERC20AdditionalStorageLocation = 0xb5ac4c0d6c28de524e1dbc51411a2e707582c4bdbfe893edf60b98f392fe9600;
+    bytes32 private constant ERC20AdditionalStorageLocation =
+        0xb5ac4c0d6c28de524e1dbc51411a2e707582c4bdbfe893edf60b98f392fe9600;
 
-    function _getERC20AdditionalStorage() private pure returns (BridgedERC20Storage storage $) {
+    function _getERC20AdditionalStorage()
+        private
+        pure
+        returns (BridgedERC20Storage storage $)
+    {
         assembly {
             $.slot := ERC20AdditionalStorageLocation
         }
@@ -41,7 +57,10 @@ contract ERC20Bridged is Initializable, ERC20Upgradeable, AccessManagedUpgradeab
         string memory symbol_,
         uint8 decimals_,
         address bridge_
-    ) initializer public {
+    )
+        public
+        initializer
+    {
         __ERC20Bridged_init(authority_, name_, symbol_, decimals_, bridge_);
     }
 
@@ -51,14 +70,28 @@ contract ERC20Bridged is Initializable, ERC20Upgradeable, AccessManagedUpgradeab
         string memory symbol_,
         uint8 decimals_,
         address bridge_
-    ) internal onlyInitializing {
+    )
+        internal
+        onlyInitializing
+    {
+        __ERC20Bridged_init_unchained(
+            authority_, name_, symbol_, decimals_, bridge_
+        );
+    }
+
+    function __ERC20Bridged_init_unchained(
+        address authority_,
+        string memory name_,
+        string memory symbol_,
+        uint8 decimals_,
+        address bridge_
+    )
+        internal
+        onlyInitializing
+    {
         __AccessManaged_init(authority_);
         __ERC20_init(name_, symbol_);
         __ERC20Permit_init(name_);
-        __ERC20Bridged_init_unchained(decimals_, bridge_);
-    }
-
-    function __ERC20Bridged_init_unchained(uint8 decimals_, address bridge_) internal onlyInitializing {
         BridgedERC20Storage storage $ = _getERC20AdditionalStorage();
         $._decimals = decimals_;
         $._bridge = bridge_;
@@ -74,7 +107,6 @@ contract ERC20Bridged is Initializable, ERC20Upgradeable, AccessManagedUpgradeab
      * {IERC20-balanceOf} and {IERC20-transfer}.
      * @return decimals_ the number of decimals of the token
      */
-
     function decimals() public view override returns (uint8 decimals_) {
         BridgedERC20Storage storage $ = _getERC20AdditionalStorage();
         return $._decimals;

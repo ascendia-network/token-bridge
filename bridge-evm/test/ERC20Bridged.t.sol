@@ -3,6 +3,10 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 
+import {
+    UnsafeUpgrades,
+    Upgrades
+} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import {IERC20Errors} from
     "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
@@ -21,6 +25,13 @@ contract ERC20BridgedTest is Test {
     address fakeBridge = address(0xB5149e);
     address alice = address(0xA11ce);
     address bob = address(0xB0b);
+    bytes32 constant coverageProfile = keccak256(abi.encodePacked("coverage"));
+
+    function isCoverage() internal view returns (bool) {
+        return keccak256(
+            abi.encodePacked(vm.envOr("FOUNDRY_PROFILE", string("default")))
+        ) == coverageProfile;
+    }
 
     function setUp() public {
         authority = new AccessManager(address(this));
@@ -28,10 +39,24 @@ contract ERC20BridgedTest is Test {
         string memory symbol = "TST";
         uint8 decimals = 18;
         address bridge = fakeBridge;
-        address implementation = address(new ERC20Bridged());
-        TokenBeacon beacon = new TokenBeacon(address(this), implementation);
+        address tokenBeacon;
+        if (isCoverage()) {
+            address tokenContract = address(new ERC20Bridged());
+            tokenBeacon = address(
+                UnsafeUpgrades.deployBeacon(
+                    tokenContract,
+                    address(this)
+                )
+            );
+        } else {
+            tokenBeacon = address(
+                Upgrades.deployBeacon(
+                    "ERC20Bridged.sol",
+                    address(this)
+                )
+            );
+        }
         bytes memory initData = abi.encodeWithSignature("initialize(address,string,string,uint8,address)", address(this), name, symbol, decimals, bridge);
-        address tokenBeacon = address(beacon);
         token = ERC20Bridged(address(new BeaconProxy(tokenBeacon, initData)));
     }
 

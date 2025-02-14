@@ -1,50 +1,36 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import {
-  Ed25519Program,
-  Keypair,
-  PublicKey,
-  sendAndConfirmTransaction,
-  SystemProgram,
-  Transaction,
-  TransactionInstruction
-} from '@solana/web3.js';
+import { Keypair, sendAndConfirmTransaction, SystemProgram, Transaction } from '@solana/web3.js';
 
-import { MultisigNonce } from "../target/types/multisig_nonce";
-import {
-  createMint,
-  getAssociatedTokenAddressSync,
-  getOrCreateAssociatedTokenAccount,
-  mintTo,
-  TOKEN_PROGRAM_ID
-} from "@solana/spl-token";
+import { MultisigNonce } from "../../target/types/multisig_nonce";
+import { createMint, mintTo } from "@solana/spl-token";
 import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
-import * as borsh from 'borsh';
-import nacl from "tweetnacl";
 
 import assert from "assert";
 import { Buffer } from "buffer";
-import {
-  hexToUint8Array,
-  newEd25519Instruction,
-  ReceivePayload,
-  SendPayload,
-  serializeReceivePayload,
-  serializeSendPayload
-} from "./utils";
 import { keccak_256 } from '@noble/hashes/sha3';
+import { receiveSigners, sendSigner, signMessage } from "../backend/signs";
+import {
+  getBridgeAccounts,
+  getBridgeStateAccount,
+  getBridgeTokenAccounts,
+  getOrCreateUserATA,
+  getUserNoncePda,
+  hexToUint8Array
+} from "../sdk/utils";
+import { ReceivePayload, SendPayload, serializeReceivePayload, serializeSendPayload } from "../backend/types";
+import { newEd25519Instruction } from "../sdk/ed25519_ix";
 
 describe("my-project", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.local());
 
   const program = anchor.workspace.MultisigNonce as Program<MultisigNonce>;
+  const bridgeProgram = program;
   const connection = program.provider.connection;
 
   const admin = anchor.web3.Keypair.generate();
   const user = anchor.web3.Keypair.generate();
-  const sendSigner = anchor.web3.Keypair.generate();
-  const receiveSigners = [anchor.web3.Keypair.generate(), anchor.web3.Keypair.generate(), anchor.web3.Keypair.generate(), anchor.web3.Keypair.generate(), anchor.web3.Keypair.generate()];
 
   // pda - account to store some data
   // ata - associated token account - storing tokens (one per user per token)
@@ -66,8 +52,6 @@ describe("my-project", () => {
 
     await requestSol(admin, connection);
     await requestSol(user, connection);
-
-
   })
 
 
@@ -81,17 +65,15 @@ describe("my-project", () => {
     await createMint(connection, admin, admin.publicKey, admin.publicKey, 6, tokenMint1);
 
     console.log("create user pda 1")
-    user_token1_ata = (await getOrCreateAssociatedTokenAccount(connection, user, tokenMint1.publicKey, user.publicKey)).address;
+    user_token1_ata = (await getOrCreateUserATA(connection, user, tokenMint1.publicKey)).address;
 
     console.log("mint to user pda 1")
     await mintTo(connection, user, tokenMint1.publicKey, user_token1_ata, admin, 10 * 10 ** 6);
 
 
     // initialize global state
-    [bridge_token1_pda] = PublicKey.findProgramAddressSync([Buffer.from("token"), tokenMint1.publicKey.toBuffer()], program.programId)
-    bridge_token1_ata = getAssociatedTokenAddressSync(tokenMint1.publicKey, bridge_token1_pda, true);
-
-    [state_pda] = PublicKey.findProgramAddressSync([Buffer.from("global_state")], program.programId);
+    [bridge_token1_pda, bridge_token1_ata] = getBridgeTokenAccounts(tokenMint1.publicKey, program.programId)
+    state_pda = getBridgeStateAccount(program.programId);
 
     const receiveSignersBuffer = Buffer.alloc(32 * receiveSigners.length);
     receiveSigners.forEach((signer, i) => receiveSignersBuffer.set(signer.publicKey.toBuffer(), i * 32));
@@ -121,12 +103,8 @@ describe("my-project", () => {
     const ambTokenAddress = hexToUint8Array("0x1111472FCa4260505EcE4AcD07717CADa41c1111");
     await program.methods.initializeToken(ambTokenAddress).accounts({
       signer: admin.publicKey,
-      bridgeToken: bridge_token1_pda,
-      bridgeTokenAccount: bridge_token1_ata,
-      mint: tokenMint1.publicKey,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      associated_token_program: ASSOCIATED_PROGRAM_ID,
-      system_program: SystemProgram.programId,
+      associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+      ...getBridgeAccounts(tokenMint1.publicKey, program.programId),
     }).signers([admin]).rpc();
 
 
@@ -146,14 +124,17 @@ describe("my-project", () => {
     console.log("tokenBalanceUser", tokenBalanceUser)
     console.log("tokenBalanceBridge", tokenBalanceBridge)
 
+    const userFrom = user;
+    const tokenFrom = tokenMint1.publicKey;
+    const userTo = hexToUint8Array("0x1111472FCa4260505EcE4AcD07717CADa41c1111");
+    const tokenTo = hexToUint8Array("0x1111472FCa4260505EcE4AcD07717CADa41c1111");
 
 
-    const ambTokenAddress = hexToUint8Array("0x1111472FCa4260505EcE4AcD07717CADa41c1111");
-    const receiverAddress = hexToUint8Array("0x1111472FCa4260505EcE4AcD07717CADa41c1111");
+
 
     const value: SendPayload = {
-      tokenAddress: tokenMint1.publicKey.toBytes(),
-      tokenAddressTo: ambTokenAddress,
+      tokenAddressFrom: tokenFrom.toBytes(),
+      tokenAddressTo: tokenTo,
       amountToSend: 50,
       feeAmount: 20,
       chainFrom: 0x736F6C616E61,
@@ -161,30 +142,25 @@ describe("my-project", () => {
       flags: new Uint8Array(32),
       flagData: new Uint8Array(0),
     };
-    const encoded = serializeSendPayload(value);
-    const message = keccak_256(encoded)
-    const signature = nacl.sign.detached(message, sendSigner.secretKey);
 
 
-    const verifyInstruction = newEd25519Instruction(1, message, [sendSigner.publicKey.toBytes()], [signature]);
+    const user_token_ata = (await getOrCreateUserATA(connection, userFrom, tokenFrom)).address;
+    const payload = serializeSendPayload(value);
+    const { message, signers, signatures } = signMessage(payload, [sendSigner]);
 
+    const verifyInstruction = newEd25519Instruction(1, message, signers, signatures);
     // Lock tokens
-    const sendInstruction = await program.methods.lock(encoded, receiverAddress).accounts({
-      state: state_pda,
+    const sendInstruction = await bridgeProgram.methods.lock(payload, userTo).accounts({
       sender: user.publicKey,
-      sender_token_account: user_token1_ata,
-      bridgeToken: bridge_token1_pda,
-      bridgeTokenAccount: bridge_token1_ata,
-      mint: tokenMint1.publicKey,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      system_program: SystemProgram.programId,
-    }).signers([user]).instruction();
-
-
+      senderTokenAccount: user_token_ata,
+      ...getBridgeAccounts(tokenFrom, bridgeProgram.programId),
+    }).signers([userFrom]).instruction();
 
     const tx = new Transaction().add(verifyInstruction, sendInstruction);
-    tx.feePayer = user.publicKey;
+    tx.feePayer = userFrom.publicKey;
     const txSignature = await sendAndConfirmTransaction(connection, tx, [user], { commitment: 'confirmed' }); // wait for transaction to be confirmed
+
+
 
 
     const accountState = await program.account.globalState.fetch(state_pda);
@@ -201,45 +177,45 @@ describe("my-project", () => {
     console.log("tokenBalanceUser", tokenBalanceUser)
     console.log("tokenBalanceBridge", tokenBalanceBridge)
 
-    const [nonceAccount] = PublicKey.findProgramAddressSync([Buffer.from("nonce"), user.publicKey.toBuffer()], program.programId);
-    console.log("nonceAccount", nonceAccount.toBase58());
+
+
+    const token = tokenMint1.publicKey;
+
 
 
 
     const value: ReceivePayload = {
       to: user.publicKey.toBytes(),
-      tokenAddressTo: tokenMint1.publicKey.toBytes(),
+      tokenAddressTo: token.toBytes(),
       amountTo: 50,
       chainTo: 0x736F6C616E61,
       flags: new Uint8Array(32),
       flagData: new Uint8Array(0),
       nonce: 0,
     };
-    const encoded = serializeReceivePayload(value);
-    const message = keccak_256(encoded)
-
-    const signatures = receiveSigners.map(signer => nacl.sign.detached(message, signer.secretKey));
-    const pubkeys = receiveSigners.map(signer => signer.publicKey.toBytes());
-
-    const verifyInstruction = newEd25519Instruction(5, message, pubkeys, signatures);
 
 
-    const receiveInstruction = await program.methods.unlock(encoded).accounts({
-      state: state_pda,
+    const user_token_ata = (await getOrCreateUserATA(connection, user, token)).address;
+    const nonceAccount = getUserNoncePda(user.publicKey, bridgeProgram.programId);
+
+
+    const payload = serializeReceivePayload(value);
+    const {message, signers, signatures} = signMessage(payload, receiveSigners);
+    const verifyInstruction = newEd25519Instruction(5, message, signers, signatures);
+
+    const receiveInstruction = await bridgeProgram.methods.unlock(payload).accounts({
       receiver: user.publicKey,
-      receiver_token_account: user_token1_ata,
+      receiverTokenAccount: user_token_ata,
       receiverNonceAccount: nonceAccount,
-      bridgeToken: bridge_token1_pda,
-      bridgeTokenAccount: bridge_token1_ata,
-      mint: tokenMint1.publicKey,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      system_program: SystemProgram.programId,
+      ...getBridgeAccounts(token, bridgeProgram.programId),
     }).signers([user]).instruction()
 
     const tx = new Transaction().add(verifyInstruction, receiveInstruction);
     tx.feePayer = user.publicKey;
     const txSignature = await sendAndConfirmTransaction(connection, tx, [user], { commitment: 'confirmed' }); // wait for transaction to be confirmed
-    // const txStatus = await connection.getParsedTransaction(txSignature, 'confirmed');
+
+
+
 
 
     const receiverNonce = await program.account.nonceAccount.fetch(nonceAccount);

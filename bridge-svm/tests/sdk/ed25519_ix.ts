@@ -1,6 +1,5 @@
 import * as BufferLayout from "@solana/buffer-layout";
 import { Buffer } from "buffer";
-import * as borsh from "borsh";
 import { Ed25519Program, TransactionInstruction } from "@solana/web3.js";
 
 const SIGNATURE_OFFSETS_START = 2;
@@ -77,65 +76,3 @@ export function newEd25519Instruction(numSignatures, message, pubkeys, signature
     data: instructionData,
   })
 }
-
-
-export function hexToUint8Array(hexString: string) {
-  if (hexString.startsWith("0x"))
-    hexString = hexString.slice(2); // Remove "0x" prefix if present
-  const bytes = new Uint8Array(hexString.length / 2);
-  for (let i = 0; i < bytes.length; i++)
-    bytes[i] = parseInt(hexString.substr(i * 2, 2), 16);
-  return bytes;
-}
-
-
-const _b20 = { array: { type: 'u8', len: 20 } };
-const _b32 = { array: { type: 'u8', len: 32 } };
-
-
-export interface SendPayload {
-  tokenAddress: Uint8Array;
-  tokenAddressTo: Uint8Array;
-  amountToSend: number;
-  feeAmount: number;
-  chainFrom: number;
-  timestamp: number;
-  flags: Uint8Array;
-  flagData: Uint8Array;
-}
-
-const sendSchema = {
-  tokenAddress: _b32,
-  tokenAddressTo: _b20,
-  amountToSend: 'u64',
-  feeAmount: 'u64',
-  chainFrom: 'u64',
-  timestamp: 'u64',
-  flags: _b32,
-  flagData: { array: { type: 'u8' } },
-}
-
-export interface ReceivePayload {
-  to: Uint8Array;
-  tokenAddressTo: Uint8Array;
-  amountTo: number;
-  chainTo: number;
-  flags: Uint8Array;
-  flagData: Uint8Array;
-  nonce: number;
-}
-
-const receiveSchema = {
-  to: _b32,
-  tokenAddressTo: _b32,
-  amountTo: 'u64',
-  chainTo: 'u64',
-  flags: _b32,
-  flagData: { array: { type: 'u8' } },
-  nonce: 'u64'
-}
-
-
-export const serializeSendPayload = (value: SendPayload) => serialize(value, sendSchema);
-export const serializeReceivePayload = (value: ReceivePayload) => serialize(value, receiveSchema)
-export const serialize = (value: ReceivePayload, schema: any) => Buffer.from(borsh.serialize({ struct: schema }, value));

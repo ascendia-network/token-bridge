@@ -1,4 +1,11 @@
 [profile.default]
+fs_permissions = [
+  { access = "read-write", path = "./deployments"},
+  { access = "read", path = "./receipts"},
+  { access = "read", path = "./payloads"},
+  { access = "read-write", path = "./out"},
+  {access = "read", path = "./"}
+]
 via-ir=true
 ffi = true
 ast = true

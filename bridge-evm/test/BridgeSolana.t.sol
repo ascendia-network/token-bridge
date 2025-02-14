@@ -71,7 +71,7 @@ contract BridgeTest is
                     UnsafeUpgrades.deployUUPSProxy(
                         bridge,
                         abi.encodeCall(
-                            Bridge.initialize,
+                            BridgeSolana.initialize,
                             (
                                 authorityAddress,
                                 address(tokenBeac),
@@ -90,7 +90,7 @@ contract BridgeTest is
                     Upgrades.deployUUPSProxy(
                         "BridgeSolana.sol",
                         abi.encodeCall(
-                            Bridge.initialize,
+                            BridgeSolana.initialize,
                             (
                                 authorityAddress,
                                 address(tokenBeac),
@@ -104,7 +104,7 @@ contract BridgeTest is
                 )
             );
         }
-        bridgeInstance = BridgeSolana(proxy);
+        bridgeInstance = Bridge(proxy);
         return bridgeInstance;
     }
 

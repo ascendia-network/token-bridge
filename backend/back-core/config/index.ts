@@ -13,6 +13,7 @@ import path from "path";
 export interface Config {
   networks: { [net: string]: string };
   contracts: { [net: string]: string };
+  tokensConfigUrl: string;
   fees: {
     networks: {
       [net: string]: {

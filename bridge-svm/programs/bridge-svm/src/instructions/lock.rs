@@ -66,10 +66,12 @@ pub fn lock(ctx: Context<Lock>, serialized_args: Vec<u8>, recipient: [u8; 20]) -
     let signer_pubkey = Pubkey::try_from_slice(&ix.data[ix.data.len().saturating_sub(32+32)..ix.data.len().saturating_sub(32)]);
 
     require!(signed_message == args_hash.to_bytes(), CustomError::InvalidSignature);
-    require!(signer_pubkey? == ctx.accounts.state.admin, CustomError::InvalidSignature);
-    // todo check chain id
-    // todo check timestamp
-    // todo check token address
+    require!(signer_pubkey? == ctx.accounts.state.send_signer, CustomError::InvalidSignature);
+
+    require!(deserialized_args.chain_from == SOLANA_CHAIN_ID, CustomError::InvalidSignature);
+    require!((Clock::get()?.unix_timestamp as u64) < deserialized_args.timestamp + SIGNATURE_VALIDITY_TIME, CustomError::InvalidSignature);
+    require!(ctx.accounts.mint.key() == deserialized_args.token_address, CustomError::InvalidSignature);
+    require!(ctx.accounts.bridge_token.amb_token == deserialized_args.token_address_to, CustomError::InvalidSignature);
 
 
 
@@ -105,10 +107,6 @@ pub fn lock(ctx: Context<Lock>, serialized_args: Vec<u8>, recipient: [u8; 20]) -
 
     // update nonce
     ctx.accounts.state.nonce += 1;
-
-    // todo check token
-    // todo check signature
-    // todo fees
 
 
     msg!(

@@ -2,9 +2,14 @@ use anchor_lang::prelude::*;
 use borsh::{BorshDeserialize, BorshSerialize};
 
 
+pub const SOLANA_CHAIN_ID: u64 = 0x736F6C616E61; // "solana" in hex
+pub const SIGNATURE_VALIDITY_TIME: u64 = 30*60; // 30 minutes
+
 #[account]
 pub struct GlobalState {
     pub admin: Pubkey,
+    pub send_signer: Pubkey,
+    pub receive_signer: Pubkey,
     pub nonce: u64,
     pub pause: bool,
 }
@@ -56,19 +61,33 @@ pub struct SendPayload {
     pub token_address_to: [u8; 20],
     pub amount_to_send: u64,
     pub fee_amount: u64,
-    pub chainFrom: u64,
+    pub chain_from: u64,
     pub timestamp: u64,
     pub flags: [u8; 32],
     pub flag_data: Vec<u8>,
 }
 
+#[derive(BorshSerialize, BorshDeserialize, Debug)]
+pub struct SendEvent {
+    pub from: Pubkey,  // source address (bytes32 because of cross-chain compatibility)
+    pub to: [u8; 20],  // destination address (bytes32 because of cross-chain compatibility)
+    pub token_address_from: Pubkey,  // source token address (bytes32 because of cross-chain compatibility)
+    pub token_address_to: [u8; 20],  // source token address (bytes32 because of cross-chain compatibility)
+    pub amount_from: u64,  // amount of tokens sent
+    pub amount_to: [u8; 256],  // amount of tokens received
+    pub chain_from: u64,  // chain id of the source chain
+    pub chain_to: u64,  // chain id of the destination chain
+    pub event_id: u64,  // transaction number
+    pub flags: [u8; 32],
+    pub flag_data: Vec<u8>,
+}
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct ReceivePayload {
     pub to: Pubkey,
     pub token_address_to: Pubkey,
     pub amount_to: u64,
-    pub chainTo: u64,
+    pub chain_to: u64,
     pub flags: [u8; 32],
     pub flag_data: Vec<u8>,
     pub nonce: u64,

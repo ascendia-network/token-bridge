@@ -57,13 +57,15 @@ export function newEd25519Instruction(numSignatures, message, pubkeys, signature
 
   signatures.forEach((sign, i) => {
     if (sign.length !== SIGNATURE_SERIALIZED_SIZE) throw new Error(`signature ${i} must be ${SIGNATURE_SERIALIZED_SIZE} bytes, got ${sign.length}`);
-    instructionData.fill(sign, signsOffset);
+    const signatureOffset = signsOffset + i * SIGNATURE_SERIALIZED_SIZE;
+    instructionData.fill(sign, signatureOffset);
   });
 
 
   pubkeys.forEach((pk, i) => {
     if (pk.length !== PUBKEY_SERIALIZED_SIZE) throw new Error(`public key ${i} must be ${PUBKEY_SERIALIZED_SIZE} bytes, got ${pk.length}`);
-    instructionData.fill(pk, pksOffset);
+    const publicKeyOffset = pksOffset + i * PUBKEY_SERIALIZED_SIZE;
+    instructionData.fill(pk, publicKeyOffset);
   });
 
   if (message.length !== MESSAGE_SERIALIZED_SIZE) throw new Error(`message must be ${MESSAGE_SERIALIZED_SIZE} bytes, got ${message.length}`);

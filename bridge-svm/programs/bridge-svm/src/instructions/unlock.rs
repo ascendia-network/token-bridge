@@ -69,14 +69,19 @@ pub fn unlock(ctx: Context<Unlock>, serialized_args: Vec<u8>) -> Result<()> {
 
 
     // check signature
+    let num_signatures = 5;
     let ix = load_instruction_at_checked(0, &ctx.accounts.ix_sysvar.to_account_info())?;
     let signed_message = &ix.data[ix.data.len().saturating_sub(32)..];
-    let signer_pubkey = Pubkey::try_from_slice(&ix.data[ix.data.len().saturating_sub(32+32)..ix.data.len().saturating_sub(32)]);
+    let signer_pubkeys = &ix.data[ix.data.len().saturating_sub(32*num_signatures + 32)..ix.data.len().saturating_sub(32)];
+    let signer_pubkey = hash(signer_pubkeys);
 
     require!(signed_message == args_hash.to_bytes(), CustomError::InvalidSignature);
-    require!(signer_pubkey? == ctx.accounts.state.admin, CustomError::InvalidSignature);
+    require!(signer_pubkey.to_bytes() == ctx.accounts.state.receive_signer.to_bytes(), CustomError::InvalidSignature);
+
     require!(deserialized_args.nonce == nonce.nonce_counter, CustomError::InvalidNonce);
-    // todo check chain id
+    require!(deserialized_args.chain_to == SOLANA_CHAIN_ID, CustomError::InvalidSignature);
+
+    require!(ctx.accounts.mint.key() == deserialized_args.token_address_to, CustomError::InvalidSignature);
 
 
     // todo native token bridgring

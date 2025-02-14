@@ -14,8 +14,8 @@ declare_id!("6TcA8kPmipG2xQtwYWQQq4CioTMbxHLjSCnpu1jqA6pZ");
 pub mod multisig_nonce {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        instructions::initialize(ctx)
+    pub fn initialize(ctx: Context<Initialize>, send_signer: Pubkey, receive_signer: Pubkey) -> Result<()> {
+        instructions::initialize(ctx, send_signer, receive_signer)
     }
 
     pub fn initialize_token(ctx: Context<CreateTokenAccount>, amb_token: [u8; 20]) -> Result<()> {

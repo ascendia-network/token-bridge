@@ -62,11 +62,13 @@ pub struct UpdateState<'info> {
 }
 
 
-pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
+pub fn initialize(ctx: Context<Initialize>, send_signer: Pubkey, receive_signer: Pubkey) -> Result<()> {
     let state = &mut ctx.accounts.state;
     state.admin = ctx.accounts.admin.key();
     state.nonce = 0;
     state.pause = false;
+    state.send_signer = send_signer;
+    state.receive_signer = receive_signer;
     Ok(())
 }
 

@@ -43,6 +43,8 @@ describe("my-project", () => {
 
   const admin = anchor.web3.Keypair.generate();
   const user = anchor.web3.Keypair.generate();
+  const sendSigner = anchor.web3.Keypair.generate();
+  const receiveSigners = [anchor.web3.Keypair.generate(), anchor.web3.Keypair.generate(), anchor.web3.Keypair.generate(), anchor.web3.Keypair.generate(), anchor.web3.Keypair.generate()];
 
   // pda - account to store some data
   // ata - associated token account - storing tokens (one per user per token)
@@ -71,6 +73,7 @@ describe("my-project", () => {
 
   it("initializing", async () => {
 
+    // create some token
     tokenMint1 = Keypair.generate();
     console.log("tokenMint1", tokenMint1.publicKey.toBase58())
 
@@ -84,11 +87,16 @@ describe("my-project", () => {
     await mintTo(connection, user, tokenMint1.publicKey, user_token1_ata, admin, 10 * 10 ** 6);
 
 
+    // initialize global state
     [bridge_token1_pda] = PublicKey.findProgramAddressSync([Buffer.from("token"), tokenMint1.publicKey.toBuffer()], program.programId)
     bridge_token1_ata = getAssociatedTokenAddressSync(tokenMint1.publicKey, bridge_token1_pda, true);
 
     [state_pda] = PublicKey.findProgramAddressSync([Buffer.from("global_state")], program.programId);
 
+    const receiveSignersBuffer = Buffer.alloc(32 * receiveSigners.length);
+    receiveSigners.forEach((signer, i) => receiveSignersBuffer.set(signer.publicKey.toBuffer(), i * 32));
+    const receiveSigner = new anchor.web3.PublicKey(keccak_256(receiveSignersBuffer));
+    console.log("receiveSigner", receiveSigner.toBytes())
 
     console.log("user_token1_ata", user_token1_ata.toBase58())
     console.log("bridge_token1_pda", bridge_token1_pda.toBase58())
@@ -96,7 +104,7 @@ describe("my-project", () => {
     console.log("state_pda", state_pda.toBase58())
 
 
-    await program.methods.initialize().accounts({
+    await program.methods.initialize(sendSigner.publicKey, receiveSigner).accounts({
       state: state_pda,
       admin: admin.publicKey,
       systemProgram: SystemProgram.programId
@@ -109,6 +117,7 @@ describe("my-project", () => {
     assert.ok(!globalState.pause);
 
 
+    // initialize token
     const ambTokenAddress = hexToUint8Array("0x1111472FCa4260505EcE4AcD07717CADa41c1111");
     await program.methods.initializeToken(ambTokenAddress).accounts({
       signer: admin.publicKey,
@@ -154,10 +163,10 @@ describe("my-project", () => {
     };
     const encoded = serializeSendPayload(value);
     const message = keccak_256(encoded)
-    const signature = nacl.sign.detached(message, admin.secretKey);
+    const signature = nacl.sign.detached(message, sendSigner.secretKey);
 
 
-    const verifyInstruction = newEd25519Instruction(1, message, [admin.publicKey.toBytes()], [signature]);
+    const verifyInstruction = newEd25519Instruction(1, message, [sendSigner.publicKey.toBytes()], [signature]);
 
     // Lock tokens
     const sendInstruction = await program.methods.lock(encoded, receiverAddress).accounts({
@@ -208,10 +217,11 @@ describe("my-project", () => {
     };
     const encoded = serializeReceivePayload(value);
     const message = keccak_256(encoded)
-    const signature = nacl.sign.detached(message, admin.secretKey);
 
+    const signatures = receiveSigners.map(signer => nacl.sign.detached(message, signer.secretKey));
+    const pubkeys = receiveSigners.map(signer => signer.publicKey.toBytes());
 
-    const verifyInstruction = newEd25519Instruction(1, message, [admin.publicKey.toBytes()], [signature]);
+    const verifyInstruction = newEd25519Instruction(5, message, pubkeys, signatures);
 
 
     const receiveInstruction = await program.methods.unlock(encoded).accounts({

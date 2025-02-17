@@ -125,7 +125,7 @@ pub fn send(ctx: Context<Send>, serialized_args: Vec<u8>, recipient: [u8; 20]) -
         token_address_from: ctx.accounts.mint.key(),
         token_address_to: deserialized_args.token_address_to,
         amount_from: deserialized_args.amount_to_send,
-        amount_to: scale_amount(deserialized_args.amount_to_send, 6, 18), // todo decimals
+        amount_to: scale_amount(deserialized_args.amount_to_send, ctx.accounts.mint.decimals, ctx.accounts.bridge_token.amb_decimals),
         chain_from: SOLANA_CHAIN_ID,
         chain_to: AMB_CHAIN_ID,
         event_id: ctx.accounts.state.nonce, // transaction number
@@ -137,8 +137,9 @@ pub fn send(ctx: Context<Send>, serialized_args: Vec<u8>, recipient: [u8; 20]) -
 
 
 
-
-fn scale_amount(num: u64, from_decimals: u32, to_decimals: u32) -> [u8; 32] {
+// can safely use u128 when (to_decimals - from_decimals) <= 19
+// todo add decimals assertion on token initialization?
+fn scale_amount(num: u64, from_decimals: u8, to_decimals: u8) -> [u8; 32] {
     let factor = 10u128.pow((to_decimals as i32 - from_decimals as i32).abs() as u32);
     let mut lo = num as u128;
 

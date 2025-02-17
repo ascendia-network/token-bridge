@@ -54,7 +54,7 @@ pub struct CreateTokenAccount<'info> {
 
 #[derive(Accounts)]
 pub struct UpdateState<'info> {
-    #[account(mut)]
+    #[account(seeds = [b"global_state"],bump )]
     pub state: Account<'info, GlobalState>,
 
     #[account(mut, constraint = authority.key() == state.admin)]

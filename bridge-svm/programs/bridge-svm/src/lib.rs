@@ -5,13 +5,13 @@ pub mod instructions;
 
 use crate::instructions::*;
 
-declare_id!("6TcA8kPmipG2xQtwYWQQq4CioTMbxHLjSCnpu1jqA6pZ");
+declare_id!("ambav8knXhcnxFdp6nMg9HH6K9HjuS6noQNoRvNatCH");
 
 
 
 
 #[program]
-pub mod multisig_nonce {
+pub mod amb_sol_bridge {
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>, send_signer: Pubkey, receive_signer: Pubkey) -> Result<()> {

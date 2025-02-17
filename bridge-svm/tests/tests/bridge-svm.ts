@@ -1,12 +1,10 @@
-import * as anchor from "@coral-xyz/anchor";
-import { BorshCoder, EventParser, Program } from "@coral-xyz/anchor";
-import { Keypair, sendAndConfirmTransaction, Transaction } from '@solana/web3.js';
+import { AnchorProvider, BorshCoder, EventParser, Program, setProvider, workspace } from "@coral-xyz/anchor";
+import { Keypair, PublicKey, sendAndConfirmTransaction, Transaction } from '@solana/web3.js';
 
-import { MultisigNonce } from "../../target/types/multisig_nonce";
+import { AmbSolBridge } from "../../target/types/amb_sol_bridge";
 import { createMint, mintTo } from "@solana/spl-token";
 
 import assert from "assert";
-import { Buffer } from "buffer";
 import { keccak_256 } from '@noble/hashes/sha3';
 import { receiveSigners, sendSigner, signMessage } from "../../src/backend/signs";
 import {
@@ -22,14 +20,14 @@ import { newEd25519Instruction } from "../../src/sdk/ed25519_ix";
 
 describe("my-project", () => {
   // Configure the client to use the local cluster.
-  anchor.setProvider(anchor.AnchorProvider.local());
+  setProvider(AnchorProvider.local());
 
-  const program = anchor.workspace.MultisigNonce as Program<MultisigNonce>;
+  const program = workspace.AmbSolBridge as Program<AmbSolBridge>;
   const bridgeProgram = program;
   const connection = program.provider.connection;
 
-  const admin = anchor.web3.Keypair.generate();
-  const user = anchor.web3.Keypair.generate();
+  const admin = Keypair.generate();
+  const user = Keypair.generate();
 
   // pda - account to store some data
   // ata - associated token account - storing tokens (one per user per token)
@@ -76,7 +74,7 @@ describe("my-project", () => {
 
     const receiveSignersBuffer = Buffer.alloc(32 * receiveSigners.length);
     receiveSigners.forEach((signer, i) => receiveSignersBuffer.set(signer.publicKey.toBuffer(), i * 32));
-    const receiveSigner = new anchor.web3.PublicKey(keccak_256(receiveSignersBuffer));
+    const receiveSigner = new PublicKey(keccak_256(receiveSignersBuffer));
     console.log("receiveSigner", receiveSigner.toBytes())
 
     console.log("user_token1_ata", user_token1_ata.toBase58())

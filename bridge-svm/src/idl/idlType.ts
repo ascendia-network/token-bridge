@@ -2,12 +2,12 @@
  * Program IDL in camelCase format in order to be used in JS/TS.
  *
  * Note that this is only a type helper and is not the actual IDL. The original
- * IDL can be found at `target/idl/multisig_nonce.json`.
+ * IDL can be found at `target/idl/amb_sol_bridge.json`.
  */
-export type MultisigNonce = {
-  "address": "6TcA8kPmipG2xQtwYWQQq4CioTMbxHLjSCnpu1jqA6pZ",
+export type AmbSolBridge = {
+  "address": "ambav8knXhcnxFdp6nMg9HH6K9HjuS6noQNoRvNatCH",
   "metadata": {
-    "name": "multisigNonce",
+    "name": "ambSolBridge",
     "version": "0.1.0",
     "spec": "0.1.0",
     "description": "Created with Anchor"

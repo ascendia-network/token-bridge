@@ -1,7 +1,7 @@
 {
-  "address": "6TcA8kPmipG2xQtwYWQQq4CioTMbxHLjSCnpu1jqA6pZ",
+  "address": "ambav8knXhcnxFdp6nMg9HH6K9HjuS6noQNoRvNatCH",
   "metadata": {
-    "name": "multisig_nonce",
+    "name": "amb_sol_bridge",
     "version": "0.1.0",
     "spec": "0.1.0",
     "description": "Created with Anchor"

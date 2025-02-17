@@ -1,14 +1,14 @@
 import { Connection, PublicKey, sendAndConfirmTransaction, type Signer, Transaction } from "@solana/web3.js";
-import { getBridgeAccounts, getOrCreateUserATA, getUserNoncePda } from "./utils";
+import { getBridgeAccounts, getOrCreateUserATA } from "./utils";
 import { Program } from "@coral-xyz/anchor";
-import { MultisigNonce } from "../../target/types/multisig_nonce";
 import { newEd25519Instruction } from "./ed25519_ix";
 import { getReceivePayload } from "../backend/signs";
+import type { AmbSolBridge } from "../idl/idlType";
 
 export async function receive(
   connection: Connection,
   user: Signer,
-  bridgeProgram: Program<MultisigNonce>,
+  bridgeProgram: Program<AmbSolBridge>,
 ) {
   const {value, payload, message, signers, signatures} = await getReceivePayload(user.publicKey);
   const token = new PublicKey(value.tokenAddressTo)

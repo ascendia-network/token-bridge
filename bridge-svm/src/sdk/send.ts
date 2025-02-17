@@ -1,9 +1,9 @@
 import { getBridgeAccounts, getOrCreateUserATA, hexToUint8Array } from "./utils";
 import { Connection, PublicKey, sendAndConfirmTransaction, type Signer, Transaction } from "@solana/web3.js";
 import { Program } from "@coral-xyz/anchor";
-import { MultisigNonce } from "../../target/types/multisig_nonce";
 import { getSendPayload } from "../backend/signs";
 import { newEd25519Instruction } from "./ed25519_ix";
+import type { AmbSolBridge } from "../idl/idlType";
 
 
 export async function send(
@@ -12,7 +12,7 @@ export async function send(
   tokenTo: string,
   userFrom: Signer,
   userTo: string,
-  bridgeProgram: Program<MultisigNonce>,
+  bridgeProgram: Program<AmbSolBridge>,
   amountToSend: number,
   flags: any  // todo
 ) {

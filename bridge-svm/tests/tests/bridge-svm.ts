@@ -87,11 +87,10 @@ describe("my-project", () => {
 
 
     await program.methods.initialize(sendSigner.publicKey, receiveSigner).accounts({
-      state: state_pda,
       admin: admin.publicKey,
-      systemProgram: SystemProgram.programId
     }).signers([admin]).rpc();
 
+    console.log("initialized")
 
     const globalState = await program.account.globalState.fetch(state_pda);
     console.log("globalState", globalState)
@@ -101,9 +100,10 @@ describe("my-project", () => {
 
     // initialize token
     const ambTokenAddress = hexToUint8Array("0x1111472FCa4260505EcE4AcD07717CADa41c1111");
-    await program.methods.initializeToken(ambTokenAddress).accounts({
-      signer: admin.publicKey,
-      associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+    await program.methods.initializeToken([...ambTokenAddress], 18).accounts({
+      // @ts-ignore
+      admin: admin.publicKey,
+      state: state_pda,
       ...getBridgeAccounts(tokenMint1.publicKey, program.programId),
     }).signers([admin]).rpc();
 
@@ -150,9 +150,9 @@ describe("my-project", () => {
 
     const verifyInstruction = newEd25519Instruction(message, signers, signatures);
     // Lock tokens
-    const sendInstruction = await bridgeProgram.methods.lock(payload, userTo).accounts({
+    const sendInstruction = await bridgeProgram.methods.lock(payload, [...userTo]).accounts({
       sender: user.publicKey,
-      senderTokenAccount: user_token_ata,
+      // senderTokenAccount: user_token_ata,
       ...getBridgeAccounts(tokenFrom, bridgeProgram.programId),
     }).signers([userFrom]).instruction();
 
@@ -213,8 +213,8 @@ describe("my-project", () => {
 
     const receiveInstruction = await bridgeProgram.methods.unlock(payload).accounts({
       receiver: user.publicKey,
-      receiverTokenAccount: user_token_ata,
-      receiverNonceAccount: nonceAccount,
+      // receiverTokenAccount: user_token_ata,
+      // receiverNonceAccount: nonceAccount,
       ...getBridgeAccounts(token, bridgeProgram.programId),
     }).signers([user]).instruction()
 

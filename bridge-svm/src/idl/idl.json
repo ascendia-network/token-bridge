@@ -80,9 +80,36 @@
       ],
       "accounts": [
         {
-          "name": "signer",
+          "name": "state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
           "writable": true,
-          "signer": true
+          "signer": true,
+          "relations": [
+            "state"
+          ]
         },
         {
           "name": "bridge_token",
@@ -221,6 +248,10 @@
               20
             ]
           }
+        },
+        {
+          "name": "amb_decimals",
+          "type": "u8"
         }
       ]
     },
@@ -434,12 +465,35 @@
       "accounts": [
         {
           "name": "state",
-          "writable": true
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
         },
         {
-          "name": "authority",
+          "name": "admin",
           "writable": true,
-          "signer": true
+          "signer": true,
+          "relations": [
+            "state"
+          ]
         }
       ],
       "args": [
@@ -951,6 +1005,10 @@
                 20
               ]
             }
+          },
+          {
+            "name": "amb_decimals",
+            "type": "u8"
           },
           {
             "name": "bump",

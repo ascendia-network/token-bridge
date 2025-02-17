@@ -9,7 +9,11 @@ use anchor_spl::token_interface::{Mint, TokenAccount};
 
 #[derive(Accounts)]
 pub struct Lock<'info> {
-    #[account(        mut,        seeds = [b"global_state"],        bump,        constraint = !state.pause    )]
+    #[account(
+        mut,
+        constraint = !state.pause,
+        seeds = [GlobalState::SEED_PREFIX], bump
+    )]
     pub state: Account<'info, GlobalState>,
 
     #[account(mut)]
@@ -23,8 +27,7 @@ pub struct Lock<'info> {
     pub sender_token_account: InterfaceAccount<'info, TokenAccount>,
 
     #[account(
-        seeds = [TokenConfig::SEED_PREFIX.as_bytes(), mint.key().as_ref()],
-        bump = bridge_token.bump
+        seeds = [TokenConfig::SEED_PREFIX, mint.key().as_ref()], bump = bridge_token.bump
     )]
     pub bridge_token: Account<'info, TokenConfig>,
 

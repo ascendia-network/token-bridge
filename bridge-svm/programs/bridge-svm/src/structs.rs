@@ -3,7 +3,7 @@ use borsh::{BorshDeserialize, BorshSerialize};
 
 
 pub const SOLANA_CHAIN_ID: u64 = 0x736F6C616E61; // "solana" in hex
-pub const AMB_CHAIN_ID: u64 = 22040; // "amb" in hex
+pub const AMB_CHAIN_ID: u64 = 22040;
 pub const SIGNATURE_VALIDITY_TIME: u64 = 30*60; // 30 minutes
 
 #[account]
@@ -15,22 +15,27 @@ pub struct GlobalState {
     pub pause: bool,
 }
 
+impl GlobalState {
+    pub const SEED_PREFIX: &'static[u8] = b"global_state";
+    pub const ACCOUNT_SIZE: usize = 8 + 32 + 32 + 32 + 8 + 1;     // discriminator (8) + admin (32) + send_signer (32) + receive_signer (32) + nonce (8) + pause (1)
+}
 
 
 
 #[account]
 pub struct TokenConfig {
     pub token: Pubkey,      // Public key of the token
-    pub amb_token: [u8; 20],  //
+    pub amb_token: [u8; 20],  // Address of the token on the AMB bridge
+    pub amb_decimals: u8,       // Decimals of the token on the AMB bridge
     pub bump: u8,
 }
 
 impl TokenConfig {
-    pub const SEED_PREFIX: &'static str = "token";
-    pub const ACCOUNT_SIZE: usize = 8 + 32 + 20 + 1;     // discriminator (8)  + Pubkey (32) + address (20)     + Bump (1) _
+    pub const SEED_PREFIX: &'static[u8] = b"token";
+    pub const ACCOUNT_SIZE: usize = 8 + 32 + 20 + 1 + 1;     // discriminator (8) + Pubkey (32) + address (20) + decimals (1)  + Bump (1) _
 
-    pub fn new(token: Pubkey, amb_token: [u8; 20], bump: u8) -> Self {
-        Self { token, amb_token, bump }
+    pub fn new(token: Pubkey, amb_token: [u8; 20], amb_decimals: u8, bump: u8) -> Self {
+        Self { token, amb_token, amb_decimals, bump }
     }
 }
 
@@ -40,6 +45,10 @@ pub struct NonceAccount {
     pub nonce_counter: u64,
 }
 
+impl NonceAccount {
+    pub const SEED_PREFIX: &'static[u8] = b"nonce";
+    pub const ACCOUNT_SIZE: usize = 8 + 8;     // discriminator (8) + nonce (8)
+}
 
 
 #[error_code]
@@ -68,6 +77,17 @@ pub struct SendPayload {
     pub flag_data: Vec<u8>,
 }
 
+#[derive(BorshSerialize, BorshDeserialize, Debug)]
+pub struct ReceivePayload {
+    pub to: Pubkey,
+    pub token_address_to: Pubkey,
+    pub amount_to: u64,
+    pub chain_to: u64,
+    pub flags: [u8; 32],
+    pub flag_data: Vec<u8>,
+    pub nonce: u64,
+}
+
 // #[derive(BorshSerialize, BorshDeserialize, Debug, event)]
 #[event]
 pub struct SendEvent {
@@ -82,15 +102,4 @@ pub struct SendEvent {
     pub event_id: u64,  // transaction number
     pub flags: [u8; 32],
     pub flag_data: Vec<u8>,
-}
-
-#[derive(BorshSerialize, BorshDeserialize, Debug)]
-pub struct ReceivePayload {
-    pub to: Pubkey,
-    pub token_address_to: Pubkey,
-    pub amount_to: u64,
-    pub chain_to: u64,
-    pub flags: [u8; 32],
-    pub flag_data: Vec<u8>,
-    pub nonce: u64,
 }

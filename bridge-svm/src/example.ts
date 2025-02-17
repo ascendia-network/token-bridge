@@ -71,8 +71,9 @@ async function initialize() {
 
   // initialize token
   const ambTokenAddress = hexToUint8Array("0x7abd986995753C186a8e22cd7be89Efe9Ade9C0d");
-  await program.methods.initializeToken([...ambTokenAddress]).accounts({
-    signer: admin.publicKey,
+  await program.methods.initializeToken([...ambTokenAddress], 18).accounts({
+    // @ts-ignore
+    admin: admin.publicKey,
     ...getBridgeAccounts(token.publicKey, program.programId),
   }).signers([admin]).rpc();
 

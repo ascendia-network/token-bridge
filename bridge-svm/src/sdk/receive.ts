@@ -14,14 +14,14 @@ export async function receive(
   const token = new PublicKey(value.tokenAddressTo)
 
   const user_token_ata = (await getOrCreateUserATA(connection, user, token)).address;
-  const nonceAccount = getUserNoncePda(user.publicKey, bridgeProgram.programId);
+  // const nonceAccount = getUserNoncePda(user.publicKey, bridgeProgram.programId);
 
   const verifyInstruction = newEd25519Instruction(message, signers, signatures);
 
   const receiveInstruction = await bridgeProgram.methods.unlock(payload).accounts({
     receiver: user.publicKey,
-    receiverTokenAccount: user_token_ata,
-    receiverNonceAccount: nonceAccount,
+    // receiverTokenAccount: user_token_ata,
+    // receiverNonceAccount: nonceAccount,
     ...getBridgeAccounts(token, bridgeProgram.programId),
   }).signers([user]).instruction()
 

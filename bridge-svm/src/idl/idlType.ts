@@ -86,9 +86,36 @@ export type MultisigNonce = {
       ],
       "accounts": [
         {
-          "name": "signer",
+          "name": "state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
           "writable": true,
-          "signer": true
+          "signer": true,
+          "relations": [
+            "state"
+          ]
         },
         {
           "name": "bridgeToken",
@@ -227,6 +254,10 @@ export type MultisigNonce = {
               20
             ]
           }
+        },
+        {
+          "name": "ambDecimals",
+          "type": "u8"
         }
       ]
     },
@@ -440,12 +471,35 @@ export type MultisigNonce = {
       "accounts": [
         {
           "name": "state",
-          "writable": true
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
         },
         {
-          "name": "authority",
+          "name": "admin",
           "writable": true,
-          "signer": true
+          "signer": true,
+          "relations": [
+            "state"
+          ]
         }
       ],
       "args": [
@@ -957,6 +1011,10 @@ export type MultisigNonce = {
                 20
               ]
             }
+          },
+          {
+            "name": "ambDecimals",
+            "type": "u8"
           },
           {
             "name": "bump",

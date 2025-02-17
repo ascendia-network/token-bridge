@@ -1,4 +1,4 @@
-import { clusterApiUrl, Connection, Keypair } from "@solana/web3.js";
+import { clusterApiUrl, Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { AnchorProvider, BorshCoder, EventParser, Program, setProvider } from "@coral-xyz/anchor";
 import type { AmbSolBridge } from "./idl/idlType";
 import idl from "./idl/idl.json";
@@ -61,7 +61,7 @@ async function initialize() {
   // initialize global state
   const receiveSignersBuffer = Buffer.alloc(32 * receiveSigners.length);
   receiveSigners.forEach((signer, i) => receiveSignersBuffer.set(signer.publicKey.toBuffer(), i * 32));
-  const receiveSigner = new anchor.web3.PublicKey(keccak_256(receiveSignersBuffer));
+  const receiveSigner = new PublicKey(keccak_256(receiveSignersBuffer));
 
   await program.methods.initialize(sendSigner.publicKey, receiveSigner).accounts({
     admin: admin.publicKey,

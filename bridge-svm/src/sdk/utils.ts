@@ -1,5 +1,5 @@
 import { Buffer } from "buffer";
-import { Connection, PublicKey, type Signer, SystemProgram } from "@solana/web3.js";
+import { Connection, Keypair, PublicKey, type Signer, SystemProgram } from "@solana/web3.js";
 import { getAssociatedTokenAddressSync, getOrCreateAssociatedTokenAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 
@@ -16,8 +16,13 @@ export function hexToUint8Array(hexString: string) {
   return bytes;
 }
 
+export function hexToKeypair(hexString: string) {
+  return Keypair.fromSecretKey(hexToUint8Array(hexString));
+}
 
-
+export function keypairToHex(keypair: Keypair) {
+  return Buffer.from(keypair.secretKey).toString('hex');
+}
 
 
 export function getBridgeAccounts(mint: PublicKey, bridgeProgramId: PublicKey) {

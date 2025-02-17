@@ -9,7 +9,7 @@ import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import assert from "assert";
 import { Buffer } from "buffer";
 import { keccak_256 } from '@noble/hashes/sha3';
-import { receiveSigners, sendSigner, signMessage } from "../backend/signs";
+import { receiveSigners, sendSigner, signMessage } from "../../src/backend/signs";
 import {
   getBridgeAccounts,
   getBridgeStateAccount,
@@ -17,9 +17,9 @@ import {
   getOrCreateUserATA,
   getUserNoncePda,
   hexToUint8Array
-} from "../sdk/utils";
-import { ReceivePayload, SendPayload, serializeReceivePayload, serializeSendPayload } from "../backend/types";
-import { newEd25519Instruction } from "../sdk/ed25519_ix";
+} from "../../src/sdk/utils";
+import { ReceivePayload, SendPayload, serializeReceivePayload, serializeSendPayload } from "../../src/backend/types";
+import { newEd25519Instruction } from "../../src/sdk/ed25519_ix";
 
 describe("my-project", () => {
   // Configure the client to use the local cluster.

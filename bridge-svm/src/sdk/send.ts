@@ -6,7 +6,7 @@ import { getSendPayload } from "../backend/signs";
 import { newEd25519Instruction } from "./ed25519_ix";
 
 
-async function send(
+export async function send(
   connection: Connection,
   tokenFrom: PublicKey,
   tokenTo: string,
@@ -22,9 +22,8 @@ async function send(
   const verifyInstruction = newEd25519Instruction(message, signers, signatures);
 
   // Lock tokens
-  const sendInstruction = await bridgeProgram.methods.lock(payload, hexToUint8Array(userTo)).accounts({
+  const sendInstruction = await bridgeProgram.methods.lock(payload, [...hexToUint8Array(userTo)]).accounts({
     sender: userFrom.publicKey,
-    senderTokenAccount: user_token_ata,
     ...getBridgeAccounts(tokenFrom, bridgeProgram.programId),
   }).signers([userFrom]).instruction();
 

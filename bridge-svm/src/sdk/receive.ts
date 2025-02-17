@@ -5,7 +5,7 @@ import { MultisigNonce } from "../../target/types/multisig_nonce";
 import { newEd25519Instruction } from "./ed25519_ix";
 import { getReceivePayload } from "../backend/signs";
 
-async function receive(
+export async function receive(
   connection: Connection,
   user: Signer,
   bridgeProgram: Program<MultisigNonce>,

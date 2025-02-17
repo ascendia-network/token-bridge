@@ -1,98 +1,36 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
-declare_id!("GrDsFgHMrguqLqhb9JGvE26wTCbwPiLPhFGMsxeDt5Xd");
+pub mod structs;
+pub mod instructions;
 
-#[derive(Accounts)]
-pub struct Bridge<'info> {
-    #[account(mut)]
-    pub authority: Signer<'info>,
+use crate::instructions::*;
 
-    #[account(mut)]
-    pub from: Account<'info, TokenAccount>,
+declare_id!("ambav8knXhcnxFdp6nMg9HH6K9HjuS6noQNoRvNatCH");
 
-    #[account(mut)]
-    pub to: Account<'info, TokenAccount>,
 
-    #[account(mut)]
-    pub nonce_account: Account<'info, NonceAccount>,
 
-    pub token_program: Program<'info, Token>,
-}
-
-#[account]
-#[derive(Default)]
-pub struct NonceAccount {
-    pub nonce_counter: u64,
-}
-
-#[error_code]
-pub enum ErrorCode {
-    #[msg("Signature invalid.")]
-    MissingSignature,
-    #[msg("Invalid nonce.")]
-    InvalidNonce,
-}
 
 #[program]
-pub mod multisig_nonce {
+pub mod amb_sol_bridge {
     use super::*;
 
-    pub fn lock(ctx: Context<Bridge>, amount: u64, destination: String) -> Result<()> {
-        let cpi_accounts = Transfer {
-            from: ctx.accounts.from.to_account_info(),
-            to: ctx.accounts.to.to_account_info(),
-            authority: ctx.accounts.authority.to_account_info(),
-        };
-
-        let cpi_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), cpi_accounts);
-        token::transfer(cpi_ctx, amount)?;
-
-        msg!(
-            "Lock, token: {}, from: {}, to: {}, amount: {}, destination: {}",
-            ctx.accounts.token_program.key(),
-            ctx.accounts.from.key(),
-            ctx.accounts.to.key(),
-            amount,
-            destination
-        );
-        Ok(())
+    pub fn initialize(ctx: Context<Initialize>, send_signer: Pubkey, receive_signer: Pubkey) -> Result<()> {
+        instructions::initialize(ctx, send_signer, receive_signer)
     }
 
-    pub fn unlock(ctx: Context<Bridge>, amount: u64, nonce_value: u64) -> Result<()> {
-        if ctx.accounts.nonce_account.to_account_info().owner != ctx.program_id {
-            return Err(ErrorCode::InvalidNonce.into());
-        }
+    pub fn initialize_token(ctx: Context<CreateTokenAccount>, amb_token: [u8; 20], amb_decimals: u8) -> Result<()> {
+        instructions::initialize_token(ctx, amb_token, amb_decimals)
+    }
 
-        let nonce = &mut ctx.accounts.nonce_account;
-        if nonce_value != nonce.nonce_counter {
-            return Err(ErrorCode::InvalidNonce.into());
-        }
+    pub fn set_pause(ctx: Context<UpdateState>, pause: bool) -> Result<()> {
+        instructions::set_pause(ctx, pause)
+    }
 
-        let accounts = ctx.remaining_accounts;
-        for account in accounts {
-            if !account.is_signer {
-                return Err(ErrorCode::MissingSignature.into());
-            }
-        }
+    pub fn send(ctx: Context<Send>, serialized_args: Vec<u8>, recipient: [u8; 20]) -> Result<()> {
+        instructions::send(ctx, serialized_args, recipient)
+    }
 
-        let cpi_accounts = Transfer {
-            from: ctx.accounts.from.to_account_info(),
-            to: ctx.accounts.to.to_account_info(),
-            authority: ctx.accounts.authority.to_account_info(),
-        };
-
-        let cpi_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), cpi_accounts);
-        token::transfer(cpi_ctx, amount)?;
-
-        nonce.nonce_counter += 1;
-        msg!(
-            "Unlock, token: {}, from: {}, to: {}, amount: {}",
-            ctx.accounts.token_program.key(),
-            ctx.accounts.from.key(),
-            ctx.accounts.to.key(),
-            amount
-        );
-        Ok(())
+   pub fn receive(ctx: Context<Receive>, serialized_args: Vec<u8>) -> Result<()> {
+        instructions::receive(ctx, serialized_args)
     }
 }

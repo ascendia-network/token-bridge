@@ -8,7 +8,7 @@ solana-test-validator --reset &
 sleep 1
 
 anchor build
-anchor deploy
+#anchor deploy
 anchor test --skip-local-validator
 
 #pkill -f solana-test-validator

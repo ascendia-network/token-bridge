@@ -3,6 +3,7 @@ use borsh::{BorshDeserialize, BorshSerialize};
 
 
 pub const SOLANA_CHAIN_ID: u64 = 0x736F6C616E61; // "solana" in hex
+pub const AMB_CHAIN_ID: u64 = 22040; // "amb" in hex
 pub const SIGNATURE_VALIDITY_TIME: u64 = 30*60; // 30 minutes
 
 #[account]
@@ -67,14 +68,15 @@ pub struct SendPayload {
     pub flag_data: Vec<u8>,
 }
 
-#[derive(BorshSerialize, BorshDeserialize, Debug)]
+// #[derive(BorshSerialize, BorshDeserialize, Debug, event)]
+#[event]
 pub struct SendEvent {
     pub from: Pubkey,  // source address (bytes32 because of cross-chain compatibility)
     pub to: [u8; 20],  // destination address (bytes32 because of cross-chain compatibility)
     pub token_address_from: Pubkey,  // source token address (bytes32 because of cross-chain compatibility)
     pub token_address_to: [u8; 20],  // source token address (bytes32 because of cross-chain compatibility)
     pub amount_from: u64,  // amount of tokens sent
-    pub amount_to: [u8; 256],  // amount of tokens received
+    pub amount_to: [u8; 32],  // amount of tokens received
     pub chain_from: u64,  // chain id of the source chain
     pub chain_to: u64,  // chain id of the destination chain
     pub event_id: u64,  // transaction number

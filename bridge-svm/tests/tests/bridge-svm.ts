@@ -1,5 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Program } from "@coral-xyz/anchor";
+import { BorshCoder, EventParser, Program } from "@coral-xyz/anchor";
 import { Keypair, sendAndConfirmTransaction, SystemProgram, Transaction } from '@solana/web3.js';
 
 import { MultisigNonce } from "../../target/types/multisig_nonce";
@@ -161,6 +161,14 @@ describe("my-project", () => {
     const txSignature = await sendAndConfirmTransaction(connection, tx, [user], { commitment: 'confirmed' }); // wait for transaction to be confirmed
 
 
+    const txParsed = await connection.getParsedTransaction(txSignature, { commitment: 'confirmed' });
+    console.log(txParsed)
+
+    const eventParser = new EventParser(program.programId, new BorshCoder(program.idl));
+    const events = eventParser.parseLogs(txParsed.meta.logMessages);
+    for (let event of events) {
+      console.log(event);
+    }
 
 
     const accountState = await program.account.globalState.fetch(state_pda);

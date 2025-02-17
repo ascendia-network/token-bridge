@@ -4,6 +4,7 @@ import { getAssociatedTokenAddressSync, getOrCreateAssociatedTokenAccount, TOKEN
 
 
 export const SOLANA_CHAIN_ID = 0x736F6C616E61;
+export const AMB_CHAIN_ID = 22040;
 
 
 export function hexToUint8Array(hexString: string) {

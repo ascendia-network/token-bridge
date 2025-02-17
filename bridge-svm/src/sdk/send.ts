@@ -22,7 +22,7 @@ export async function send(
   const verifyInstruction = newEd25519Instruction(message, signers, signatures);
 
   // Lock tokens
-  const sendInstruction = await bridgeProgram.methods.lock(payload, [...hexToUint8Array(userTo)]).accounts({
+  const sendInstruction = await bridgeProgram.methods.send(payload, [...hexToUint8Array(userTo)]).accounts({
     sender: userFrom.publicKey,
     ...getBridgeAccounts(tokenFrom, bridgeProgram.programId),
   }).signers([userFrom]).instruction();

@@ -1,7 +1,7 @@
 pub mod admin;
-pub mod lock;
-pub mod unlock;
+pub mod send;
+pub mod receive;
 
 pub use admin::*;
-pub use lock::*;
-pub use unlock::*;
+pub use send::*;
+pub use receive::*;

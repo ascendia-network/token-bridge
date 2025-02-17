@@ -8,7 +8,7 @@ use anchor_spl::token::{self, Token, Transfer};
 use anchor_spl::token_interface::{Mint, TokenAccount};
 
 #[derive(Accounts)]
-pub struct Lock<'info> {
+pub struct Send<'info> {
     #[account(
         mut,
         constraint = !state.pause,
@@ -49,7 +49,7 @@ pub struct Lock<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn lock(ctx: Context<Lock>, serialized_args: Vec<u8>, recipient: [u8; 20]) -> Result<()> {
+pub fn send(ctx: Context<Send>, serialized_args: Vec<u8>, recipient: [u8; 20]) -> Result<()> {
     let deserialized_args = SendPayload::try_from_slice(&serialized_args)
         .map_err(|_| error!(CustomError::InvalidSerialization))?;
     let args_hash = hash(&serialized_args);

@@ -26,11 +26,11 @@ pub mod multisig_nonce {
         instructions::set_pause(ctx, pause)
     }
 
-    pub fn lock(ctx: Context<Lock>, serialized_args: Vec<u8>, recipient: [u8; 20]) -> Result<()> {
-        instructions::lock(ctx, serialized_args, recipient)
+    pub fn send(ctx: Context<Send>, serialized_args: Vec<u8>, recipient: [u8; 20]) -> Result<()> {
+        instructions::send(ctx, serialized_args, recipient)
     }
 
-   pub fn unlock(ctx: Context<Unlock>, serialized_args: Vec<u8>) -> Result<()> {
-        instructions::unlock(ctx, serialized_args)
+   pub fn receive(ctx: Context<Receive>, serialized_args: Vec<u8>) -> Result<()> {
+        instructions::receive(ctx, serialized_args)
     }
 }

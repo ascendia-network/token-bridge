@@ -18,7 +18,7 @@ export async function receive(
 
   const verifyInstruction = newEd25519Instruction(message, signers, signatures);
 
-  const receiveInstruction = await bridgeProgram.methods.unlock(payload).accounts({
+  const receiveInstruction = await bridgeProgram.methods.receive(payload).accounts({
     receiver: user.publicKey,
     // receiverTokenAccount: user_token_ata,
     // receiverNonceAccount: nonceAccount,

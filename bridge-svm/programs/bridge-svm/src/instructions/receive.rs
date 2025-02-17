@@ -8,7 +8,7 @@ use anchor_spl::token::{self, Token, Transfer};
 use anchor_spl::token_interface::{Mint, TokenAccount};
 
 #[derive(Accounts)]
-pub struct Unlock<'info> {
+pub struct Receive<'info> {
     #[account(
         constraint = !state.pause,
         seeds = [GlobalState::SEED_PREFIX], bump
@@ -56,7 +56,7 @@ pub struct Unlock<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn unlock(ctx: Context<Unlock>, serialized_args: Vec<u8>) -> Result<()> {
+pub fn receive(ctx: Context<Receive>, serialized_args: Vec<u8>) -> Result<()> {
     let nonce = &mut ctx.accounts.receiver_nonce_account;
     let bridge_token = &ctx.accounts.bridge_token;
 

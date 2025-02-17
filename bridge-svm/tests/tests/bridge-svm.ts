@@ -1,10 +1,9 @@
 import * as anchor from "@coral-xyz/anchor";
 import { BorshCoder, EventParser, Program } from "@coral-xyz/anchor";
-import { Keypair, sendAndConfirmTransaction, SystemProgram, Transaction } from '@solana/web3.js';
+import { Keypair, sendAndConfirmTransaction, Transaction } from '@solana/web3.js';
 
 import { MultisigNonce } from "../../target/types/multisig_nonce";
 import { createMint, mintTo } from "@solana/spl-token";
-import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 
 import assert from "assert";
 import { Buffer } from "buffer";
@@ -118,7 +117,7 @@ describe("my-project", () => {
 
   });
 
-  it('lock', async () => {
+  it('send', async () => {
     const tokenBalanceUser = await connection.getTokenAccountBalance(user_token1_ata);
     const tokenBalanceBridge = await connection.getTokenAccountBalance(bridge_token1_ata);
     console.log("tokenBalanceUser", tokenBalanceUser)
@@ -149,8 +148,8 @@ describe("my-project", () => {
     const { message, signers, signatures } = signMessage(payload, [sendSigner]);
 
     const verifyInstruction = newEd25519Instruction(message, signers, signatures);
-    // Lock tokens
-    const sendInstruction = await bridgeProgram.methods.lock(payload, [...userTo]).accounts({
+    // send tokens
+    const sendInstruction = await bridgeProgram.methods.send(payload, [...userTo]).accounts({
       sender: user.publicKey,
       // senderTokenAccount: user_token_ata,
       ...getBridgeAccounts(tokenFrom, bridgeProgram.programId),
@@ -179,7 +178,7 @@ describe("my-project", () => {
 
   });
 
-  it('unlock', async () => {
+  it('receive', async () => {
     const tokenBalanceUser = await connection.getTokenAccountBalance(user_token1_ata);
     const tokenBalanceBridge = await connection.getTokenAccountBalance(bridge_token1_ata);
     console.log("tokenBalanceUser", tokenBalanceUser)
@@ -211,7 +210,7 @@ describe("my-project", () => {
     const {message, signers, signatures} = signMessage(payload, receiveSigners);
     const verifyInstruction = newEd25519Instruction(message, signers, signatures);
 
-    const receiveInstruction = await bridgeProgram.methods.unlock(payload).accounts({
+    const receiveInstruction = await bridgeProgram.methods.receive(payload).accounts({
       receiver: user.publicKey,
       // receiverTokenAccount: user_token_ata,
       // receiverNonceAccount: nonceAccount,

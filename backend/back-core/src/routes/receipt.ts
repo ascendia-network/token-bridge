@@ -53,7 +53,7 @@ receiptRoutes.get(
       const data = await receiptController.getUnsignedReceipts(pubkey, "svm");
       return c.json(data, 200);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return c.json(error, 400);
     }
   }

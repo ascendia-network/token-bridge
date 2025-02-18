@@ -22,7 +22,7 @@ optimizer = true
 runs = 1000
 [fmt]
 single_line_statement_blocks = "multi"
-multiline_func_header = "all"
+multiline_func_header = "params_first"
 sort_imports = true
 contract_new_lines = true
 override_spacing = true

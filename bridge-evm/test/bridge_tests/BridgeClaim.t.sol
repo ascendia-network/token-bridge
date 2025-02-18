@@ -32,11 +32,9 @@ abstract contract BridgeClaimTest is BridgeTestBase {
     using ReceiptUtils for BridgeTypes.MiniReceipt;
     using PayloadUtils for BridgeTypes.SendPayload;
 
-    function signReceipt(BridgeTypes.MiniReceipt memory receipt)
-        public
-        view
-        returns (bytes memory)
-    {
+    function signReceipt(
+        BridgeTypes.MiniReceipt memory receipt
+    ) public view returns (bytes memory) {
         bytes memory signature;
         bytes32 digest = receipt.toHash();
         for (uint256 i = 0; i < signers.length; i++) {
@@ -47,10 +45,9 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         return signature;
     }
 
-    function test_claim_withFullReceipt(uint256 amount)
-        public
-        returns (address)
-    {
+    function test_claim_withFullReceipt(
+        uint256 amount
+    ) public returns (address) {
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("SOLANA_TOKEN"),
@@ -84,10 +81,9 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         return token;
     }
 
-    function test_claim_withMiniReceipt(uint256 amount)
-        public
-        returns (address)
-    {
+    function test_claim_withMiniReceipt(
+        uint256 amount
+    ) public returns (address) {
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("SOLANA_TOKEN"),
@@ -122,7 +118,9 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         return token;
     }
 
-    function test_revertIf_claim_alreadyClaimed(uint256 amount) public {
+    function test_revertIf_claim_alreadyClaimed(
+        uint256 amount
+    ) public {
         address token = test_claim_withFullReceipt(amount);
         BridgeTypes.FullReceipt memory sameReceipt = BridgeTypes.FullReceipt({
             from: bytes32("SOLANA_SENDER"),
@@ -146,7 +144,9 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         bridgeInstance.claim(sameReceipt, signature);
     }
 
-    function test_revertIf_claim_TokenNotBridgable(uint256 amount) public {
+    function test_revertIf_claim_TokenNotBridgable(
+        uint256 amount
+    ) public {
         BridgeTypes.FullReceipt memory receipt = BridgeTypes.FullReceipt({
             from: bytes32("SOLANA_SENDER"),
             to: bytes32(uint256(uint160(deadBeef))), // deadBeef
@@ -169,7 +169,9 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         bridgeInstance.claim(receipt, signature);
     }
 
-    function test_revertIf_claim_wrongChain(uint256 amount) public {
+    function test_revertIf_claim_wrongChain(
+        uint256 amount
+    ) public {
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("SOLANA_TOKEN"),
@@ -197,7 +199,9 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         bridgeInstance.claim(receipt, signature);
     }
 
-    function test_revertIf_claim_tokenPaused(uint256 amount) public {
+    function test_revertIf_claim_tokenPaused(
+        uint256 amount
+    ) public {
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("SOLANA_TOKEN"),
@@ -229,7 +233,9 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         bridgeInstance.claim(receipt, signature);
     }
 
-    function test_claim_wrapped(uint256 amount) public {
+    function test_claim_wrapped(
+        uint256 amount
+    ) public {
         deal(address(wrappedToken), address(bridgeInstance), amount);
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({
@@ -260,7 +266,9 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         assertTrue(bridgeInstance.isClaimed(receipt.toHash()));
     }
 
-    function test_claim_wrapped_with_unwrap(uint256 amount) public {
+    function test_claim_wrapped_with_unwrap(
+        uint256 amount
+    ) public {
         vm.deal(address(bridgeInstance), amount);
         vm.startPrank(address(bridgeInstance));
         wrappedToken.deposit{value: amount}();
@@ -298,9 +306,7 @@ abstract contract BridgeClaimTest is BridgeTestBase {
 
     function test_revertWhen_claim_wrapped_with_unwrap_BadReceiver(
         uint256 amount
-    )
-        public
-    {
+    ) public {
         vm.deal(address(bridgeInstance), amount);
         vm.startPrank(address(bridgeInstance));
         wrappedToken.deposit{value: amount}();
@@ -329,7 +335,9 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         bridgeInstance.claim(receipt, signature);
     }
 
-    function test_claim_withSendNativeFlag(uint256 amount) public {
+    function test_claim_withSendNativeFlag(
+        uint256 amount
+    ) public {
         vm.deal(address(bridgeInstance), 100 ether);
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({
@@ -369,9 +377,7 @@ abstract contract BridgeClaimTest is BridgeTestBase {
 
     function test_revertWhen_claim_withSendNativeFlag_BadReceiver(
         uint256 amount
-    )
-        public
-    {
+    ) public {
         vm.deal(address(bridgeInstance), amount);
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({

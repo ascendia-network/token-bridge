@@ -7,6 +7,7 @@ import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {BridgeUpgradeable} from "./upgradeable/BridgeUpgradeable.sol";
 
 contract BridgeSolana is BridgeUpgradeable {
+
     using SafeCast for uint256;
     /// Initialize the contract with the given parameters
     /// @param authority_ address of the authority contract [AccessManager](https://docs.openzeppelin.com/contracts/5.x/access-control#access-management)
@@ -14,6 +15,7 @@ contract BridgeSolana is BridgeUpgradeable {
     /// @param validator_ address of the validator contract
     /// @param feeReceiver_ address of the fee receiver
     /// @param nativeSendAmount_ amount of native currency to send to the receiver in destination chain (here) if needed
+
     function initialize(
         address authority_,
         address tokenBeacon_,
@@ -21,12 +23,14 @@ contract BridgeSolana is BridgeUpgradeable {
         IValidation validator_,
         address payable feeReceiver_,
         uint256 nativeSendAmount_
-    )
-        public
-        initializer
-    {
+    ) public initializer {
         __Bridge_init(
-            authority_, tokenBeacon_, SAMB_, validator_, feeReceiver_, nativeSendAmount_
+            authority_,
+            tokenBeacon_,
+            SAMB_,
+            validator_,
+            feeReceiver_,
+            nativeSendAmount_
         );
     }
 
@@ -38,7 +42,7 @@ contract BridgeSolana is BridgeUpgradeable {
         uint256 amountTo,
         SendPayload calldata payload,
         ExternalToken memory externalToken_
-    ) internal override returns (FullReceipt memory){
+    ) internal override returns (FullReceipt memory) {
         FullReceipt memory _receipt = FullReceipt({
             from: bytes32(uint256(uint160(sender))),
             to: recipient,

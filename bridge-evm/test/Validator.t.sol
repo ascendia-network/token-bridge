@@ -83,11 +83,7 @@ contract ValidatorTest is Test {
         address[] memory validators,
         address pldSigner,
         uint256 feeValidityWindow
-    )
-        public
-        virtual
-        returns (Validator)
-    {
+    ) public virtual returns (Validator) {
         address proxy;
         vm.expectEmit();
         emit IValidation.PayloadSignerChanged(address(this), pldSigner);
@@ -135,11 +131,9 @@ contract ValidatorTest is Test {
         return validatorInstance;
     }
 
-    function beforeTestSetup(bytes4 testSelector)
-        public
-        pure
-        returns (bytes[] memory beforeTestCalldata)
-    {
+    function beforeTestSetup(
+        bytes4 testSelector
+    ) public pure returns (bytes[] memory beforeTestCalldata) {
         if (
             testSelector == this.test_validate.selector
                 || testSelector
@@ -259,7 +253,9 @@ contract ValidatorTest is Test {
         assertTrue(validatorInstance.isValidator(newValidator));
     }
 
-    function test_fuzz_addValidator(address newValidator) public {
+    function test_fuzz_addValidator(
+        address newValidator
+    ) public {
         vm.assume(newValidator != address(0) && newValidator != alice);
         vm.expectEmit(address(validatorInstance));
         emit IValidatorV1.ValidatorAdded(newValidator);
@@ -358,11 +354,7 @@ contract ValidatorTest is Test {
     function signPayload(
         BridgeTypes.SendPayload memory payload,
         Signer memory signer
-    )
-        internal
-        pure
-        returns (bytes memory signature)
-    {
+    ) internal pure returns (bytes memory signature) {
         bytes32 digest = payload.toHash();
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signer.PK, digest);
         signature = abi.encodePacked(r, s, v);
@@ -436,10 +428,9 @@ contract ValidatorTest is Test {
         vm.stopPrank();
     }
 
-    function signReceipt(BridgeTypes.MiniReceipt memory receipt)
-        internal
-        returns (bytes memory signature)
-    {
+    function signReceipt(
+        BridgeTypes.MiniReceipt memory receipt
+    ) internal returns (bytes memory signature) {
         bytes32 digest = receipt.toHash();
         for (uint256 i = 0; i < signers.length; i++) {
             validatorInstance.addValidator(signers[i].Address);

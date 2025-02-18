@@ -17,8 +17,9 @@ import {BridgeValidationTest} from "./bridge_tests/BridgeValidation.t.sol";
 import {TokenManagerTest} from "./bridge_tests/TokenManager.t.sol";
 
 import {IBridge} from "../contracts/interface/IBridge.sol";
-import {IWrapped} from "../contracts/interface/IWrapped.sol";
+
 import {IValidation} from "../contracts/interface/IValidation.sol";
+import {IWrapped} from "../contracts/interface/IWrapped.sol";
 
 import {Bridge} from "../contracts/Bridge.sol";
 import {BridgeSolana} from "../contracts/BridgeSolana.sol";
@@ -32,11 +33,9 @@ contract BridgeTest is
     BridgeClaimTest
 {
 
-    function beforeTestSetup(bytes4 testSelector)
-        public
-        view
-        returns (bytes[] memory beforeTestCalldata)
-    {
+    function beforeTestSetup(
+        bytes4 testSelector
+    ) public view returns (bytes[] memory beforeTestCalldata) {
         if (testSelector == this.test_revertWhen_send_BadFeeReceiver.selector) {
             beforeTestCalldata = new bytes[](1);
             beforeTestCalldata[0] = abi.encodeWithSelector(
@@ -52,11 +51,7 @@ contract BridgeTest is
         IValidation validation,
         address payable feeReceiver,
         uint256 nsa
-    )
-        public
-        override
-        returns (Bridge)
-    {
+    ) public override returns (Bridge) {
         address payable proxy;
         vm.expectEmit();
         emit IBridge.ValidatorChanged(address(this), address(validation));

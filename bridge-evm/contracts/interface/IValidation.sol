@@ -23,15 +23,15 @@ interface IValidation is BridgeTypes {
     /// Set the address of the payload signer
     /// @param _payloadSigner address of the payload signer
     /// @return success true if the payload signer was set
-    function setPayloadSigner(address _payloadSigner)
-        external
-        returns (bool success);
+    function setPayloadSigner(
+        address _payloadSigner
+    ) external returns (bool success);
     /// Set the fee validity window in seconds
     /// @param _validityWindow seconds of the fee validity window
     /// @return success true if the fee validity window was set
-    function setFeeValidityWindow(uint256 _validityWindow)
-        external
-        returns (bool success);
+    function setFeeValidityWindow(
+        uint256 _validityWindow
+    ) external returns (bool success);
 
     /// Get the address of the payload signer
     /// @return payloadSigner address of the payload signer
@@ -51,10 +51,7 @@ interface IValidation is BridgeTypes {
     function validate(
         FullReceipt memory receipt,
         bytes memory signature
-    )
-        external
-        view
-        returns (bool isValid);
+    ) external view returns (bool isValid);
     /// Validate the transaction receipt
     /// @param receipt transaction cropped receipt
     /// @param signature signature of the receipt. Must be signed by all validators
@@ -62,10 +59,7 @@ interface IValidation is BridgeTypes {
     function validate(
         MiniReceipt memory receipt,
         bytes memory signature
-    )
-        external
-        view
-        returns (bool isValid);
+    ) external view returns (bool isValid);
 
     /// Validate the send payload
     /// @param payload send payload
@@ -74,9 +68,6 @@ interface IValidation is BridgeTypes {
     function validatePayload(
         SendPayload memory payload,
         bytes memory signature
-    )
-        external
-        view
-        returns (bool isValid);
+    ) external view returns (bool isValid);
 
 }

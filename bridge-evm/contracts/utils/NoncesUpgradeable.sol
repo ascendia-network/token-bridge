@@ -42,7 +42,9 @@ abstract contract NoncesUpgradeable is Initializable {
     /**
      * @dev Returns the next unused nonce for an address.
      */
-    function nonces(uint256 key) public view virtual returns (uint256) {
+    function nonces(
+        uint256 key
+    ) public view virtual returns (uint256) {
         NoncesStorage storage $ = _getNoncesStorage();
         return $._nonces[key];
     }
@@ -50,14 +52,18 @@ abstract contract NoncesUpgradeable is Initializable {
     /**
      * @dev Returns the next unused nonce for an address.
      */
-    function nonces(address owner) public view virtual returns (uint256) {
+    function nonces(
+        address owner
+    ) public view virtual returns (uint256) {
         return nonces(uint256(uint160(owner)));
     }
 
     /**
      * @dev Returns the next unused nonce for an address.
      */
-    function nonces(bytes32 key) public view virtual returns (uint256) {
+    function nonces(
+        bytes32 key
+    ) public view virtual returns (uint256) {
         return nonces(uint256(key));
     }
 
@@ -66,7 +72,9 @@ abstract contract NoncesUpgradeable is Initializable {
      *
      * Returns the current value and increments nonce.
      */
-    function _useNonce(uint256 key) internal virtual returns (uint256) {
+    function _useNonce(
+        uint256 key
+    ) internal virtual returns (uint256) {
         NoncesStorage storage $ = _getNoncesStorage();
         // For each account, the nonce has an initial value of 0, can only be incremented by one, and cannot be
         // decremented or reset. This guarantees that the nonce never overflows.
@@ -81,7 +89,9 @@ abstract contract NoncesUpgradeable is Initializable {
      *
      * Returns the current value and increments nonce.
      */
-    function _useNonce(address owner) internal virtual returns (uint256) {
+    function _useNonce(
+        address owner
+    ) internal virtual returns (uint256) {
         return _useNonce(uint256(uint160(owner)));
     }
 
@@ -90,7 +100,9 @@ abstract contract NoncesUpgradeable is Initializable {
      *
      * Returns the current value and increments nonce.
      */
-    function _useNonce(bytes32 key) internal virtual returns (uint256) {
+    function _useNonce(
+        bytes32 key
+    ) internal virtual returns (uint256) {
         return _useNonce(uint256(key));
     }
 

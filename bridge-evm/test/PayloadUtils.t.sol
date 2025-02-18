@@ -11,7 +11,9 @@ import {PayloadUtils} from "../contracts/utils/PayloadUtils.sol";
 
 contract PayloadUtilsTest is Test {
 
-    function iToHex(bytes memory buffer) public pure returns (string memory) {
+    function iToHex(
+        bytes memory buffer
+    ) public pure returns (string memory) {
         // Fixed buffer size for hexadecimal convertion
         bytes memory converted = new bytes(buffer.length * 2);
 
@@ -34,9 +36,7 @@ contract PayloadUtilsTest is Test {
         uint256 timestamp, // timestamp of the fee was generated
         uint256 flags, // flags of the sending operation
         bytes memory flagData // additional data of the sending operation (unused for now)
-    )
-        public
-    {
+    ) public {
         string[] memory runJsInputs = new string[](10);
         BridgeTypes.SendPayload memory payload = BridgeTypes.SendPayload({
             destChainId: destChainId,

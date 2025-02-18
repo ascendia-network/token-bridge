@@ -2,13 +2,15 @@
 pragma solidity ^0.8.20;
 pragma abicoder v2;
 
-import "forge-std/Script.sol";
-import {ReceiptUtils} from "../contracts/utils/ReceiptUtils.sol";
 import {BridgeTypes} from "../contracts/interface/BridgeTypes.sol";
+import {ReceiptUtils} from "../contracts/utils/ReceiptUtils.sol";
+import "forge-std/Script.sol";
 
 contract CreateClaimSignature is Script {
+
     using ReceiptUtils for BridgeTypes.FullReceipt;
     /// There is a problem with the FullReceipt struct, because parsing needs alphabetical order
+
     struct FullReceiptJson {
         uint256 amountFrom; // amount of tokens sent
         uint256 amountTo; // amount of tokens received
@@ -22,10 +24,14 @@ contract CreateClaimSignature is Script {
         bytes32 tokenAddressFrom; // source token address (bytes32 because of cross-chain compatibility)
         bytes32 tokenAddressTo; // source token address (bytes32 because of cross-chain compatibility)
     }
-    function getReceipt(string memory path) public view returns (BridgeTypes.FullReceipt memory) {
+
+    function getReceipt(
+        string memory path
+    ) public view returns (BridgeTypes.FullReceipt memory) {
         try vm.readFile(path) returns (string memory json) {
             bytes memory data = vm.parseJson(json);
-            FullReceiptJson memory receiptJson = abi.decode(data, (FullReceiptJson));
+            FullReceiptJson memory receiptJson =
+                abi.decode(data, (FullReceiptJson));
             BridgeTypes.FullReceipt memory receipt = BridgeTypes.FullReceipt({
                 from: receiptJson.from,
                 to: receiptJson.to,
@@ -51,7 +57,9 @@ contract CreateClaimSignature is Script {
         }
     }
 
-    function run(string memory path) public {
+    function run(
+        string memory path
+    ) public {
         BridgeTypes.FullReceipt memory receipt = getReceipt(path);
         bytes32 digest = receipt.toHash();
         uint256[] memory signers = vm.envUint("SIGNERS", ",");

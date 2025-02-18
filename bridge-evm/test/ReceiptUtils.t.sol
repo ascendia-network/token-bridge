@@ -11,7 +11,9 @@ import {ReceiptUtils} from "../contracts/utils/ReceiptUtils.sol";
 
 contract ReceiptUtilsTest is Test {
 
-    function iToHex(bytes memory buffer) public pure returns (string memory) {
+    function iToHex(
+        bytes memory buffer
+    ) public pure returns (string memory) {
         // Fixed buffer size for hexadecimal convertion
         bytes memory converted = new bytes(buffer.length * 2);
 
@@ -37,9 +39,7 @@ contract ReceiptUtilsTest is Test {
         uint256 eventId, // transaction number
         uint256 flags, // flags for receiver
         bytes memory data // additional data of the transaction (eg. user nonce for Solana)
-    )
-        public
-    {
+    ) public {
         string[] memory runJsInputs = new string[](14);
         BridgeTypes.FullReceipt memory receipt = BridgeTypes.FullReceipt({
             from: from,
@@ -88,9 +88,7 @@ contract ReceiptUtilsTest is Test {
         uint256 eventId, // transaction number
         uint256 flags, // flags for receiver
         bytes memory data // additional data of the transaction (eg. user nonce for Solana)
-    )
-        public
-    {
+    ) public {
         string[] memory runJsInputs = new string[](11);
         BridgeTypes.MiniReceipt memory receipt = BridgeTypes.MiniReceipt({
             to: to,

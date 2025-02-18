@@ -57,10 +57,7 @@ contract ERC20Bridged is
         string memory symbol_,
         uint8 decimals_,
         address bridge_
-    )
-        public
-        initializer
-    {
+    ) public initializer {
         __ERC20Bridged_init(authority_, name_, symbol_, decimals_, bridge_);
     }
 
@@ -70,10 +67,7 @@ contract ERC20Bridged is
         string memory symbol_,
         uint8 decimals_,
         address bridge_
-    )
-        internal
-        onlyInitializing
-    {
+    ) internal onlyInitializing {
         __ERC20Bridged_init_unchained(
             authority_, name_, symbol_, decimals_, bridge_
         );
@@ -85,10 +79,7 @@ contract ERC20Bridged is
         string memory symbol_,
         uint8 decimals_,
         address bridge_
-    )
-        internal
-        onlyInitializing
-    {
+    ) internal onlyInitializing {
         __AccessManaged_init(authority_);
         __ERC20_init(name_, symbol_);
         __ERC20Permit_init(name_);
@@ -125,7 +116,9 @@ contract ERC20Bridged is
     /**
      * @dev Check is the address blacklisted.
      */
-    modifier notInBlacklist(address account) {
+    modifier notInBlacklist(
+        address account
+    ) {
         BridgedERC20Storage storage $ = _getERC20AdditionalStorage();
         if ($._blacklist[account]) {
             revert Blacklisted(account);
@@ -137,7 +130,9 @@ contract ERC20Bridged is
      * @dev Add an address to the blacklist
      * @param account the address to add to the blacklist
      */
-    function addBlacklist(address account) public restricted {
+    function addBlacklist(
+        address account
+    ) public restricted {
         BridgedERC20Storage storage $ = _getERC20AdditionalStorage();
         $._blacklist[account] = true;
     }
@@ -146,7 +141,9 @@ contract ERC20Bridged is
      * @dev Remove an address from the blacklist
      * @param account the address to remove from the blacklist
      */
-    function removeBlacklist(address account) public restricted {
+    function removeBlacklist(
+        address account
+    ) public restricted {
         BridgedERC20Storage storage $ = _getERC20AdditionalStorage();
         delete $._blacklist[account];
     }
@@ -161,12 +158,7 @@ contract ERC20Bridged is
         address from,
         address to,
         uint256 value
-    )
-        internal
-        override
-        notInBlacklist(from)
-        notInBlacklist(to)
-    {
+    ) internal override notInBlacklist(from) notInBlacklist(to) {
         address _bridgeAddress = bridge();
         // If token is sent from the bridge, mint it
         if (from == _bridgeAddress) {

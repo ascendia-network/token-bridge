@@ -68,10 +68,7 @@ interface IBridge is BridgeTypes {
         bytes32 recipient,
         SendPayload calldata payload,
         bytes calldata payloadSignature
-    )
-        external
-        payable
-        returns (FullReceipt memory receipt);
+    ) external payable returns (FullReceipt memory receipt);
     /// Send tokens to another chain with permit params
     /// @dev This function should be called by the user who wants to send tokens to another chain.
     /// It transfers the tokens to the contract, and validates fee amount that was sent and emits a `TokensLocked` event.
@@ -92,10 +89,7 @@ interface IBridge is BridgeTypes {
         uint8 v,
         bytes32 r,
         bytes32 s
-    )
-        external
-        payable
-        returns (FullReceipt memory receipt);
+    ) external payable returns (FullReceipt memory receipt);
 
     /// Claim tokens from another chain
     /// @dev This function should be called by the user who wants to claim tokens from another chain.
@@ -106,9 +100,7 @@ interface IBridge is BridgeTypes {
     function claim(
         MiniReceipt calldata receipt,
         bytes calldata signature
-    )
-        external
-        returns (bool success);
+    ) external returns (bool success);
 
     /// Claim tokens from another chain
     /// @dev This function should be called by the user who wants to claim tokens from another chain.
@@ -119,30 +111,28 @@ interface IBridge is BridgeTypes {
     function claim(
         FullReceipt calldata receipt,
         bytes calldata signature
-    )
-        external
-        returns (bool success);
+    ) external returns (bool success);
 
     /// Check if the receipt is already claimed
     /// @param receipt `FullReceipt` of the transaction to check
     /// @return claimed true if the receipt is already claimed
-    function isClaimed(FullReceipt calldata receipt)
-        external
-        view
-        returns (bool claimed);
+    function isClaimed(
+        FullReceipt calldata receipt
+    ) external view returns (bool claimed);
 
     /// Check if the receipt is already claimed
     /// @param receipt `MiniReceipt` of the transaction to check
     /// @return claimed true if the receipt is already claimed
-    function isClaimed(MiniReceipt calldata receipt)
-        external
-        view
-        returns (bool claimed);
+    function isClaimed(
+        MiniReceipt calldata receipt
+    ) external view returns (bool claimed);
 
     /// Check if the receipt is already claimed
     /// @param hash hash of the receipt to check
     /// @return claimed true if the receipt is already claimed
-    function isClaimed(bytes32 hash) external view returns (bool claimed);
+    function isClaimed(
+        bytes32 hash
+    ) external view returns (bool claimed);
 
     /// Get the address of the fee receiver
     /// @return feeReceiver address of the fee receiver
@@ -164,14 +154,20 @@ interface IBridge is BridgeTypes {
 
     /// Set the address of the fee receiver
     /// @param _feeReceiver address of the fee receiver
-    function setFeeReceiver(address payable _feeReceiver) external;
+    function setFeeReceiver(
+        address payable _feeReceiver
+    ) external;
 
     /// Set the amount of native currency that should be sent to the receiver in destination chain if needed
     /// @param _nativeSendAmount amount of native currency that should be sent
-    function setNativeSendAmount(uint256 _nativeSendAmount) external;
+    function setNativeSendAmount(
+        uint256 _nativeSendAmount
+    ) external;
 
     /// Sets the validator contract
     /// @param validator address of the validator contract
-    function setValidator(IValidation validator) external;
+    function setValidator(
+        IValidation validator
+    ) external;
 
 }

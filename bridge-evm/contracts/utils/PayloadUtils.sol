@@ -14,11 +14,9 @@ library PayloadUtils {
     /// @param payload payload to convert
     /// @return hash converted
 
-    function toHash(BridgeTypes.SendPayload memory payload)
-        internal
-        pure
-        returns (bytes32 hash)
-    {
+    function toHash(
+        BridgeTypes.SendPayload memory payload
+    ) internal pure returns (bytes32 hash) {
         return toEthSignedMessageHash(payload);
     }
     /// Convert payload to hash via toEthSignedMessageHash
@@ -26,11 +24,9 @@ library PayloadUtils {
     /// @param payload payload to convert
     /// @return hash converted
 
-    function toEthSignedMessageHash(BridgeTypes.SendPayload memory payload)
-        internal
-        pure
-        returns (bytes32 hash)
-    {
+    function toEthSignedMessageHash(
+        BridgeTypes.SendPayload memory payload
+    ) internal pure returns (bytes32 hash) {
         bytes32 messageHash = keccak256(
             abi.encode(
                 payload.destChainId,

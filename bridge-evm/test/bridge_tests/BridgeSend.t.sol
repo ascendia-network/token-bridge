@@ -40,11 +40,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
         uint256 nonce,
         uint256 deadline,
         uint256 PK
-    )
-        public
-        view
-        returns (uint8 v, bytes32 r, bytes32 s)
-    {
+    ) public view returns (uint8 v, bytes32 r, bytes32 s) {
         SigUtils.Permit memory permit = SigUtils.Permit({
             owner: owner,
             spender: spender,
@@ -68,11 +64,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
         address tokenFrom,
         uint256 amount,
         uint8 decimalsTo
-    )
-        private
-        view
-        returns (uint256 convertedAmount)
-    {
+    ) private view returns (uint256 convertedAmount) {
         IERC20Metadata token = IERC20Metadata(tokenFrom);
         uint8 decimalsFrom = token.decimals();
         if (decimalsFrom < decimalsTo) {
@@ -136,17 +128,15 @@ abstract contract BridgeSendTest is BridgeTestBase {
     function signPayload(
         BridgeTypes.SendPayload memory payload,
         uint256 PK
-    )
-        public
-        pure
-        returns (bytes memory signature)
-    {
+    ) public pure returns (bytes memory signature) {
         bytes32 digest = payload.toHash();
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(PK, digest);
         return abi.encodePacked(r, s, v);
     }
 
-    function getSigner(string memory name) public returns (Signer memory) {
+    function getSigner(
+        string memory name
+    ) public returns (Signer memory) {
         (address sender, uint256 senderPk) = makeAddrAndKey(name);
         return Signer({Address: sender, PK: senderPk});
     }
@@ -157,10 +147,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
         Signer memory signer,
         uint256 amount,
         address spender
-    )
-        public
-        returns (uint8 v, bytes32 r, bytes32 s)
-    {
+    ) public returns (uint8 v, bytes32 r, bytes32 s) {
         if (isApprove) {
             vm.startPrank(signer.Address);
             ERC20(token).approve(spender, amount);
@@ -178,7 +165,9 @@ abstract contract BridgeSendTest is BridgeTestBase {
         }
     }
 
-    function prepareSend(uint256 tokenAmount) public returns (Signer memory) {
+    function prepareSend(
+        uint256 tokenAmount
+    ) public returns (Signer memory) {
         Signer memory signer = getSigner("sender");
         vm.warp(1000);
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
@@ -196,10 +185,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
     function prepareSend(
         uint256 tokenAmount,
         Signer memory signer
-    )
-        public
-        returns (Signer memory)
-    {
+    ) public returns (Signer memory) {
         vm.warp(1000);
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({
@@ -225,7 +211,9 @@ abstract contract BridgeSendTest is BridgeTestBase {
         return signer;
     }
 
-    function prepareSendNative(uint256 amount) public returns (Signer memory) {
+    function prepareSendNative(
+        uint256 amount
+    ) public returns (Signer memory) {
         Signer memory signer = getSigner("sender");
         vm.warp(1000);
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
@@ -244,9 +232,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
         BridgeTypes.SendPayload memory payload,
         BridgeTypes.FullReceipt memory receipt,
         bytes memory payloadSignature
-    )
-        public
-    {
+    ) public {
         uint256 balanceTokenBefore = permittableToken.balanceOf(signer.Address);
         uint256 balanceNativeSenderBefore = signer.Address.balance;
         uint256 balanceFeeBefore = fee.balance;
@@ -274,9 +260,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
         BridgeTypes.SendPayload memory payload,
         BridgeTypes.FullReceipt memory receipt,
         bytes memory payloadSignature
-    )
-        public
-    {
+    ) public {
         uint256 balanceNativeSenderBefore = signer.Address.balance;
         uint256 balanceFeeBefore = fee.balance;
         vm.expectEmit(address(bridgeInstance));
@@ -303,9 +287,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
         uint8 vP,
         bytes32 rP,
         bytes32 sP
-    )
-        public
-    {
+    ) public {
         uint256 balanceTokenBefore = permittableToken.balanceOf(signer.Address);
         uint256 balanceNativeSenderBefore = signer.Address.balance;
         uint256 balanceFeeBefore = fee.balance;
@@ -365,7 +347,9 @@ abstract contract BridgeSendTest is BridgeTestBase {
             : send(signer, payload, receipt, payloadSignature, vP, rP, sP);
     }
 
-    function test_sendingToBridge_multiple(uint256 amountToSend) public {
+    function test_sendingToBridge_multiple(
+        uint256 amountToSend
+    ) public {
         bool isPermit = false;
         vm.assume(amountToSend > 0 && amountToSend < type(uint256).max / 2);
         Signer memory signer = prepareSend(amountToSend * 2);
@@ -437,7 +421,9 @@ abstract contract BridgeSendTest is BridgeTestBase {
         send(signer, payload, receipt, payloadSignature);
     }
 
-    function test_sendingToBridge_native(uint256 amountToSend) public {
+    function test_sendingToBridge_native(
+        uint256 amountToSend
+    ) public {
         vm.assume(amountToSend > 0 && amountToSend < 1000 ether);
         Signer memory signer = prepareSendNative(amountToSend);
         uint256 destinationChain = uint256(bytes32("SOLANA"));
@@ -460,9 +446,7 @@ abstract contract BridgeSendTest is BridgeTestBase {
 
     function test_revertWhen_sendingToBridge_native_wrongAmount(
         uint256 amountToSend
-    )
-        public
-    {
+    ) public {
         vm.assume(amountToSend > 0 && amountToSend < 1000 ether);
         Signer memory signer = prepareSendNative(amountToSend);
         uint256 destinationChain = uint256(bytes32("SOLANA"));

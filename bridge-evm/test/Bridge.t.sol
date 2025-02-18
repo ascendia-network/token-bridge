@@ -20,11 +20,9 @@ contract BridgeTest is
     BridgeClaimTest
 {
 
-    function beforeTestSetup(bytes4 testSelector)
-        public
-        view
-        returns (bytes[] memory beforeTestCalldata)
-    {
+    function beforeTestSetup(
+        bytes4 testSelector
+    ) public view returns (bytes[] memory beforeTestCalldata) {
         if (testSelector == this.test_revertWhen_send_BadFeeReceiver.selector) {
             beforeTestCalldata = new bytes[](1);
             beforeTestCalldata[0] = abi.encodeWithSelector(

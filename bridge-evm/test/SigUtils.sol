@@ -16,11 +16,9 @@ library SigUtils {
     }
 
     // computes the hash of a permit
-    function getStructHash(Permit memory _permit)
-        internal
-        pure
-        returns (bytes32)
-    {
+    function getStructHash(
+        Permit memory _permit
+    ) internal pure returns (bytes32) {
         return keccak256(
             abi.encode(
                 PERMIT_TYPEHASH,
@@ -37,11 +35,7 @@ library SigUtils {
     function getTypedDataHash(
         Permit memory _permit,
         bytes32 DOMAIN_SEPARATOR
-    )
-        public
-        pure
-        returns (bytes32)
-    {
+    ) public pure returns (bytes32) {
         return keccak256(
             abi.encodePacked(
                 "\x19\x01", DOMAIN_SEPARATOR, getStructHash(_permit)

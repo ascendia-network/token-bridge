@@ -39,6 +39,7 @@ contract DeployerBase is Script {
         address implementationAddress;
         address proxyAddress;
     }
+
     string deploymentsKey = "deployments";
 
     function getDeployments() public returns (Deployment[] memory) {
@@ -53,25 +54,35 @@ contract DeployerBase is Script {
             vm.writeJson("[]", path);
             return new Deployment[](0);
         }
-        
     }
 
     // Function to serialize the apples array
-    function serializeDeployments(Deployment[] memory deployments) internal returns (string memory) {
+    function serializeDeployments(
+        Deployment[] memory deployments
+    ) internal returns (string memory) {
         string[] memory deploymentsJson = new string[](deployments.length);
 
         // Serialize each apple object
         for (uint256 i = 0; i < deployments.length; i++) {
             string memory deploymentJson = "contracts";
-            vm.serializeString(deploymentJson, "contractName", deployments[i].contractName);
-            vm.serializeAddress(deploymentJson, "proxyAddress", deployments[i].proxyAddress);
-            string memory obj = vm.serializeAddress(deploymentJson, 'implementationAddress', deployments[i].implementationAddress);
+            vm.serializeString(
+                deploymentJson, "contractName", deployments[i].contractName
+            );
+            vm.serializeAddress(
+                deploymentJson, "proxyAddress", deployments[i].proxyAddress
+            );
+            string memory obj = vm.serializeAddress(
+                deploymentJson,
+                "implementationAddress",
+                deployments[i].implementationAddress
+            );
             console.log(deploymentJson);
             deploymentsJson[i] = obj;
         }
 
         // Combine the apples array into a JSON array
-        string memory deploymentsJsonArray = vm.serializeString(deploymentsKey, "contracts", deploymentsJson);
+        string memory deploymentsJsonArray =
+            vm.serializeString(deploymentsKey, "contracts", deploymentsJson);
         // for (uint256 i = 0; i < deploymentsJson.length; i++) {
         //     deploymentsJsonArray = string(abi.encodePacked(deploymentsJsonArray, deploymentsJson[i]));
         //     if (i < deploymentsJson.length - 1) {
@@ -83,7 +94,9 @@ contract DeployerBase is Script {
         return deploymentsJsonArray;
     }
 
-    function writeDeployments(Deployment[] memory data) public {
+    function writeDeployments(
+        Deployment[] memory data
+    ) public {
         string memory root = vm.projectRoot();
         string memory path = string.concat(
             root, "/deployments/", vm.toString(block.chainid), ".json"
@@ -93,40 +106,23 @@ contract DeployerBase is Script {
         vm.writeJson(deploymentsJson, path);
     }
 
-    function checkDeployed(string memory contractName)
-        public
-        returns (bool deployed, address contractOrProxyAddress)
-    {
+    function checkDeployed(
+        string memory contractName
+    ) public returns (bool deployed, address contractOrProxyAddress) {
         Deployment[] memory deployments = getDeployments();
         for (uint256 i = 0; i < deployments.length; i++) {
-            if (
-                Strings.equal(
-                    deployments[i].contractName,
-                    contractName
-                )
-            ) {
-                if (
-                    deployments[i].proxyAddress
-                        == address(0)
-                ) {
-                    if (
-                        deployments[i].implementationAddress
-                            == address(0)
-                    ) {
+            if (Strings.equal(deployments[i].contractName, contractName)) {
+                if (deployments[i].proxyAddress == address(0)) {
+                    if (deployments[i].implementationAddress == address(0)) {
                         console.log(contractName, "not deployed");
                         return (false, address(0));
                     } else {
                         console.log(
                             contractName,
                             "already deployed as implementation at",
-                            deployments[i]
-                                .implementationAddress
+                            deployments[i].implementationAddress
                         );
-                        return (
-                            true,
-                            deployments[i]
-                                .implementationAddress
-                        );
+                        return (true, deployments[i].implementationAddress);
                     }
                 } else {
                     console.log(
@@ -134,17 +130,15 @@ contract DeployerBase is Script {
                         "already deployed as proxy at",
                         deployments[i].proxyAddress
                     );
-                    return
-                        (true, deployments[i].proxyAddress);
+                    return (true, deployments[i].proxyAddress);
                 }
             }
         }
     }
 
-    function setAuthorityAdmin(address adminCandidate)
-        public
-        returns (bool adminGranted)
-    {
+    function setAuthorityAdmin(
+        address adminCandidate
+    ) public returns (bool adminGranted) {
         (bool isAdmin,) =
             authority.hasRole(authority.ADMIN_ROLE(), adminCandidate);
         if (!isAdmin) {
@@ -176,10 +170,9 @@ contract DeployerBase is Script {
         return true;
     }
 
-    function removeAuthorityAdmin(address adminCandidate)
-        public
-        returns (bool adminRemoved)
-    {
+    function removeAuthorityAdmin(
+        address adminCandidate
+    ) public returns (bool adminRemoved) {
         (bool isAdmin,) =
             authority.hasRole(authority.ADMIN_ROLE(), adminCandidate);
         if (isAdmin) {
@@ -198,12 +191,19 @@ contract DeployerBase is Script {
         return true;
     }
 
-    function addDeployment(Deployment memory deployment) public {
+    function addDeployment(
+        Deployment memory deployment
+    ) public {
         Deployment[] memory deployments = getDeployments();
-        Deployment[] memory newDeployments = new Deployment[](deployments.length + 1);
+        Deployment[] memory newDeployments =
+            new Deployment[](deployments.length + 1);
         newDeployments[deployments.length] = deployment;
         for (uint256 i = 0; i < deployments.length; i++) {
-            if(Strings.equal(deployments[i].contractName, deployment.contractName)) {
+            if (
+                Strings.equal(
+                    deployments[i].contractName, deployment.contractName
+                )
+            ) {
                 newDeployments[i] = deployments[i];
                 delete newDeployments[deployments.length];
             } else {
@@ -268,10 +268,7 @@ contract DeployerBase is Script {
         tokenBeacon =
             TokenBeacon(Upgrades.deployBeacon("ERC20Bridged.sol", owner));
         console.log("TokenBeacon deployed at:", address(tokenBeacon));
-        console.log(
-            "   Implementation address:",
-            tokenBeacon.implementation()
-        );
+        console.log("   Implementation address:", tokenBeacon.implementation());
         addDeployment(
             Deployment({
                 contractName: "ERC20Bridged",

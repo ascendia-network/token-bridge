@@ -9,15 +9,21 @@ contract MockNonce is NoncesUpgradeable {
         __Nonces_init_unchained();
     }
 
-    function useNonce(address owner) public returns (uint256) {
+    function useNonce(
+        address owner
+    ) public returns (uint256) {
         return _useNonce(owner);
     }
 
-    function useNonce(bytes32 key) public returns (uint256) {
+    function useNonce(
+        bytes32 key
+    ) public returns (uint256) {
         return _useNonce(key);
     }
 
-    function useNonce(uint256 key) public returns (uint256) {
+    function useNonce(
+        uint256 key
+    ) public returns (uint256) {
         return _useNonce(key);
     }
 

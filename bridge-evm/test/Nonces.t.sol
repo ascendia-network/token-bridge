@@ -57,9 +57,7 @@ contract NoncesTest is Test {
         bytes32 keyBytes,
         uint256 keyUint,
         address owner
-    )
-        public
-    {
+    ) public {
         vm.assume(
             keyBytes != bytes32(keyUint) && keyUint != uint256(uint160(owner))
         );

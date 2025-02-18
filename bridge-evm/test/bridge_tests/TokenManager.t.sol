@@ -28,9 +28,7 @@ abstract contract TokenManagerTest is BridgeTestBase {
         address token,
         bytes32 externalTokenAddress,
         uint8 decimals
-    )
-        public
-    {
+    ) public {
         ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: externalTokenAddress,
@@ -49,9 +47,7 @@ abstract contract TokenManagerTest is BridgeTestBase {
         bytes32 externalTokenAddress,
         uint8 decimals,
         bool paused
-    )
-        public
-    {
+    ) public {
         ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: externalTokenAddress,
@@ -72,7 +68,9 @@ abstract contract TokenManagerTest is BridgeTestBase {
         assertEq(bridgeInstance.pausedTokens(token), paused);
     }
 
-    function removeToken(address token) public {
+    function removeToken(
+        address token
+    ) public {
         vm.expectEmit(address(bridgeInstance));
         emit ITokenManager.TokenRemoved(token);
         bridgeInstance.removeToken(token);
@@ -84,9 +82,7 @@ abstract contract TokenManagerTest is BridgeTestBase {
         address token,
         bytes32 externalTokenAddress,
         uint8 decimals
-    )
-        public
-    {
+    ) public {
         ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: externalTokenAddress,
@@ -98,7 +94,9 @@ abstract contract TokenManagerTest is BridgeTestBase {
         assertEq(bridgeInstance.external2token(externalTokenAddress), token);
     }
 
-    function unmapToken(bytes32 externalTokenAddress) public {
+    function unmapToken(
+        bytes32 externalTokenAddress
+    ) public {
         vm.expectEmit(address(bridgeInstance));
         emit ITokenManager.TokenUnmapped(externalTokenAddress);
         bridgeInstance.unmapExternalToken(externalTokenAddress);
@@ -112,10 +110,7 @@ abstract contract TokenManagerTest is BridgeTestBase {
         string memory name,
         string memory symbol,
         uint8 decimals
-    )
-        public
-        returns (ERC20Bridged)
-    {
+    ) public returns (ERC20Bridged) {
         ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: externalTokenAddress,
@@ -151,9 +146,7 @@ abstract contract TokenManagerTest is BridgeTestBase {
         address token,
         bytes32 externalTokenAddress,
         uint8 decimals
-    )
-        public
-    {
+    ) public {
         vm.assume(token != address(0));
         addToken(token, externalTokenAddress, decimals);
     }
@@ -214,9 +207,7 @@ abstract contract TokenManagerTest is BridgeTestBase {
         address token,
         bytes32 externalTokenAddress,
         uint8 decimals
-    )
-        public
-    {
+    ) public {
         vm.assume(token != address(0));
         addToken(token, externalTokenAddress, decimals);
         removeToken(token);
@@ -260,9 +251,7 @@ abstract contract TokenManagerTest is BridgeTestBase {
         address token,
         bytes32 externalTokenAddress,
         bytes32 newExternalTokenAddress
-    )
-        public
-    {
+    ) public {
         vm.assume(token != address(0));
         uint256 a;
         uint256 b;
@@ -342,9 +331,7 @@ abstract contract TokenManagerTest is BridgeTestBase {
         address token,
         bytes32 externalTokenAddress,
         uint8 decimals
-    )
-        public
-    {
+    ) public {
         vm.assume(token != address(0));
         addToken(token, externalTokenAddress, decimals);
         unmapToken(externalTokenAddress);
@@ -388,9 +375,7 @@ abstract contract TokenManagerTest is BridgeTestBase {
         bytes32 externalTokenAddress,
         uint8 decimals,
         bool paused
-    )
-        public
-    {
+    ) public {
         vm.assume(token != address(0));
         addToken(token, externalTokenAddress, decimals, paused);
     }
@@ -498,9 +483,7 @@ abstract contract TokenManagerTest is BridgeTestBase {
         string memory name,
         string memory symbol,
         uint8 decimals
-    )
-        public
-    {
+    ) public {
         deployBridgedToken(externalTokenAddress, name, symbol, decimals);
     }
 

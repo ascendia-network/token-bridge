@@ -23,9 +23,10 @@ import {IValidatorV1} from "../../contracts/interface/IValidatorV1.sol";
 import {IWrapped} from "../../contracts/interface/IWrapped.sol";
 
 import {Bridge} from "../../contracts/Bridge.sol";
-import {TokenBeacon} from "../../contracts/token/TokenBeacon.sol";
-import {ERC20Bridged} from "../../contracts/token/ERC20Bridged.sol";
+
 import {Validator} from "../../contracts/Validator.sol";
+import {ERC20Bridged} from "../../contracts/token/ERC20Bridged.sol";
+import {TokenBeacon} from "../../contracts/token/TokenBeacon.sol";
 
 import {MockBadNativeReceiver} from "../mocks/MockBadNativeReceiver.sol";
 import {MockERC20Permit} from "../mocks/MockERC20.sol";
@@ -92,11 +93,7 @@ abstract contract BridgeTestBase is Test {
         address[] memory validators,
         address pldSigner,
         uint256 feeValidityWindow
-    )
-        public
-        virtual
-        returns (Validator)
-    {
+    ) public virtual returns (Validator) {
         address proxy;
         vm.expectEmit();
         emit IValidation.PayloadSignerChanged(address(this), pldSigner);
@@ -151,11 +148,7 @@ abstract contract BridgeTestBase is Test {
         IValidation validation,
         address payable feeReceiver,
         uint256 nsa
-    )
-        public
-        virtual
-        returns (Bridge)
-    {
+    ) public virtual returns (Bridge) {
         address payable proxy;
         vm.expectEmit();
         emit IBridge.ValidatorChanged(address(this), address(validation));
@@ -239,7 +232,9 @@ abstract contract BridgeTestBase is Test {
         );
     }
 
-    function setFeeReceiver(address payable receiver) public {
+    function setFeeReceiver(
+        address payable receiver
+    ) public {
         bridgeInstance.setFeeReceiver(receiver);
     }
 

@@ -43,10 +43,7 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         address tokenBeacon_,
         address bridge_,
         address SAMB
-    )
-        internal
-        onlyInitializing
-    {
+    ) internal onlyInitializing {
         __TokenManager_init_unchained(tokenBeacon_, bridge_, SAMB);
     }
 
@@ -54,17 +51,16 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         address tokenBeacon_,
         address bridge_,
         address SAMB
-    )
-        internal
-        onlyInitializing
-    {
+    ) internal onlyInitializing {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         $.bridge = bridge_;
         $.SAMB = SAMB;
         $.tokenBeacon = tokenBeacon_;
     }
 
-    modifier isBridgable(bytes32 token) {
+    modifier isBridgable(
+        bytes32 token
+    ) {
         if (!bridgableTokens(token.toAddress())) {
             revert TokenNotBridgable(token.toAddress());
         }
@@ -77,11 +73,7 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         address token,
         ExternalTokenUnmapped calldata externalToken_,
         bool paused
-    )
-        public
-        virtual
-        returns (bool success)
-    {
+    ) public virtual returns (bool success) {
         bool res = _addToken(token, externalToken_, paused);
         return res;
     }
@@ -91,52 +83,35 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     function mapExternalToken(
         ExternalTokenUnmapped calldata externalToken_,
         address token
-    )
-        public
-        virtual
-        override
-        returns (bool success)
-    {
+    ) public virtual override returns (bool success) {
         return _mapToken(externalToken_, token);
     }
 
     /// @inheritdoc ITokenManager
-    function unmapExternalToken(bytes32 externalTokenAddress)
-        public
-        virtual
-        override
-        returns (bool success)
-    {
+    function unmapExternalToken(
+        bytes32 externalTokenAddress
+    ) public virtual override returns (bool success) {
         return _unmapToken(externalTokenAddress);
     }
 
     /// @inheritdoc ITokenManager
-    function pauseToken(address token)
-        public
-        virtual
-        override
-        returns (bool success)
-    {
+    function pauseToken(
+        address token
+    ) public virtual override returns (bool success) {
         return _pauseToken(token);
     }
 
     /// @inheritdoc ITokenManager
-    function unpauseToken(address token)
-        public
-        virtual
-        override
-        returns (bool success)
-    {
+    function unpauseToken(
+        address token
+    ) public virtual override returns (bool success) {
         return _unpauseToken(token);
     }
 
     /// @inheritdoc ITokenManager
-    function removeToken(address token)
-        public
-        virtual
-        override
-        returns (bool success)
-    {
+    function removeToken(
+        address token
+    ) public virtual override returns (bool success) {
         return _removeToken(token);
     }
 
@@ -146,26 +121,27 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         string calldata name,
         string calldata symbol,
         uint8 decimals
-    )
-        public
-        virtual
-        override
-        returns (address token)
-    {
+    ) public virtual override returns (address token) {
         // authority set to 0x0 to premissionless token
-        return _deployExternalTokenERC20(address(0), externalToken_, name, symbol, decimals);
+        return _deployExternalTokenERC20(
+            address(0), externalToken_, name, symbol, decimals
+        );
     }
 
     /// Used to wrap AMB to SAMB
     /// @param amount amount to wrap
 
-    function _wrap(uint256 amount) internal {
+    function _wrap(
+        uint256 amount
+    ) internal {
         return IWrapped(_getTokenManagerStorage().SAMB).deposit{value: amount}();
     }
 
     /// Used to unwrap SAMB to AMB
     /// @param amount amount to unwrap
-    function _unwrap(uint256 amount) internal {
+    function _unwrap(
+        uint256 amount
+    ) internal {
         return IWrapped(_getTokenManagerStorage().SAMB).withdraw(amount);
     }
 
@@ -173,45 +149,33 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     receive() external payable {}
 
     /// @inheritdoc ITokenManager
-    function bridgableTokens(address token)
-        public
-        view
-        override
-        returns (bool isBridgable_)
-    {
+    function bridgableTokens(
+        address token
+    ) public view override returns (bool isBridgable_) {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         return $.bridgableTokens[token];
     }
 
     /// @inheritdoc ITokenManager
-    function external2token(bytes32 externalTokenAddress)
-        public
-        view
-        override
-        returns (address token)
-    {
+    function external2token(
+        bytes32 externalTokenAddress
+    ) public view override returns (address token) {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         return $.externalTokens[externalTokenAddress].tokenAddress;
     }
 
     /// @inheritdoc ITokenManager
-    function externalToken(bytes32 externalTokenAddress)
-        public
-        view
-        override
-        returns (ExternalToken memory _externalToken)
-    {
+    function externalToken(
+        bytes32 externalTokenAddress
+    ) public view override returns (ExternalToken memory _externalToken) {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         return $.externalTokens[externalTokenAddress];
     }
 
     /// @inheritdoc ITokenManager
-    function pausedTokens(address token)
-        public
-        view
-        override
-        returns (bool isPaused)
-    {
+    function pausedTokens(
+        address token
+    ) public view override returns (bool isPaused) {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         return !$.unpausedTokens[token];
     }
@@ -230,10 +194,7 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         address token,
         ExternalTokenUnmapped memory externalToken_,
         bool paused
-    )
-        private
-        returns (bool success)
-    {
+    ) private returns (bool success) {
         if (token == address(0)) {
             revert TokenZeroAddress();
         }
@@ -272,10 +233,7 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     function _mapToken(
         ExternalTokenUnmapped memory externalToken_,
         address token
-    )
-        private
-        returns (bool success)
-    {
+    ) private returns (bool success) {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         if (!$.bridgableTokens[token]) {
             revert TokenNotBridgable(token);
@@ -299,10 +257,9 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     /// Unmap external token address to token
     /// @param externalTokenAddress external token address
     /// @return success true if the token was removed
-    function _unmapToken(bytes32 externalTokenAddress)
-        private
-        returns (bool success)
-    {
+    function _unmapToken(
+        bytes32 externalTokenAddress
+    ) private returns (bool success) {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         address token = $.externalTokens[externalTokenAddress].tokenAddress;
         if (
@@ -319,7 +276,9 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     /// Remove token from the bridge
     /// @param token address of the token
     /// @return success true if the token was removed
-    function _removeToken(address token) private returns (bool success) {
+    function _removeToken(
+        address token
+    ) private returns (bool success) {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         if (!$.bridgableTokens[token]) {
             revert TokenNotAdded(token);
@@ -345,13 +304,17 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         string calldata name,
         string calldata symbol,
         uint8 decimals
-    )
-        internal
-        returns (address token)
-    {
+    ) internal returns (address token) {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         address bridge = $.bridge;
-        bytes memory initData = abi.encodeWithSignature("initialize(address,string,string,uint8,address)", authority, name, symbol, decimals, bridge);
+        bytes memory initData = abi.encodeWithSignature(
+            "initialize(address,string,string,uint8,address)",
+            authority,
+            name,
+            symbol,
+            decimals,
+            bridge
+        );
         address tokenBeacon = $.tokenBeacon;
         token = address(new BeaconProxy(tokenBeacon, initData));
         _addToken(token, externalToken_, true);
@@ -362,7 +325,9 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     /// Pause token bridging
     /// @param token address of the token
     /// @return success true if the token was paused
-    function _pauseToken(address token) private returns (bool success) {
+    function _pauseToken(
+        address token
+    ) private returns (bool success) {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         if (!$.unpausedTokens[token]) {
             revert TokenIsPaused(token);
@@ -375,7 +340,9 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
     /// Unpause token bridging
     /// @param token address of the token
     /// @return success true if the token was unpaused
-    function _unpauseToken(address token) private returns (bool success) {
+    function _unpauseToken(
+        address token
+    ) private returns (bool success) {
         TokenManagerStorage storage $ = _getTokenManagerStorage();
         if ($.unpausedTokens[token]) {
             revert TokenNotPaused(token);

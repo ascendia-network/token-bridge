@@ -85,34 +85,30 @@ interface ITokenManager {
     /// Check if the token is bridgable
     /// @param token address of the token
     /// @return isBridgable true if the token is bridgable
-    function bridgableTokens(address token)
-        external
-        view
-        returns (bool isBridgable);
+    function bridgableTokens(
+        address token
+    ) external view returns (bool isBridgable);
 
     /// Get external token address
     /// @param externalTokenAddress address of the external token
     /// @return externalToken external token structure
-    function externalToken(bytes32 externalTokenAddress)
-        external
-        view
-        returns (ExternalToken memory externalToken);
+    function externalToken(
+        bytes32 externalTokenAddress
+    ) external view returns (ExternalToken memory externalToken);
 
     /// Get token address by external token address
     /// @param externalTokenAddress external token address
     /// @return token address of the token
-    function external2token(bytes32 externalTokenAddress)
-        external
-        view
-        returns (address token);
+    function external2token(
+        bytes32 externalTokenAddress
+    ) external view returns (address token);
 
     /// Check if the token is paused
     /// @param token address of the token
     /// @return isPaused true if the token is paused
-    function pausedTokens(address token)
-        external
-        view
-        returns (bool isPaused);
+    function pausedTokens(
+        address token
+    ) external view returns (bool isPaused);
 
     /// Add token to the bridge
     /// @param token address of the token
@@ -123,9 +119,7 @@ interface ITokenManager {
         address token,
         ExternalTokenUnmapped calldata externalToken,
         bool paused
-    )
-        external
-        returns (bool success);
+    ) external returns (bool success);
 
     /// Add token to the bridge with default paused state
     /// @param token address of the token
@@ -134,9 +128,7 @@ interface ITokenManager {
     function addToken(
         address token,
         ExternalTokenUnmapped calldata externalToken
-    )
-        external
-        returns (bool success);
+    ) external returns (bool success);
 
     /// Map external token address to token
     /// @param externalToken external token that should be mapped to the token
@@ -145,16 +137,14 @@ interface ITokenManager {
     function mapExternalToken(
         ExternalTokenUnmapped calldata externalToken,
         address token
-    )
-        external
-        returns (bool success);
+    ) external returns (bool success);
 
     /// Unmap external token address to token
     /// @param externalTokenAddress external token address
     /// @return success true if the token was removed
-    function unmapExternalToken(bytes32 externalTokenAddress)
-        external
-        returns (bool success);
+    function unmapExternalToken(
+        bytes32 externalTokenAddress
+    ) external returns (bool success);
 
     /// Deploy external ERC20 token to chain
     /// @dev This function should be called by admin to deploy external token to the chain.
@@ -169,23 +159,27 @@ interface ITokenManager {
         string calldata name,
         string calldata symbol,
         uint8 decimals
-    )
-        external
-        returns (address token);
+    ) external returns (address token);
 
     /// Remove token from the bridge
     /// @param token address of the token
     /// @return success true if the token was removed
-    function removeToken(address token) external returns (bool success);
+    function removeToken(
+        address token
+    ) external returns (bool success);
 
     /// Pause token bridging
     /// @param token address of the token
     /// @return success true if the token was paused
-    function pauseToken(address token) external returns (bool success);
+    function pauseToken(
+        address token
+    ) external returns (bool success);
 
     /// Unpause token bridging
     /// @param token address of the token
     /// @return success true if the token was unpaused
-    function unpauseToken(address token) external returns (bool success);
+    function unpauseToken(
+        address token
+    ) external returns (bool success);
 
 }

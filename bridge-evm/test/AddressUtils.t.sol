@@ -9,17 +9,17 @@ import {AddressUtils} from "../contracts/utils/AddressUtils.sol";
 
 contract AddressUtilsTest is Test {
 
-    function bytesToAddress(bytes memory bys)
-        private
-        pure
-        returns (address addr)
-    {
+    function bytesToAddress(
+        bytes memory bys
+    ) private pure returns (address addr) {
         assembly {
             addr := mload(add(bys, 20))
         }
     }
 
-    function test_fuzz_bigEndian(bytes32 data) public {
+    function test_fuzz_bigEndian(
+        bytes32 data
+    ) public {
         string[] memory runJsInputs = new string[](4);
 
         // Build ffi command string
@@ -36,7 +36,9 @@ contract AddressUtilsTest is Test {
         assertEq(expected, jsGenerated);
     }
 
-    function test_fuzz_littleEndian(bytes32 data) public {
+    function test_fuzz_littleEndian(
+        bytes32 data
+    ) public {
         string[] memory runJsInputs = new string[](4);
 
         // Build ffi command string
@@ -53,7 +55,9 @@ contract AddressUtilsTest is Test {
         assertEq(expected, jsGenerated);
     }
 
-    function test_fuzz_default(bytes32 data) public {
+    function test_fuzz_default(
+        bytes32 data
+    ) public {
         string[] memory runJsInputs = new string[](3);
 
         // Build ffi command string
@@ -69,7 +73,9 @@ contract AddressUtilsTest is Test {
         assertEq(expected, jsGenerated);
     }
 
-    function test_fuzz_string2Address(bytes20 data) public {
+    function test_fuzz_string2Address(
+        bytes20 data
+    ) public {
         string memory dataStr = Strings.toHexString(address(data));
         string[] memory runJsInputs = new string[](3);
         // Build ffi command string

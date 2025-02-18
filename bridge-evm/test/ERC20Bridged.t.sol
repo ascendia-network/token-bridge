@@ -3,12 +3,12 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 
+import {IERC20Errors} from
+    "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {
     UnsafeUpgrades,
     Upgrades
 } from "openzeppelin-foundry-upgrades/Upgrades.sol";
-import {IERC20Errors} from
-    "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
 import {ERC20Bridged} from "../contracts/token/ERC20Bridged.sol";
 import {TokenBeacon} from "../contracts/token/TokenBeacon.sol";
@@ -43,20 +43,21 @@ contract ERC20BridgedTest is Test {
         if (isCoverage()) {
             address tokenContract = address(new ERC20Bridged());
             tokenBeacon = address(
-                UnsafeUpgrades.deployBeacon(
-                    tokenContract,
-                    address(this)
-                )
+                UnsafeUpgrades.deployBeacon(tokenContract, address(this))
             );
         } else {
             tokenBeacon = address(
-                Upgrades.deployBeacon(
-                    "ERC20Bridged.sol",
-                    address(this)
-                )
+                Upgrades.deployBeacon("ERC20Bridged.sol", address(this))
             );
         }
-        bytes memory initData = abi.encodeWithSignature("initialize(address,string,string,uint8,address)", address(this), name, symbol, decimals, bridge);
+        bytes memory initData = abi.encodeWithSignature(
+            "initialize(address,string,string,uint8,address)",
+            address(this),
+            name,
+            symbol,
+            decimals,
+            bridge
+        );
         token = ERC20Bridged(address(new BeaconProxy(tokenBeacon, initData)));
     }
 
@@ -96,9 +97,7 @@ contract ERC20BridgedTest is Test {
         uint256 initialBalance,
         address from,
         uint256 amount
-    )
-        public
-    {
+    ) public {
         vm.assume(
             from != address(0) && amount <= initialBalance && from != fakeBridge
         );
@@ -118,9 +117,7 @@ contract ERC20BridgedTest is Test {
         address from,
         address to,
         uint256 amount
-    )
-        public
-    {
+    ) public {
         vm.assume(
             from != to && from != address(0) && to != address(0)
                 && amount <= initialBalance && from != fakeBridge

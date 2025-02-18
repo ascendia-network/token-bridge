@@ -11,11 +11,9 @@ library AddressUtils {
     /// @param value address value to convert
     /// @return converted address
 
-    function toAddressBE(bytes32 value)
-        internal
-        pure
-        returns (address converted)
-    {
+    function toAddressBE(
+        bytes32 value
+    ) internal pure returns (address converted) {
         return address(uint160(uint256(value)));
     }
 
@@ -23,11 +21,9 @@ library AddressUtils {
     /// @dev example: `0x111122223333444455556666777788889999AAAABBBBCCCCDDDDEEEEFFFFCC` -> `0x111122223333444455556666777788889999aAaa`
     /// @param value bytes32 value to convert
     /// @return converted address
-    function toAddressLE(bytes32 value)
-        internal
-        pure
-        returns (address converted)
-    {
+    function toAddressLE(
+        bytes32 value
+    ) internal pure returns (address converted) {
         return address(uint160(bytes20(value)));
     }
 
@@ -38,11 +34,7 @@ library AddressUtils {
     function toAddress(
         bytes32 value,
         bool le
-    )
-        internal
-        pure
-        returns (address converted)
-    {
+    ) internal pure returns (address converted) {
         return le ? toAddressLE(value) : toAddressBE(value);
     }
 
@@ -50,11 +42,9 @@ library AddressUtils {
     /// @dev example: `0x111122223333444455556666777788889999AAAABBBBCCCCDDDDEEEEFFFFCC` -> `0x777788889999AaAAbBbbCcccddDdeeeEfFFfCcCc`
     /// @param value bytes32 value to convert
     /// @return converted address
-    function toAddress(bytes32 value)
-        internal
-        pure
-        returns (address converted)
-    {
+    function toAddress(
+        bytes32 value
+    ) internal pure returns (address converted) {
         return toAddress(value, false);
     }
 
@@ -62,11 +52,9 @@ library AddressUtils {
     /// @dev using [parseAddress](https://docs.openzeppelin.com/contracts/5.x/api/utils#Strings-parseAddress-string-) from OpenZeppelin's String library
     /// @param _address string value to convert
     /// @return converted address
-    function toAddress(string memory _address)
-        public
-        pure
-        returns (address converted)
-    {
+    function toAddress(
+        string memory _address
+    ) public pure returns (address converted) {
         return _address.parseAddress();
     }
 

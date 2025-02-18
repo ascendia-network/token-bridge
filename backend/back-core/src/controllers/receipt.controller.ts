@@ -1,5 +1,7 @@
 import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
 import { receipt, signatures } from "../db/schema/core.schema";
+import { receiptsMetaInIndexerEvm } from "../db/schema/evm.schema";
+import { receiptsMetaInIndexerSolana } from "../db/schema/solana.schema";
 import { eq, or, asc, desc, ne, and, notInArray } from "drizzle-orm";
 import {
   stringToBytes,
@@ -10,7 +12,7 @@ import {
   recoverMessageAddress,
   createPublicClient,
   http,
-  webSocket
+  webSocket,
 } from "viem";
 import { bridgeAbi } from "../../abis/bridgeAbi";
 import { getContext } from "hono/context-storage";
@@ -55,7 +57,10 @@ export class ReceiptController {
       consoleLogger("Receipts selected", result.length.toString());
       return result;
     } catch (error) {
-      consoleLogger("Error selecting receipts", (error as unknown as Error).toString());
+      consoleLogger(
+        "Error selecting receipts",
+        (error as unknown as Error).toString()
+      );
       consoleLogger(error.stack);
       return error as Error;
     }
@@ -78,41 +83,43 @@ export class ReceiptController {
   async getUnsignedReceipts(
     pubkey: string,
     chainEnum: "evm" | "svm"
-  ): Promise<Array<typeof receipt.$inferSelect> | Error> {
-    try {
-      const signedByRelayer = await this.db
-        .select({ receiptId: signatures.receiptId })
-        .from(signatures)
-        .where(eq(signatures.signedBy, pubkey));
-      const receipts = await this.db
-        .select()
-        .from(receipt)
-        .where(
-          and(
-            eq(receipt.claimed, false),
-            chainEnum === "svm"
-              ? eq(
+  ): Promise<
+    | Array<{
+        receipts: typeof receipt.$inferSelect;
+        receiptsMeta:
+          | typeof receiptsMetaInIndexerEvm.$inferSelect
+          | typeof receiptsMetaInIndexerSolana.$inferSelect | null;
+      }>
+    | Error
+  > {
+    const signedByRelayer = await this.db
+      .select({ receiptId: signatures.receiptId })
+      .from(signatures)
+      .where(eq(signatures.signedBy, pubkey));
+    const joinModel = chainEnum === "svm" ? receiptsMetaInIndexerEvm : receiptsMetaInIndexerSolana;
+    const receipts = await this.db
+      .select()
+      .from(receipt)
+      .where(
+        and(
+          eq(receipt.claimed, false),
+          chainEnum === "svm"
+            ? eq(
                 receipt.chainTo,
-                bytesToBigInt(
-                  stringToBytes("SOLANA", { size: 32 })
-                ).toString()
+                bytesToBigInt(stringToBytes("SOLANA", { size: 32 })).toString()
               )
-              : ne(
+            : ne(
                 receipt.chainTo,
-                bytesToBigInt(
-                  stringToBytes("SOLANA", { size: 32 })
-                ).toString()
+                bytesToBigInt(stringToBytes("SOLANA", { size: 32 })).toString()
               ),
-            notInArray(
-              receipt.receiptId,
-              signedByRelayer.map((r) => r.receiptId)
-            )
+          notInArray(
+            receipt.receiptId,
+            signedByRelayer.map((r) => r.receiptId)
           )
-        );
-      return receipts;
-    } catch (error) {
-      return error as Error;
-    }
+        )
+      )
+      .leftJoin(joinModel, eq(receipt.receiptId, joinModel.receiptId));
+    return receipts;
   }
 
   private async checkSignerEVM(
@@ -135,8 +142,8 @@ export class ReceiptController {
         chainTo: BigInt(receiptToSign.chainTo),
         eventId: BigInt(receiptToSign.eventId),
         flags: BigInt(receiptToSign.flags),
-        data: receiptToSign.data as `0x${string}`
-      }
+        data: receiptToSign.data as `0x${string}`,
+      },
     ]);
     const messageHash = keccak256(message);
     const digest = hashMessage({ raw: messageHash });
@@ -154,13 +161,13 @@ export class ReceiptController {
         abi: bridgeAbi,
         address: receiptToSign.bridgeAddress as `0x${string}`,
         functionName: "validator",
-        args: []
+        args: [],
       });
       const isValidator = await client.readContract({
         abi: validatorAbi,
         address: validatorAddress,
         functionName: "isValidator",
-        args: [signer]
+        args: [signer],
       });
       if (!isValidator) {
         throw Error("Signer is not a validator");
@@ -196,7 +203,7 @@ export class ReceiptController {
       await this.db.insert(signatures).values({
         receiptId,
         signedBy: validSigner,
-        signature
+        signature,
       });
       return true;
     } else {

@@ -1,103 +1,83 @@
-import { bytesToBigInt, stringToBytes } from "viem";
-import db from "../../db/db";
-import { receiptsClaimed, receiptsMeta, receiptsSent } from "../../db/schema";
+import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
+import bs58 from "bs58";
+import { BorshCoder, EventParser, Program } from "@coral-xyz/anchor";
+import * as idl from "../../idl/idl.json";
+import type { AmbSolBridge } from "../../idl/idlType";
+import { receiptsMeta, receiptsSent } from "../../db/schema";
 import { SolanaTransaction } from "./types";
+import db from "../../db/db";
+import { Idl } from "@coral-xyz/anchor/dist/cjs/idl";
+import { padTo32Bytes, safeBigInt, safeHexToNumber, safeNumber, toHex, toHexFromBytes } from "./utils";
 
-const programId = "F6jLbP9BudXireGvYQyEeLs483BHMpv2nQug5XJJRkFm";
+const programId = "ambav8knXhcnxFdp6nMg9HH6K9HjuS6noQNoRvNatCH";
+const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+export const program = new Program(idl as AmbSolBridge, { connection });
 
 export async function webhookHandler(request, reply) {
-  console.log("request");
   const events = request.body as SolanaTransaction[];
-  console.log("events", JSON.stringify(events, undefined, 2));
+  const eventParser = new EventParser(new PublicKey(idl.address), new BorshCoder(idl as Idl));
+
   for (const event of events) {
-    const {
-      userFrom,
-      userTo,
-      tokenFrom,
-      tokenTo,
-      amountFrom,
-      amountTo,
-      chainFrom,
-      chainTo,
-      eventId,
-      flags,
-      additionalData,
-    } = parseLogs(event.meta.logMessages, programId);
-    let model, insertValues;
-    const isClaimTx = event.meta.logMessages.some((log) =>
-      log.includes("Claim")
-    );
-    if (isClaimTx) {
-      model = receiptsClaimed;
-      insertValues = {
-        timestamp: event.blockTime,
-        bridgeAddress: programId,
-        from: userFrom,
-        to: userTo,
-        tokenAddressFrom: tokenFrom,
-        tokenAddressTo: tokenTo,
-        amountFrom: amountFrom,
-        amountTo: amountTo,
-        chainFrom: bytesToBigInt(stringToBytes("SOLANA", { size: 32 })),
-        chainTo: chainTo,
-        eventId: eventId,
-        flags: flags,
-        data: additionalData,
-      };
-    } else {
-      model = receiptsSent;
-      insertValues = {
-        timestamp: event.blockTime,
-        bridgeAddress: programId, //???
-        to: userTo,
-        tokenAddressTo: tokenTo, //???
-        amountTo: amountTo, //???
-        chainFrom: chainFrom, //???
-        chainTo: bytesToBigInt(stringToBytes("SOLANA", { size: 32 })),
-        eventId: eventId, //???
-        flags: flags, //???
-      };
+    const logs = eventParser.parseLogs(event.meta.logMessages);
+
+    for (const log of logs) {
+      let insertValues: any = null;
+      let model: any = null;
+
+      try {
+        if (log.name === "SendEvent") {
+          console.log("RESULT!", processSendEvent(log, event));
+          ({ model, values: insertValues } = processSendEvent(log, event));
+        } else if (log.name === "ReceiveEvent") {
+          console.log("ReceiveEvent:", log);
+          continue; //TODO!
+        }
+
+        if (insertValues && model) {
+          const entity = await db
+            .insert(model)
+            .values(insertValues)
+            .onConflictDoNothing()
+            .returning({ receiptId: model.receiptId });
+
+          const metadata = {
+            receiptId: entity[0].receiptId,
+            //blockHash: event.slot, //Not applicable for Solana
+            blockNumber: event.slot, //???
+            timestamp: event.blockTime,
+            transactionHash: event.transaction.signatures[0], // is this correct and always the first signature?
+            transactionIndex: event.indexWithinBlock
+          };
+          await db
+            .insert(receiptsMeta)
+            .values({ ...metadata })
+            .onConflictDoNothing();
+        }
+      } catch (err) {
+        console.error("Error processing event:", log.name, err);
+      }
     }
-    const entity = await db
-      .insert(model)
-      .values({ ...insertValues })
-      .onConflictDoNothing()
-      .returning({ receiptId: model.receiptId });
-    const metadata = {
-      receiptId: entity[0].receiptId,
-      //blockHash: event.slot, //Not applicable for Solana
-      blockNumber: event.slot, //???
-      timestamp: event.blockTime,
-      transactionHash: event.transaction.signatures[0], // is this correct and always the first signature?
-      transactionIndex: event.indexWithinBlock,
-    };
-    await db
-      .insert(receiptsMeta)
-      .values({ ...metadata })
-      .onConflictDoNothing();
   }
   return "pong";
 }
 
-function parseLogs(logMessages: string[], programId: string) {
-  const firstProgramLog = logMessages.findIndex((log) =>
-    log.includes(`Program ${programId} invoke`)
-  );
-  const payloadLog = logMessages[firstProgramLog + 2];
-  const prefix = "Program log: ";
-  const parsedPayload = payloadLog.slice(prefix.length);
-  console.log("parsedPayload", parsedPayload);
+function processSendEvent(log: any, event: SolanaTransaction) {
   return {
-    userFrom: "test",
-    userTo: "test",
-    tokenFrom: "test",
-    tokenTo: "test",
-    amountFrom: "10",
-    amountTo: "10",
-    chainFrom: 1,
-    chainTo: 1,
-    eventId: 1,
-    flags: 1,
-    additionalData: "test",
+    model: receiptsSent,
+    values: {
+      timestamp: event.blockTime,
+      bridgeAddress: programId,
+      from: toHex(log.data.from.toBase58()),
+      to: toHexFromBytes(log.data.to),
+      tokenAddressFrom: toHex(log.data.token_address_from.toBase58()),
+      tokenAddressTo: toHexFromBytes(log.data.token_address_to),
+      amountFrom: safeNumber(log.data.amount_from),
+      amountTo: safeBigInt(log.data.amount_to),
+      chainFrom: safeNumber(log.data.chain_from),
+      chainTo: safeNumber(log.data.chain_to),
+      eventId: safeNumber(log.data.event_id),
+      flags: safeHexToNumber(log.data.flags),
+      data: safeHexToNumber(log.data.flag_data)
+    }
   };
 }

@@ -1,0 +1,22 @@
+{
+  "name": "relay",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "rm -rf ./dist/ && tsc -p tsconfig.json",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prestart:evm": "npm run build",
+    "prestart:solana": "npm run build",
+    "start:evm": "npm run build && node dist/evm/index.js",
+    "start:solana": "npm run build && node dist/solana/index.js",
+    "start:evm:local": "ts-node ./src/evm/index.ts",
+    "start:solana:local": "ts-node ./src/solana/index.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "ethers": "^6.13.5",
+    "zod": "^3.24.2"
+  }
+}

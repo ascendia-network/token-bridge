@@ -126,24 +126,19 @@ export class ReceiptController {
     receiptToSign: typeof receipt.$inferSelect,
     signature: `0x${string}`
   ): Promise<`0x${string}`> {
-    const ReceiptAbi = bridgeAbi.find(
-      (abi) => abi.type === "function" && abi.name === "send"
-    )?.outputs;
-    if (!ReceiptAbi) throw new Error("Receipt ABI not found");
-    const message = encodeAbiParameters(ReceiptAbi, [
-      {
-        from: receiptToSign.from as `0x${string}`,
-        to: receiptToSign.to as `0x${string}`,
-        tokenAddressFrom: receiptToSign.tokenAddressFrom as `0x${string}`,
-        tokenAddressTo: receiptToSign.tokenAddressTo as `0x${string}`,
-        amountFrom: BigInt(receiptToSign.amountFrom),
-        amountTo: BigInt(receiptToSign.amountTo),
-        chainFrom: BigInt(receiptToSign.chainFrom),
-        chainTo: BigInt(receiptToSign.chainTo),
-        eventId: BigInt(receiptToSign.eventId),
-        flags: BigInt(receiptToSign.flags),
-        data: receiptToSign.data as `0x${string}`,
-      },
+    const MiniReceiptAbi = bridgeAbi.find(
+      (abi) => abi.type === "function" && abi.name === "claim"
+    )?.inputs[0];
+    if (!MiniReceiptAbi) throw new Error("Receipt ABI not found");
+    const message = encodeAbiParameters(MiniReceiptAbi.components, [
+      receiptToSign.to as `0x${string}`,
+      receiptToSign.tokenAddressTo as `0x${string}`,
+      BigInt(receiptToSign.amountTo),
+      BigInt(receiptToSign.chainFrom),
+      BigInt(receiptToSign.chainTo),
+      BigInt(receiptToSign.eventId),
+      BigInt(receiptToSign.flags),
+      receiptToSign.data as `0x${string}`,
     ]);
     const messageHash = keccak256(message);
     const digest = hashMessage({ raw: messageHash });

@@ -1,4 +1,4 @@
-import { AbiItem } from "viem";
+import { type AbiItem } from "viem";
 
 export const bridgeAbi = [
   {
@@ -1591,22 +1591,6 @@ export const bridgeAbi = [
     type: "error",
     name: "NotInitializing",
     inputs: [],
-  },
-  {
-    type: "error",
-    name: "SafeCastOverflowedUintDowncast",
-    inputs: [
-      {
-        name: "bits",
-        type: "uint8",
-        internalType: "uint8",
-      },
-      {
-        name: "value",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
   },
   {
     type: "error",

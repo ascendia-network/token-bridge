@@ -16,7 +16,7 @@ import {
   keccak256,
   hashMessage,
 } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { mnemonicToAccount } from "viem/accounts";
 import { bridgeAbi } from "./abis/bridgeAbi";
 import {
   config,
@@ -27,7 +27,7 @@ import {
   type ReceiptWithMeta,
 } from "./validators";
 
-const account = privateKeyToAccount(config.EVM_PRIVATE_KEY);
+const account = mnemonicToAccount(config.MNEMONIC);
 
 async function getUnsignedTransactions(): Promise<ReceiptsToSignResponse> {
   try {
@@ -79,8 +79,8 @@ async function validateExistingTransaction(
     );
   }
   const ReceiptAbi = bridgeAbi.find(
-    (abi) => abi.type === "function" && abi.name === "send"
-  )?.outputs;
+    (abi) => abi.type === "event" && abi.name === "TokenLocked"
+  )?.inputs;
   if (!ReceiptAbi) throw new Error("Receipt ABI not found");
   const parsedLog = decodeAbiParameters(ReceiptAbi, logFound.data);
 

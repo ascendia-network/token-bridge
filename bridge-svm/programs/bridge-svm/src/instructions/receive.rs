@@ -122,11 +122,7 @@ pub fn receive(ctx: Context<Receive>, serialized_args: Vec<u8>) -> Result<()> {
     nonce.nonce_counter += 1;
 
     // event
-    msg!(
-        "Unlock, token: {}, to: {}, amount: {}",
-        ctx.accounts.mint.key(),
-        ctx.accounts.receiver.key(),
-        args.amount_to
-    );
+    emit!(args);
+
     Ok(())
 }

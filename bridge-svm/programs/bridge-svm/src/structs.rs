@@ -80,7 +80,7 @@ pub struct SendPayload {
     pub flag_data: Vec<u8>,
 }
 
-#[derive(BorshSerialize, BorshDeserialize, Debug)]
+#[event]
 pub struct ReceivePayload {
     pub to: Pubkey,
     pub token_address_to: Pubkey,

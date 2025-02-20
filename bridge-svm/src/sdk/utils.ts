@@ -43,7 +43,7 @@ export function getBridgeAccounts(mint: PublicKey, bridgeProgramId: PublicKey) {
 
 
 export async function getOrCreateUserATA(connection: Connection, user: Signer, token: PublicKey) {
-  return (await getOrCreateAssociatedTokenAccount(connection, user, token, user.publicKey)).address;
+  return (await getOrCreateAssociatedTokenAccount(connection, user, token, user.publicKey, undefined, undefined, {commitment: 'confirmed'})).address;
 }
 
 export function getUserNoncePda(user: PublicKey, bridgeProgramId: PublicKey) {

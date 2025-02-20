@@ -1,8 +1,8 @@
 import { AnchorProvider, BorshCoder, EventParser, Program, setProvider, workspace } from "@coral-xyz/anchor";
-import { Keypair, sendAndConfirmTransaction, Transaction } from '@solana/web3.js';
+import { Keypair, sendAndConfirmTransaction, SystemProgram, Transaction } from '@solana/web3.js';
 
 import { AmbSolBridge } from "../../target/types/amb_sol_bridge";
-import { createMint, mintTo } from "@solana/spl-token";
+import { createMint, createSyncNativeInstruction, mintTo, NATIVE_MINT } from "@solana/spl-token";
 
 import assert from "assert";
 import { receiveSigner, receiveSigners, sendSigner, signMessage } from "../../src/backend/signs";
@@ -38,6 +38,7 @@ describe("my-project", () => {
 
   const ambTokenAddress1 = hexToUint8Array("0x0000000000000000000000000000000000001111");
   const ambTokenAddress2 = hexToUint8Array("0x0000000000000000000000000000000000002222");
+  const ambTokenAddress3 = hexToUint8Array("0x0000000000000000000000000000000000003333");
   const ambUserAddress = hexToUint8Array("0x000000000000000000000000000000000000aaaa");
 
 
@@ -83,7 +84,6 @@ describe("my-project", () => {
     await mintTo(connection, user, tokenMint1.publicKey, user_token1_ata, admin, 10 * 10 ** 6);
 
 
-
     // initialize token 1
     await program.methods.initializeToken([...ambTokenAddress1], 18, false).accounts({
       admin: admin.publicKey,
@@ -94,7 +94,11 @@ describe("my-project", () => {
       admin: admin.publicKey,
       mint: tokenMint2.publicKey,
     }).signers([admin]).rpc();
-
+    // initialize token 3
+    await program.methods.initializeToken([...ambTokenAddress3], 18, false).accounts({
+      admin: admin.publicKey,
+      mint: NATIVE_MINT,
+    }).signers([admin]).rpc();
 
 
     const [bridge_token1_pda, bridge_token1_ata] = getBridgeTokenAccounts(tokenMint1.publicKey, program.programId);
@@ -107,7 +111,6 @@ describe("my-project", () => {
     console.log("bridgeAta", bridgeAta)
 
   });
-
 
 
   it('send non mintable token', async () => {
@@ -146,7 +149,7 @@ describe("my-project", () => {
     const verifyInstruction = newEd25519Instruction(message, signers, signatures);
     // send tokens
     const sendInstruction = await bridgeProgram.methods.send(payload, [...userTo]).accounts({
-      sender: user.publicKey,
+      sender: userFrom.publicKey,
       mint: tokenFrom,
     }).signers([userFrom]).instruction();
 
@@ -175,7 +178,7 @@ describe("my-project", () => {
   });
 
 
-  it('receive', async () => {
+  it('receive non mintable token', async () => {
 
     const token = tokenMint1.publicKey;
 
@@ -187,8 +190,6 @@ describe("my-project", () => {
     const tokenBalanceBridge = await connection.getTokenAccountBalance(bridge_token_ata);
     console.log("tokenBalanceUser", tokenBalanceUser)
     console.log("tokenBalanceBridge", tokenBalanceBridge)
-
-
 
 
     const value: ReceivePayload = {
@@ -224,7 +225,6 @@ describe("my-project", () => {
   });
 
 
-
   it('receive mintable token', async () => {
 
     const token = tokenMint2.publicKey;
@@ -237,8 +237,6 @@ describe("my-project", () => {
     const tokenBalanceBridge = await connection.getTokenAccountBalance(bridge_token_ata);
     console.log("tokenBalanceUser", tokenBalanceUser)
     console.log("tokenBalanceBridge", tokenBalanceBridge)
-
-
 
 
     const value: ReceivePayload = {
@@ -278,7 +276,6 @@ describe("my-project", () => {
   });
 
 
-
   it('send mintable token', async () => {
 
 
@@ -315,7 +312,7 @@ describe("my-project", () => {
     const verifyInstruction = newEd25519Instruction(message, signers, signatures);
     // send tokens
     const sendInstruction = await bridgeProgram.methods.send(payload, [...userTo]).accountsPartial({
-      sender: user.publicKey,
+      sender: userFrom.publicKey,
       mint: tokenFrom,
       bridgeTokenAccount: null,
     }).signers([userFrom]).instruction();
@@ -345,23 +342,141 @@ describe("my-project", () => {
   });
 
 
+  it('send native', async () => {
 
 
+    const userFrom = user;
+    const tokenFrom = NATIVE_MINT;
+    const userTo = ambUserAddress;
+    const tokenTo = ambTokenAddress3;
 
 
+    const user_token_ata = await getOrCreateUserATA(connection, userFrom, tokenFrom);
+    const [_, bridge_token_ata] = getBridgeTokenAccounts(tokenFrom, program.programId);
+
+    const ata_info = await connection.getAccountInfo(user_token_ata);
+    console.log("ata_info", ata_info)
+
+    const tokenBalanceUser = await connection.getTokenAccountBalance(user_token_ata);
+    const tokenBalanceBridge = await connection.getTokenAccountBalance(bridge_token_ata);
+    console.log("tokenBalanceUser", tokenBalanceUser)
+    console.log("tokenBalanceBridge", tokenBalanceBridge)
 
 
+    const value: SendPayload = {
+      tokenAddressFrom: tokenFrom.toBytes(),
+      tokenAddressTo: tokenTo,
+      amountToSend: 5_000,
+      feeAmount: 20,
+      chainFrom: 0x736F6C616E61,
+      timestamp: Date.now(),
+      flags: new Uint8Array(32),
+      flagData: new Uint8Array(0),
+    };
 
 
+    const payload = serializeSendPayload(value);
+    const { message, signers, signatures } = signMessage(payload, [sendSigner]);
 
 
+    const transferNativeInstructions = [
+      SystemProgram.transfer({
+        fromPubkey: userFrom.publicKey,
+        toPubkey: user_token_ata,
+        lamports: value.amountToSend,
+      }),
+      createSyncNativeInstruction(user_token_ata)  // update ata balance
+    ];
 
+
+    const verifyInstruction = newEd25519Instruction(message, signers, signatures);
+    // send tokens
+    const sendInstruction = await bridgeProgram.methods.send(payload, [...userTo]).accounts({
+      sender: user.publicKey,
+      mint: tokenFrom,
+      userTokenAta: user_token_ata
+    }).signers([userFrom]).instruction();
+
+    const tx = new Transaction().add(
+      verifyInstruction, // must be at zero index for the bridge program
+      ...transferNativeInstructions,
+      sendInstruction
+    );
+    tx.feePayer = userFrom.publicKey;
+    const txSignature = await sendAndConfirmTransaction(connection, tx, [user], { commitment: 'confirmed' }); // wait for transaction to be confirmed
+
+
+    const txParsed = await connection.getParsedTransaction(txSignature, { commitment: 'confirmed' });
+    console.log(txParsed)
+
+    const eventParser = new EventParser(program.programId, new BorshCoder(program.idl));
+    const events = eventParser.parseLogs(txParsed.meta.logMessages);
+    for (let event of events) {
+      console.log(event);
+    }
+
+
+    const state_pda = getBridgeStateAccount(program.programId);
+    const accountState = await program.account.globalState.fetch(state_pda);
+    assert.ok(+accountState.nonce === 3);
+
+    const tokenBalance2 = await connection.getTokenAccountBalance(user_token_ata);
+    console.log(tokenBalance2)
+
+  });
+
+
+  it('receive native', async () => {
+
+    const token = NATIVE_MINT;
+
+
+    const [bridge_token1_pda, bridge_token_ata] = getBridgeTokenAccounts(token, program.programId);
+    const user_token_ata = await getOrCreateUserATA(connection, user, token);
+
+    const tokenBalanceUser = await connection.getTokenAccountBalance(user_token_ata);
+    const tokenBalanceBridge = await connection.getTokenAccountBalance(bridge_token_ata);
+    console.log("tokenBalanceUser", tokenBalanceUser)
+    console.log("tokenBalanceBridge", tokenBalanceBridge)
+
+
+    const value: ReceivePayload = {
+      to: user.publicKey.toBytes(),
+      tokenAddressTo: token.toBytes(),
+      amountTo: 50,
+      chainTo: 0x736F6C616E61,
+      flags: new Uint8Array(32),
+      flagData: new Uint8Array(0),
+      nonce: 2,
+    };
+
+
+    const nonceAccount = getUserNoncePda(user.publicKey, bridgeProgram.programId);
+
+
+    const payload = serializeReceivePayload(value);
+    const { message, signers, signatures } = signMessage(payload, receiveSigners);
+    const verifyInstruction = newEd25519Instruction(message, signers, signatures);
+
+    const receiveInstruction = await bridgeProgram.methods.receive(payload).accounts({
+      receiver: user.publicKey,
+      mint: token,
+    }).signers([user]).instruction()
+
+    const tx = new Transaction().add(verifyInstruction, receiveInstruction);
+    tx.feePayer = user.publicKey;
+    const txSignature = await sendAndConfirmTransaction(connection, tx, [user], { commitment: 'confirmed' }); // wait for transaction to be confirmed
+
+
+    const receiverNonce = await program.account.nonceAccount.fetch(nonceAccount);
+    assert.ok(+receiverNonce.nonceCounter === 3);
+  });
 
 
 });
 
 
-async function requestSol(account, connection, amount = 5) {
+async function requestSol(account, connection, amount = 500) {
   console.log(`Requesting airdrop for SOL : ${account.publicKey.toBase58()}`)
   const signature = await connection.requestAirdrop(account.publicKey, amount * 10 ** 9);
   const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();

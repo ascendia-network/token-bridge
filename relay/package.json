@@ -16,7 +16,10 @@
   "description": "",
   "dependencies": {
     "dotenv": "^16.4.7",
-    "ethers": "^6.13.5",
+    "viem": "^2.23.3",
     "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4"
   }
 }

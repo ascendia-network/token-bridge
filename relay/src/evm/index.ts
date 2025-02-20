@@ -6,74 +6,37 @@
  *
  *  This Source Code Form is “Incompatible With Secondary Licenses”, as defined by the Mozilla Public License, v. 2.0.
  */
-import { ethers } from "ethers";
-import { z } from "zod";
-import { config as dotenvConfig } from "dotenv";
-dotenvConfig();
+import {
+  http,
+  stringToBytes,
+  bytesToBigInt,
+  createPublicClient,
+  encodeAbiParameters,
+  decodeAbiParameters,
+  keccak256,
+  hashMessage,
+} from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { bridgeAbi } from "./abis/bridgeAbi";
+import {
+  config,
+  rpcConfig,
+  validators,
+  type FullReceiptDB,
+  type ReceiptsToSignResponse,
+  type ReceiptWithMeta,
+} from "./validators";
 
-const config = {
-  evmApiUrl: process.env.EVM_RPC || "https://network.ambrosus-test.io",
-  coreBackendUrl: process.env.BACKEND_URL || "http://localhost:3000",
-  evmPrivateKey: process.env.EVM_PRIVATE_KEY!,
-  pollingInterval: process.env.POLLING_INTERVAL ? Number.parseInt(process.env.POLLING_INTERVAL) : 5000, // 5 seconds
-};
+const account = privateKeyToAccount(config.EVM_PRIVATE_KEY);
 
-const MiniReceipt = z.object({
-  to: z.string().regex(/0x[0-9a-fA-F]{64}/),
-  tokenAddressTo: z.string().regex(/0x[0-9a-fA-F]{64}/),
-  amountTo: z.bigint(),
-  chainFrom: z.bigint(),
-  chainTo: z.bigint(),
-  eventId: z.bigint(),
-  flags: z.bigint(),
-  data: z.string().regex(/0x[0-9a-fA-F]*/),
-});
-
-const FullReceipt = MiniReceipt.extend({
-  from: z.string().regex(/0x[0-9a-fA-F]{64}/),
-  tokenAddressFrom: z.string().regex(/0x[0-9a-fA-F]{64}/),
-  amountFrom: z.bigint(),
-})
-
-const ReceiptMeta = z.object({
-  receiptId: z.string().regex(/[0-9]+_[0-9]+_[0-9]+/),
-  blockHash: z.string().nullable(),
-  blockNumber: z.bigint(),
-  timestamp: z.bigint(),
-  transactionHash: z.string(),
-  transactionIndex: z.number(),
-});
-
-const FullReceiptDB = FullReceipt.extend({
-  receiptId: z.string().regex(/[0-9]+_[0-9]+_[0-9]+/),
-  timestamp: z.bigint(),
-  bridgeAddress: z.string(),
-});
-
-const MiniReceiptDB = MiniReceipt.extend({
-  receiptId: z.string().regex(/[0-9]+_[0-9]+_[0-9]+/),
-  timestamp: z.bigint(),
-  bridgeAddress: z.string(),
-});
-
-const ReceiptWithMeta = z.object({
-  receipts: FullReceiptDB,
-  receiptsMeta: ReceiptMeta.nullable(),
-})
-
-const ReceiptsToSignResponse = z.array(ReceiptWithMeta);
-
-const provider = new ethers.JsonRpcProvider(config.evmApiUrl);
-const wallet = new ethers.Wallet(config.evmPrivateKey, provider);
-
-async function getUnsignedTransactions(): Promise<z.infer<typeof ReceiptsToSignResponse>> {
+async function getUnsignedTransactions(): Promise<ReceiptsToSignResponse> {
   try {
     const response = await fetch(
-      `${config.coreBackendUrl}/evm/unsigned/${wallet.address}`
+      `${config.BACKEND_URL}/evm/unsigned/${account.address}`
     );
     if (response.ok) {
       const data = await response.json();
-      const receipts = ReceiptsToSignResponse.parse(data);
+      const receipts = validators.ReceiptsToSignResponse.parse(data);
       return receipts;
     } else {
       console.error(
@@ -88,22 +51,19 @@ async function getUnsignedTransactions(): Promise<z.infer<typeof ReceiptsToSignR
   }
 }
 
-async function validateExistingTransaction(receiptWithMeta: z.infer<typeof ReceiptWithMeta>) {
+async function validateExistingTransaction(
+  receiptWithMeta: ReceiptWithMeta
+): Promise<void> {
   const receiptMeta = receiptWithMeta.receiptsMeta;
   if (!receiptMeta) {
     throw new Error("Receipt metadata is required for validation.");
   }
-  const transaction = await provider.getTransaction(
-    receiptMeta.transactionHash
-  );
-  if (!transaction) {
-    throw new Error(
-      `Transaction with hash ${receiptMeta.transactionHash} not found.`
-    );
-  }
-  const receipt = await provider.getTransactionReceipt(
-    receiptMeta.transactionHash
-  );
+  const publicClient = createPublicClient({
+    transport: http(rpcConfig[`RPC_URL_${receiptWithMeta.receipts.chainFrom}`]),
+  });
+  const receipt = await publicClient.getTransactionReceipt({
+    hash: receiptMeta.transactionHash,
+  });
   if (!receipt) {
     throw new Error(
       `Receipt for transaction hash ${receiptMeta.transactionHash} not found.`
@@ -118,29 +78,21 @@ async function validateExistingTransaction(receiptWithMeta: z.infer<typeof Recei
       `Event log for transaction hash ${receiptMeta.transactionHash} not found.`
     );
   }
-  const parsedLog = ethers.AbiCoder.defaultAbiCoder().decode(
-    [
-      "address",
-      "address",
-      "uint256",
-      "uint256",
-      "uint256",
-      "uint256",
-      "uint256",
-      "bytes",
-    ],
-    logFound.data
-  );
+  const ReceiptAbi = bridgeAbi.find(
+    (abi) => abi.type === "function" && abi.name === "send"
+  )?.outputs;
+  if (!ReceiptAbi) throw new Error("Receipt ABI not found");
+  const parsedLog = decodeAbiParameters(ReceiptAbi, logFound.data);
 
   if (
-    parsedLog[0] !== receiptWithMeta.receipts.to ||
-    parsedLog[1] !== receiptWithMeta.receipts.tokenAddressTo ||
-    parsedLog[2].toString() !== receiptWithMeta.receipts.amountTo.toString() ||
-    parsedLog[3].toString() !== receiptWithMeta.receipts.chainFrom.toString() ||
-    parsedLog[4].toString() !== receiptWithMeta.receipts.chainTo.toString() ||
-    parsedLog[5].toString() !== receiptWithMeta.receipts.eventId.toString() ||
-    parsedLog[6].toString() !== receiptWithMeta.receipts.flags.toString() ||
-    parsedLog[7] !== receiptWithMeta.receipts.data
+    parsedLog[0].to !== receiptWithMeta.receipts.to ||
+    parsedLog[0].tokenAddressTo !== receiptWithMeta.receipts.tokenAddressTo ||
+    parsedLog[0].amountTo !== receiptWithMeta.receipts.amountTo ||
+    parsedLog[0].chainFrom !== receiptWithMeta.receipts.chainFrom ||
+    parsedLog[0].chainTo !== receiptWithMeta.receipts.chainTo ||
+    parsedLog[0].eventId !== receiptWithMeta.receipts.eventId ||
+    parsedLog[0].flags !== receiptWithMeta.receipts.flags ||
+    parsedLog[0].data !== receiptWithMeta.receipts.data
   ) {
     throw new Error(
       `Log data does not match receipt for transaction hash ${receiptMeta.transactionHash}.`
@@ -149,7 +101,9 @@ async function validateExistingTransaction(receiptWithMeta: z.infer<typeof Recei
   console.log(`Transaction ${receiptMeta.transactionHash} is valid.`);
 }
 
-async function signReceipt(receiptWithMeta: z.infer<typeof ReceiptWithMeta>) {
+async function signReceiptForEVM(
+  receiptWithMeta: ReceiptWithMeta
+): Promise<`0x${string}` | undefined> {
   try {
     await validateExistingTransaction(receiptWithMeta);
   } catch (error) {
@@ -157,47 +111,57 @@ async function signReceipt(receiptWithMeta: z.infer<typeof ReceiptWithMeta>) {
     return;
   }
   const receipt = receiptWithMeta.receipts;
-  const abiCoder = new ethers.AbiCoder();
-  const encodedMessage = abiCoder.encode(
-    [
-      "bytes32",
-      "bytes32",
-      "uint256",
-      "uint256",
-      "uint256",
-      "uint256",
-      "uint256",
-      "bytes",
-    ],
-    [
-      receipt.to,
-      receipt.tokenAddressTo,
-      receipt.amountTo,
-      receipt.chainFrom,
-      receipt.chainTo,
-      receipt.eventId,
-      receipt.flags,
-      receipt.data,
-    ]
-  );
+  const MiniReceiptAbi = bridgeAbi.find(
+    (abi) => abi.type === "function" && abi.name === "claim"
+  )?.inputs[0];
+  if (!MiniReceiptAbi) throw new Error("Receipt ABI not found");
+  const message = encodeAbiParameters(MiniReceiptAbi.components, [
+    receipt.to as `0x${string}`,
+    receipt.tokenAddressTo as `0x${string}`,
+    BigInt(receipt.amountTo),
+    BigInt(receipt.chainFrom),
+    BigInt(receipt.chainTo),
+    BigInt(receipt.eventId),
+    BigInt(receipt.flags),
+    receipt.data as `0x${string}`,
+  ]);
 
-  const messageHash = ethers.keccak256(encodedMessage);
-  const digest = ethers.hashMessage(ethers.getBytes(messageHash));
-  const signature = await wallet.signMessage(digest);
+  const messageHash = keccak256(message);
+  const digest = hashMessage({ raw: messageHash });
+  const signature = await account.signMessage({ message: digest });
   return signature;
 }
 
-async function postSignature(receiptId: z.infer<typeof FullReceiptDB>["receiptId"], signature: string) {
+async function signReceiptForSolana(
+  receiptWithMeta: ReceiptWithMeta
+): Promise<`0x${string}` | undefined> {
+  throw new Error("Solana signing not implemented.");
+}
+
+async function signReceipt(
+  receiptWithMeta: ReceiptWithMeta
+): Promise<`0x${string}` | undefined> {
+  switch (receiptWithMeta.receipts.chainTo) {
+    case bytesToBigInt(stringToBytes("SOLANA", { size: 32 })): // Solana signature needed
+      return await signReceiptForSolana(receiptWithMeta);
+    default:
+      return await signReceiptForEVM(receiptWithMeta);
+  }
+}
+
+async function postSignature(
+  receiptId: FullReceiptDB["receiptId"],
+  signature: string
+) {
   try {
     const response = await fetch(
-      `${config.coreBackendUrl}/api/receipts/${receiptId}`,
+      `${config.BACKEND_URL}/api/receipts/${receiptId}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ signature }),
       }
     );
-
     if (response.ok) {
       console.log("Signature successfully sent to the backend.");
     } else {
@@ -220,6 +184,7 @@ async function processTransactions() {
         await postSignature(transaction.receipts.receiptId, signature);
       }
     }
+    console.log(`Processed ${transactions.length} transactions.`);
   } catch (error) {
     console.error("Error processing transactions:", error);
   }
@@ -228,7 +193,9 @@ async function processTransactions() {
 async function startRelayService() {
   while (true) {
     await processTransactions();
-    await new Promise((resolve) => setTimeout(resolve, config.pollingInterval));
+    await new Promise((resolve) =>
+      setTimeout(resolve, config.POLLING_INTERVAL)
+    );
   }
 }
 

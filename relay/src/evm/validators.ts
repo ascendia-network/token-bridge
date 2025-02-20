@@ -4,19 +4,23 @@ dotenvConfig();
 
 const RPCValidator = z.string().url("Invalid RPC URL");
 
-const RPCConfig = z.record(z.string().regex(/RPC_URL_[0-9]+/), RPCValidator);
+const RPCConfig = z.record(
+  z
+    .string()
+    .regex(/RPC_URL_[0-9]+/)
+    .or(z.literal("RPC_URL_SOLANA")),
+  RPCValidator
+);
 
 const EnvConfig = z.object({
   BACKEND_URL: z
     .string()
     .url("Invalid backend URL")
     .default("http://localhost:3000"),
-  EVM_PRIVATE_KEY: z
+  MNEMONIC: z
     .string()
-    .regex(/0x[0-9a-fA-F]{64}/, "Invalid private key format")
-    .nonempty("Private key is required")
-    .readonly()
-    .transform((val) => val as `0x${string}`),
+    .nonempty("Mnemonic is required")
+    .readonly(),
   POLLING_INTERVAL: z
     .number()
     .int("Polling interval must be an integer")

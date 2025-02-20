@@ -5,6 +5,7 @@ use anchor_lang::solana_program::{
     keccak::hash,
     sysvar::instructions::{load_instruction_at_checked, ID as SYSVAR_INSTRUCTIONS_ID},
 };
+use anchor_lang::solana_program::sysvar::instructions::get_instruction_relative;
 use anchor_spl::token::Token;
 use anchor_spl::token_interface::{Mint, TokenAccount};
 
@@ -69,7 +70,7 @@ pub fn receive(ctx: Context<Receive>, serialized_args: Vec<u8>) -> Result<()> {
 
     // check signature
     let num_signatures = 5;
-    let ix = load_instruction_at_checked(0, &ctx.accounts.ix_sysvar.to_account_info())?;
+    let ix = get_instruction_relative(-1, &ctx.accounts.ix_sysvar.to_account_info())?;
     let signed_message = &ix.data[ix.data.len().saturating_sub(32)..];
     let signer_pubkeys = &ix.data
         [ix.data.len().saturating_sub(32 * num_signatures + 32)..ix.data.len().saturating_sub(32)];

@@ -1,8 +1,15 @@
 import { AnchorProvider, BorshCoder, EventParser, Program, setProvider, workspace } from "@coral-xyz/anchor";
-import { Keypair, sendAndConfirmTransaction, SystemProgram, Transaction } from '@solana/web3.js';
+import { Connection, Keypair, PublicKey, sendAndConfirmTransaction, SystemProgram, Transaction } from '@solana/web3.js';
 
 import { AmbSolBridge } from "../../target/types/amb_sol_bridge";
-import { createMint, createSyncNativeInstruction, mintTo, NATIVE_MINT } from "@solana/spl-token";
+import {
+  createAssociatedTokenAccountInstruction,
+  createMint,
+  createSyncNativeInstruction,
+  getAssociatedTokenAddressSync,
+  mintTo,
+  NATIVE_MINT
+} from "@solana/spl-token";
 
 import assert from "assert";
 import { receiveSigner, receiveSigners, sendSigner, signMessage } from "../../src/backend/signs";
@@ -15,6 +22,7 @@ import {
 } from "../../src/sdk/utils";
 import { ReceivePayload, SendPayload, serializeReceivePayload, serializeSendPayload } from "../../src/backend/types";
 import { newEd25519Instruction } from "../../src/sdk/ed25519_ix";
+
 
 describe("my-project", () => {
   // Configure the client to use the local cluster.
@@ -354,15 +362,11 @@ describe("my-project", () => {
     const tokenTo = ambTokenAddress3;
 
 
-    const user_token_ata = await getOrCreateUserATA(connection, userFrom, tokenFrom);
+    const user_token_ata = getAssociatedTokenAddressSync(tokenFrom, userFrom.publicKey);
     const [_, bridge_token_ata] = getBridgeTokenAccounts(tokenFrom, program.programId);
 
-    const ata_info = await connection.getAccountInfo(user_token_ata);
-    console.log("ata_info", ata_info)
 
-    const tokenBalanceUser = await connection.getTokenAccountBalance(user_token_ata);
     const tokenBalanceBridge = await connection.getTokenAccountBalance(bridge_token_ata);
-    console.log("tokenBalanceUser", tokenBalanceUser)
     console.log("tokenBalanceBridge", tokenBalanceBridge)
 
 
@@ -381,17 +385,7 @@ describe("my-project", () => {
     const payload = serializeSendPayload(value);
     const { message, signers, signatures } = signMessage(payload, [sendSigner]);
 
-
-    const transferNativeInstructions = [
-      SystemProgram.transfer({
-        fromPubkey: userFrom.publicKey,
-        toPubkey: user_token_ata,
-        lamports: value.amountToSend,
-      }),
-      createSyncNativeInstruction(user_token_ata)  // update ata balance
-    ];
-
-
+    const transferNativeInstructions = await wrapSolInstructions(connection, user_token_ata, userFrom, tokenFrom, value);
     const verifyInstruction = newEd25519Instruction(message, signers, signatures);
     // send tokens
     const sendInstruction = await bridgeProgram.methods.send(payload, [...userTo]).accounts({
@@ -399,9 +393,10 @@ describe("my-project", () => {
       mint: tokenFrom,
     }).signers([userFrom]).instruction();
 
+
     const tx = new Transaction().add(
-      verifyInstruction, // must be at zero index for the bridge program
       ...transferNativeInstructions,
+      verifyInstruction, // must be just before send instruction
       sendInstruction
     );
     tx.feePayer = userFrom.publicKey;
@@ -469,7 +464,6 @@ describe("my-project", () => {
     tx.feePayer = user.publicKey;
     const txSignature = await sendAndConfirmTransaction(connection, tx, [user], { commitment: 'confirmed' }); // wait for transaction to be confirmed
 
-
     const receiverNonce = await program.account.nonceAccount.fetch(nonceAccount);
     assert.ok(+receiverNonce.nonceCounter === 3);
   });
@@ -477,6 +471,32 @@ describe("my-project", () => {
 
 });
 
+
+async function wrapSolInstructions(connection: Connection, user_token_ata: PublicKey, userFrom: Keypair, tokenFrom: PublicKey, value: SendPayload) {
+  const transferNativeInstructions = [];
+
+  let balance = 0;
+  try {
+    const tokenBalanceUser = await connection.getTokenAccountBalance(user_token_ata);
+    balance = +tokenBalanceUser.value.amount;
+  } catch (e) {
+    console.log("need to create user WSOL account")
+    transferNativeInstructions.push(
+      createAssociatedTokenAccountInstruction(userFrom.publicKey, user_token_ata, userFrom.publicKey, tokenFrom)
+    );
+  }
+
+  transferNativeInstructions.push(
+    SystemProgram.transfer({
+      fromPubkey: userFrom.publicKey,
+      toPubkey: user_token_ata,
+      lamports: value.amountToSend - balance,
+    }),
+    createSyncNativeInstruction(user_token_ata)  // update ata balance
+  );
+
+  return transferNativeInstructions;
+}
 
 async function requestSol(account, connection, amount = 500) {
   console.log(`Requesting airdrop for SOL : ${account.publicKey.toBase58()}`)

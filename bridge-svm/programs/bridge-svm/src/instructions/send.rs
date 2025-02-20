@@ -1,11 +1,12 @@
 use crate::structs::*;
-use crate::utils::transfer::{burn_spl_from_user, transfer_spl_from_user};
-use crate::utils::{scale_amount, transfer_native_from_user};
+use crate::utils::transfer::{burn_spl_from_user, transfer_spl_from_user, transfer_native_from_user};
+use crate::utils::scale_amount;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{
     keccak::hash,
     sysvar::instructions::{load_instruction_at_checked, ID as SYSVAR_INSTRUCTIONS_ID},
 };
+use anchor_lang::solana_program::sysvar::instructions::get_instruction_relative;
 use anchor_spl::token::Token;
 use anchor_spl::token_interface::{Mint, TokenAccount};
 
@@ -59,7 +60,7 @@ pub fn send(ctx: Context<Send>, serialized_args: Vec<u8>, recipient: [u8; 20]) -
     let args_hash = hash(&serialized_args);
 
     // check signature
-    let ix = load_instruction_at_checked(0, &ctx.accounts.ix_sysvar.to_account_info())?;
+    let ix = get_instruction_relative(-1, &ctx.accounts.ix_sysvar.to_account_info())?;
     let signed_message = &ix.data[ix.data.len().saturating_sub(32)..];
     let signer_pubkey = Pubkey::try_from_slice(
         &ix.data[ix.data.len().saturating_sub(32 + 32)..ix.data.len().saturating_sub(32)],

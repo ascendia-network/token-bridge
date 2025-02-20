@@ -1,36 +1,6 @@
 import { z } from "zod";
-import { config as dotenvConfig } from "dotenv";
-dotenvConfig();
+import bs58 from "bs58";
 
-const RPCValidator = z.string().url("Invalid RPC URL");
-
-const RPCConfig = z.record(
-  z
-    .string()
-    .regex(/RPC_URL_[0-9]+/)
-    .or(z.literal("RPC_URL_SOLANA")),
-  RPCValidator
-);
-
-const EnvConfig = z.object({
-  BACKEND_URL: z
-    .string()
-    .url("Invalid backend URL")
-    .default("http://localhost:3000"),
-  MNEMONIC: z
-    .string()
-    .nonempty("Mnemonic is required")
-    .readonly(),
-  POLLING_INTERVAL: z
-    .number()
-    .int("Polling interval must be an integer")
-    .positive("Polling interval must be positive")
-    .min(1000, "Polling interval must be at least 1000ms")
-    .default(5000),
-});
-
-export const config = EnvConfig.parse(process.env);
-export const rpcConfig = RPCConfig.parse(process.env);
 
 const MiniReceipt = z.object({
   to: z.string().regex(/0x[0-9a-fA-F]{64}/),
@@ -54,11 +24,23 @@ const ReceiptMeta = z.object({
   blockHash: z.string().nullable(),
   blockNumber: z.bigint(),
   timestamp: z.bigint(),
+  transactionIndex: z.number(),
+});
+
+const ReceiptMetaEVM = ReceiptMeta.extend({
   transactionHash: z
     .string()
     .regex(/0x[0-9a-fA-F]{64}/)
     .transform((val) => val as `0x${string}`),
-  transactionIndex: z.number(),
+});
+
+const ReceiptMetaSolana = ReceiptMeta.extend({
+  transactionHash: z
+    .string()
+    .regex(/[1-9A-HJ-NP-Za-km-z]{87,88}/).refine(
+      (val) => bs58.decode(val).length === 64,
+      "Invalid base58 encoded transaction hash"
+    )
 });
 
 const FullReceiptDB = FullReceipt.extend({
@@ -75,7 +57,7 @@ const MiniReceiptDB = MiniReceipt.extend({
 
 const ReceiptWithMeta = z.object({
   receipts: FullReceiptDB,
-  receiptsMeta: ReceiptMeta.nullable(),
+  receiptsMeta: z.union([ReceiptMetaSolana, ReceiptMetaEVM]).nullable(),
 });
 
 const ReceiptsToSignResponse = z.array(ReceiptWithMeta);
@@ -83,16 +65,18 @@ const ReceiptsToSignResponse = z.array(ReceiptWithMeta);
 export const validators = {
   FullReceipt,
   MiniReceipt,
-  ReceiptMeta,
   FullReceiptDB,
   MiniReceiptDB,
+  ReceiptMetaSolana,
+  ReceiptMetaEVM,
   ReceiptWithMeta,
   ReceiptsToSignResponse,
 };
 
 export type FullReceipt = z.infer<typeof FullReceipt>;
 export type MiniReceipt = z.infer<typeof MiniReceipt>;
-export type ReceiptMeta = z.infer<typeof ReceiptMeta>;
+export type ReceiptMetaEVM = z.infer<typeof ReceiptMetaEVM>;
+export type ReceiptMetaSolana = z.infer<typeof ReceiptMetaSolana>;
 export type FullReceiptDB = z.infer<typeof FullReceiptDB>;
 export type MiniReceiptDB = z.infer<typeof MiniReceiptDB>;
 export type ReceiptWithMeta = z.infer<typeof ReceiptWithMeta>;

@@ -72,7 +72,6 @@ async function initialize() {
   await program.methods.initializeToken([...ambTokenAddress], 18).accounts({
     // @ts-ignore
     admin: admin.publicKey,
-    ...getBridgeAccounts(token.publicKey, program.programId),
   }).signers([admin]).rpc();
 
 }

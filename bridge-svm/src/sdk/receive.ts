@@ -1,5 +1,5 @@
 import { Connection, PublicKey, sendAndConfirmTransaction, type Signer, Transaction } from "@solana/web3.js";
-import { getBridgeAccounts, getOrCreateUserATA } from "./utils";
+import { getOrCreateUserATA } from "./utils";
 import { Program } from "@coral-xyz/anchor";
 import { newEd25519Instruction } from "./ed25519_ix";
 import { getReceivePayload } from "../backend/signs";
@@ -13,16 +13,15 @@ export async function receive(
   const {value, payload, message, signers, signatures} = await getReceivePayload(user.publicKey);
   const token = new PublicKey(value.tokenAddressTo)
 
-  const user_token_ata = (await getOrCreateUserATA(connection, user, token)).address;
-  // const nonceAccount = getUserNoncePda(user.publicKey, bridgeProgram.programId);
+  // creating user token account if not exists
+  // todo include creating instruction in the transaction below or in the program code
+  const user_token_ata = await getOrCreateUserATA(connection, user, token);
 
   const verifyInstruction = newEd25519Instruction(message, signers, signatures);
 
   const receiveInstruction = await bridgeProgram.methods.receive(payload).accounts({
     receiver: user.publicKey,
-    // receiverTokenAccount: user_token_ata,
-    // receiverNonceAccount: nonceAccount,
-    ...getBridgeAccounts(token, bridgeProgram.programId),
+    mint: token,
   }).signers([user]).instruction()
 
   const tx = new Transaction().add(verifyInstruction, receiveInstruction);

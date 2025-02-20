@@ -1,6 +1,6 @@
 import { Buffer } from "buffer";
-import { Connection, Keypair, PublicKey, type Signer, SystemProgram } from "@solana/web3.js";
-import { getAssociatedTokenAddressSync, getOrCreateAssociatedTokenAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { Connection, Keypair, PublicKey, type Signer } from "@solana/web3.js";
+import { getAssociatedTokenAddressSync, getOrCreateAssociatedTokenAccount } from "@solana/spl-token";
 
 
 export const SOLANA_CHAIN_ID = 0x736F6C616E61;
@@ -22,23 +22,6 @@ export function hexToKeypair(hexString: string) {
 
 export function keypairToHex(keypair: Keypair) {
   return Buffer.from(keypair.secretKey).toString('hex');
-}
-
-
-export function getBridgeAccounts(mint: PublicKey, bridgeProgramId: PublicKey) {
-  const state_pda = getBridgeStateAccount(bridgeProgramId);
-  const [ bridge_token_pda, bridge_token_ata ] = getBridgeTokenAccounts(mint, bridgeProgramId);
-
-  return {
-    mint: mint,
-
-    bridgeToken: bridge_token_pda,
-    bridgeTokenAccount: bridge_token_ata,
-    state: state_pda,
-
-    tokenProgram: TOKEN_PROGRAM_ID,
-    systemProgram: SystemProgram.programId,
-  }
 }
 
 

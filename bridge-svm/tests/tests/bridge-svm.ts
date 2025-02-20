@@ -86,16 +86,19 @@ describe("my-project", () => {
 
     // initialize token 1
     await program.methods.initializeToken([...ambTokenAddress1], 18, false).accounts({
+      // @ts-ignore
       admin: admin.publicKey,
       mint: tokenMint1.publicKey,
     }).signers([admin]).rpc();
     // initialize token 2
     await program.methods.initializeToken([...ambTokenAddress2], 18, true).accounts({
+      // @ts-ignore
       admin: admin.publicKey,
       mint: tokenMint2.publicKey,
     }).signers([admin]).rpc();
     // initialize token 3
     await program.methods.initializeToken([...ambTokenAddress3], 18, false).accounts({
+      // @ts-ignore
       admin: admin.publicKey,
       mint: NATIVE_MINT,
     }).signers([admin]).rpc();
@@ -394,7 +397,6 @@ describe("my-project", () => {
     const sendInstruction = await bridgeProgram.methods.send(payload, [...userTo]).accounts({
       sender: user.publicKey,
       mint: tokenFrom,
-      userTokenAta: user_token_ata
     }).signers([userFrom]).instruction();
 
     const tx = new Transaction().add(

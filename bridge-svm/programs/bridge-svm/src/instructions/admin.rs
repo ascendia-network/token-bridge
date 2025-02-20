@@ -45,7 +45,10 @@ pub struct CreateToken<'info> {
         associated_token::mint = mint,
         associated_token::authority = bridge_token,
     )]
-    pub bridge_token_account: InterfaceAccount<'info, TokenAccount>,
+    // Will be inited if non-mintable (non-synthetic).
+    // If synthetic, there is no need for bridge to store tokens, so don't init it;
+    // clients must pass null or programId of the bridge instead.
+    pub bridge_token_account: Option<InterfaceAccount<'info, TokenAccount>>,
 
     pub mint: InterfaceAccount<'info, Mint>,
 
@@ -54,32 +57,6 @@ pub struct CreateToken<'info> {
     pub system_program: Program<'info, System>,
 }
 
-
-// same as prev, but don't create bridge ATA, coz token is mints/burns on the fly
-#[derive(Accounts)]
-pub struct CreateSyntheticToken<'info> {
-    #[account(
-        has_one = admin,
-        seeds = [GlobalState::SEED_PREFIX], bump
-    )]
-    pub state: Account<'info, GlobalState>,
-
-    #[account(mut)]
-    pub admin: Signer<'info>,
-
-    #[account(
-        init,
-        payer = admin,
-        space = TokenConfig::ACCOUNT_SIZE,
-        seeds = [TokenConfig::SEED_PREFIX, mint.key().as_ref()], bump
-    )]
-    pub bridge_token: Account<'info, TokenConfig>,
-
-    pub mint: InterfaceAccount<'info, Mint>,
-
-    pub token_program: Program<'info, Token>,
-    pub system_program: Program<'info, System>,
-}
 
 #[derive(Accounts)]
 pub struct UpdateState<'info> {
@@ -109,6 +86,8 @@ pub fn initialize(
 
 pub fn initialize_token(ctx: Context<CreateToken>, amb_token: [u8; 20], amb_decimals: u8, is_mintable: bool) -> Result<()> {
     let bridge_token = &mut ctx.accounts.bridge_token;
+
+    require!(ctx.accounts.bridge_token_account.is_some() == !is_mintable, ErrorCode::RequireViolated);
 
     bridge_token.set_inner(TokenConfig::new(
         ctx.accounts.mint.key(),

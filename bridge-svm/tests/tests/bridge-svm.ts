@@ -103,6 +103,7 @@ describe("my-project", () => {
       // @ts-ignore
       admin: admin.publicKey,
       mint: tokenMint2.publicKey,
+      bridgeTokenAccount: null  // pass null to not create bridge token account
     }).signers([admin]).rpc();
     // initialize token 3
     await program.methods.initializeToken([...ambTokenAddress3], 18, false).accounts({
@@ -244,9 +245,9 @@ describe("my-project", () => {
     const user_token_ata = await getOrCreateUserATA(connection, user, token);
 
     const tokenBalanceUser = await connection.getTokenAccountBalance(user_token_ata);
-    const tokenBalanceBridge = await connection.getTokenAccountBalance(bridge_token_ata);
+    // const tokenBalanceBridge = await connection.getTokenAccountBalance(bridge_token_ata);
     console.log("tokenBalanceUser", tokenBalanceUser)
-    console.log("tokenBalanceBridge", tokenBalanceBridge)
+    // console.log("tokenBalanceBridge", tokenBalanceBridge)
 
 
     const value: ReceivePayload = {
@@ -269,6 +270,7 @@ describe("my-project", () => {
     const receiveInstruction = await bridgeProgram.methods.receive(payload).accounts({
       receiver: user.publicKey,
       mint: token,
+      bridgeTokenAccount: null, // pass null to not use bridge token account
     }).signers([user]).instruction()
 
     const tx = new Transaction().add(verifyInstruction, receiveInstruction);
@@ -323,7 +325,7 @@ describe("my-project", () => {
     const sendInstruction = await bridgeProgram.methods.send(payload, [...userTo]).accountsPartial({
       sender: userFrom.publicKey,
       mint: tokenFrom,
-      bridgeTokenAccount: null,
+      bridgeTokenAccount: null,  // pass null to not use bridge token account
     }).signers([userFrom]).instruction();
 
     const tx = new Transaction().add(verifyInstruction, sendInstruction);

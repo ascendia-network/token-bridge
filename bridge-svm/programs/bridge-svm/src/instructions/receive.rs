@@ -44,7 +44,7 @@ pub struct Receive<'info> {
         associated_token::mint = mint,
         associated_token::authority = bridge_token,
     )]
-    pub bridge_token_account: InterfaceAccount<'info, TokenAccount>,
+    pub bridge_token_account: Option<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(mut)]
     pub mint: InterfaceAccount<'info, Mint>,
@@ -110,7 +110,7 @@ pub fn receive(ctx: Context<Receive>, serialized_args: Vec<u8>) -> Result<()> {
     } else {
         transfer_spl_to_user(
             ctx.accounts.bridge_token.to_account_info(),
-            ctx.accounts.bridge_token_account.to_account_info(),
+            ctx.accounts.bridge_token_account.clone().expect("no bridge ata").to_account_info(),
             ctx.accounts.receiver_token_account.to_account_info(),
             args.amount_to,
             ctx.accounts.token_program.to_account_info(),

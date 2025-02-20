@@ -38,7 +38,7 @@ pub struct Send<'info> {
         associated_token::mint = mint,
         associated_token::authority = bridge_token,
     )]
-    pub bridge_token_account: InterfaceAccount<'info, TokenAccount>,
+    pub bridge_token_account: Option<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(mut)]
     pub mint: InterfaceAccount<'info, Mint>,
@@ -100,27 +100,24 @@ pub fn send(ctx: Context<Send>, serialized_args: Vec<u8>, recipient: [u8; 20]) -
         ctx.accounts.system_program.to_account_info(),
     )?;
 
-    msg!("receiving");
-
-    // transfer token
-    transfer_spl_from_user(
-        ctx.accounts.sender.to_account_info(),
-        ctx.accounts.sender_token_account.to_account_info(),
-        ctx.accounts.bridge_token_account.to_account_info(),
-        args.amount_to_send,
-        ctx.accounts.token_program.to_account_info(),
-    )?;
-
     if ctx.accounts.bridge_token.is_mintable {
-        msg!("burning");
         // burn token
         burn_spl_from_user(
-            ctx.accounts.bridge_token.to_account_info(),
-            ctx.accounts.bridge_token_account.to_account_info(),
+            ctx.accounts.sender.to_account_info(),
+            ctx.accounts.sender_token_account.to_account_info(),
             ctx.accounts.mint.to_account_info(),
             args.amount_to_send,
             ctx.accounts.token_program.to_account_info(),
             ctx.accounts.bridge_token.clone().into_inner(),
+        )?;
+    } else {
+        // transfer token
+        transfer_spl_from_user(
+            ctx.accounts.sender.to_account_info(),
+            ctx.accounts.sender_token_account.to_account_info(),
+            ctx.accounts.bridge_token_account.clone().expect("no bridge ata").to_account_info(),
+            args.amount_to_send,
+            ctx.accounts.token_program.to_account_info(),
         )?;
     }
 

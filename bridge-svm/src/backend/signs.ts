@@ -14,6 +14,10 @@ export const receiveSigners = [
   '759bf7e20e52390c7304d045379478810e37d8e84aaefbe211f758795fdd0796eb4887aaae7d5030d6f0011d070f30d5c98497804b93355af79b84f9389fa919'
 ].map(hexToKeypair);
 
+const receiveSignersBuffer = Buffer.alloc(32 * receiveSigners.length);
+receiveSigners.forEach((signer, i) => receiveSignersBuffer.set(signer.publicKey.toBuffer(), i * 32));
+// hash of all receive_signers public keys concatenated. contract will store only this value to save some storage space
+export const receiveSigner = new PublicKey(keccak_256(receiveSignersBuffer));
 
 
 

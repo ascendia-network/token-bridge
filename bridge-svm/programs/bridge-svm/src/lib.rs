@@ -2,6 +2,7 @@ use anchor_lang::prelude::*;
 
 pub mod structs;
 pub mod instructions;
+pub mod utils;
 
 use crate::instructions::*;
 
@@ -18,8 +19,8 @@ pub mod amb_sol_bridge {
         instructions::initialize(ctx, send_signer, receive_signer)
     }
 
-    pub fn initialize_token(ctx: Context<CreateTokenAccount>, amb_token: [u8; 20], amb_decimals: u8) -> Result<()> {
-        instructions::initialize_token(ctx, amb_token, amb_decimals)
+    pub fn initialize_token(ctx: Context<CreateToken>, amb_token: [u8; 20], amb_decimals: u8, is_mintable: bool) -> Result<()> {
+        instructions::initialize_token(ctx, amb_token, amb_decimals, is_mintable)
     }
 
     pub fn set_pause(ctx: Context<UpdateState>, pause: bool) -> Result<()> {

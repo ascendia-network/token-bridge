@@ -21,7 +21,7 @@ pub struct Initialize<'info> {
 }
 
 #[derive(Accounts)]
-pub struct CreateTokenAccount<'info> {
+pub struct CreateToken<'info> {
     #[account(
         has_one = admin,
         seeds = [GlobalState::SEED_PREFIX], bump
@@ -54,6 +54,33 @@ pub struct CreateTokenAccount<'info> {
     pub system_program: Program<'info, System>,
 }
 
+
+// same as prev, but don't create bridge ATA, coz token is mints/burns on the fly
+#[derive(Accounts)]
+pub struct CreateSyntheticToken<'info> {
+    #[account(
+        has_one = admin,
+        seeds = [GlobalState::SEED_PREFIX], bump
+    )]
+    pub state: Account<'info, GlobalState>,
+
+    #[account(mut)]
+    pub admin: Signer<'info>,
+
+    #[account(
+        init,
+        payer = admin,
+        space = TokenConfig::ACCOUNT_SIZE,
+        seeds = [TokenConfig::SEED_PREFIX, mint.key().as_ref()], bump
+    )]
+    pub bridge_token: Account<'info, TokenConfig>,
+
+    pub mint: InterfaceAccount<'info, Mint>,
+
+    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
+}
+
 #[derive(Accounts)]
 pub struct UpdateState<'info> {
     #[account(
@@ -80,13 +107,14 @@ pub fn initialize(
     Ok(())
 }
 
-pub fn initialize_token(ctx: Context<CreateTokenAccount>, amb_token: [u8; 20], amb_decimals: u8) -> Result<()> {
+pub fn initialize_token(ctx: Context<CreateToken>, amb_token: [u8; 20], amb_decimals: u8, is_mintable: bool) -> Result<()> {
     let bridge_token = &mut ctx.accounts.bridge_token;
 
     bridge_token.set_inner(TokenConfig::new(
         ctx.accounts.mint.key(),
         amb_token,
         amb_decimals,
+        is_mintable,
         ctx.bumps.bridge_token,
     ));
 

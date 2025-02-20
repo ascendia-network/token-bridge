@@ -6,6 +6,8 @@ pub const SOLANA_CHAIN_ID: u64 = 0x736F6C616E61; // "solana" in hex
 pub const AMB_CHAIN_ID: u64 = 22040;
 pub const SIGNATURE_VALIDITY_TIME: u64 = 30*60; // 30 minutes
 
+pub const ZERO_PUBKEY: Pubkey = Pubkey::new_from_array([0u8; 32]);
+
 #[account]
 pub struct GlobalState {
     pub admin: Pubkey,
@@ -27,15 +29,16 @@ pub struct TokenConfig {
     pub token: Pubkey,      // Public key of the token
     pub amb_token: [u8; 20],  // Address of the token on the AMB bridge
     pub amb_decimals: u8,       // Decimals of the token on the AMB bridge
+    pub is_mintable: bool,    // True for synthetic tokens like SAMB, that come from AMB network and are minted on Solana by the bridge
     pub bump: u8,
 }
 
 impl TokenConfig {
     pub const SEED_PREFIX: &'static[u8] = b"token";
-    pub const ACCOUNT_SIZE: usize = 8 + 32 + 20 + 1 + 1;     // discriminator (8) + Pubkey (32) + address (20) + decimals (1)  + Bump (1) _
+    pub const ACCOUNT_SIZE: usize = 8 + 32 + 20 + 1 + 1 + 1;
 
-    pub fn new(token: Pubkey, amb_token: [u8; 20], amb_decimals: u8, bump: u8) -> Self {
-        Self { token, amb_token, amb_decimals, bump }
+    pub fn new(token: Pubkey, amb_token: [u8; 20], amb_decimals: u8, is_mintable: bool, bump: u8) -> Self {
+        Self { token, amb_token, amb_decimals, is_mintable, bump }
     }
 }
 

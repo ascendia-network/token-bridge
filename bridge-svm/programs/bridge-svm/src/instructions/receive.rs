@@ -1,10 +1,11 @@
 use crate::structs::*;
+use crate::utils::transfer::{mint_spl_to_user, transfer_spl_to_user};
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{
     keccak::hash,
     sysvar::instructions::{load_instruction_at_checked, ID as SYSVAR_INSTRUCTIONS_ID},
 };
-use anchor_spl::token::{self, Token, Transfer};
+use anchor_spl::token::Token;
 use anchor_spl::token_interface::{Mint, TokenAccount};
 
 #[derive(Accounts)]
@@ -45,13 +46,15 @@ pub struct Receive<'info> {
     )]
     pub bridge_token_account: InterfaceAccount<'info, TokenAccount>,
 
+    #[account(mut)]
+    pub mint: InterfaceAccount<'info, Mint>,
+
     /// CHECK: The address check is needed because otherwise
     /// the supplied Sysvar could be anything else.
     /// The Instruction Sysvar has not been implemented
     /// in the Anchor framework yet, so this is the safe approach.
     #[account(address = SYSVAR_INSTRUCTIONS_ID)]
     pub ix_sysvar: AccountInfo<'info>,
-    pub mint: InterfaceAccount<'info, Mint>,
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
 }
@@ -60,7 +63,7 @@ pub fn receive(ctx: Context<Receive>, serialized_args: Vec<u8>) -> Result<()> {
     let nonce = &mut ctx.accounts.receiver_nonce_account;
     let bridge_token = &ctx.accounts.bridge_token;
 
-    let deserialized_args = ReceivePayload::try_from_slice(&serialized_args)
+    let args = ReceivePayload::try_from_slice(&serialized_args)
         .map_err(|_| error!(CustomError::InvalidSerialization))?;
     let args_hash = hash(&serialized_args);
 
@@ -81,42 +84,42 @@ pub fn receive(ctx: Context<Receive>, serialized_args: Vec<u8>) -> Result<()> {
         CustomError::InvalidSignature
     );
 
+    require!(args.nonce == nonce.nonce_counter, CustomError::InvalidNonce);
     require!(
-        deserialized_args.nonce == nonce.nonce_counter,
-        CustomError::InvalidNonce
-    );
-    require!(
-        deserialized_args.chain_to == SOLANA_CHAIN_ID,
+        args.chain_to == SOLANA_CHAIN_ID,
         CustomError::InvalidSignature
     );
 
     require!(
-        ctx.accounts.mint.key() == deserialized_args.token_address_to,
+        ctx.accounts.mint.key() == args.token_address_to,
         CustomError::InvalidSignature
     );
 
-    // todo native token bridgring
+    if ctx.accounts.bridge_token.is_mintable {
+        msg!("minting");
+        msg!("Stored Mint Authority: {:?}", ctx.accounts.mint.mint_authority);
 
-    // transfer tokens
-    let seeds = &[
-        TokenConfig::SEED_PREFIX,
-        bridge_token.token.as_ref(),
-        &[bridge_token.bump],
-    ];
-    let signer_seeds = &[&seeds[..]];
+        mint_spl_to_user(
+            ctx.accounts.bridge_token.to_account_info(),
+            ctx.accounts.receiver_token_account.to_account_info(),
+            ctx.accounts.mint.to_account_info(),
+            args.amount_to,
+            ctx.accounts.token_program.to_account_info(),
+            bridge_token.clone().into_inner(),
+        )?;
+    } else {
+        msg!("transferring");
 
-    let cpi_accounts = Transfer {
-        from: ctx.accounts.bridge_token_account.to_account_info(),
-        to: ctx.accounts.receiver_token_account.to_account_info(),
-        authority: ctx.accounts.bridge_token.to_account_info(),
-    };
-
-    let cpi_ctx = CpiContext::new_with_signer(
-        ctx.accounts.token_program.to_account_info(),
-        cpi_accounts,
-        signer_seeds,
-    );
-    token::transfer(cpi_ctx, deserialized_args.amount_to)?;
+        // transfer tokens
+        transfer_spl_to_user(
+            ctx.accounts.bridge_token.to_account_info(),
+            ctx.accounts.bridge_token_account.to_account_info(),
+            ctx.accounts.receiver_token_account.to_account_info(),
+            args.amount_to,
+            ctx.accounts.token_program.to_account_info(),
+            bridge_token.clone().into_inner(),
+        )?;
+    }
 
     // update user nonce
     nonce.nonce_counter += 1;
@@ -126,7 +129,7 @@ pub fn receive(ctx: Context<Receive>, serialized_args: Vec<u8>) -> Result<()> {
         "Unlock, token: {}, to: {}, amount: {}",
         ctx.accounts.mint.key(),
         ctx.accounts.receiver.key(),
-        deserialized_args.amount_to
+        args.amount_to
     );
     Ok(())
 }

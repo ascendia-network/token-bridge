@@ -33,7 +33,7 @@ export async function main() {
   const txSignature = await send(connection,
     token.publicKey, "0x7abd986995753C186a8e22cd7be89Efe9Ade9C0d",
     admin, "0x1111472FCa4260505EcE4AcD07717CADa41c1111",
-    program, 1488, undefined
+    program, 1488_000000, undefined
   );
 
   const txParsed = await connection.getParsedTransaction(txSignature, { commitment: 'confirmed' });
@@ -49,9 +49,9 @@ export async function main() {
 
 async function createToken() {
   const tokenMint1 = token;
-  await createMint(connection, admin, admin.publicKey, admin.publicKey, 6, tokenMint1);
-  const user_token1_ata = (await getOrCreateUserATA(connection, admin, tokenMint1.publicKey)).address;
-  await mintTo(connection, admin, tokenMint1.publicKey, user_token1_ata, admin, 1000 * 10 ** 6);
+  // await createMint(connection, admin, admin.publicKey, admin.publicKey, 6, tokenMint1);
+  const user_token1_ata = await getOrCreateUserATA(connection, admin, tokenMint1.publicKey);
+  await mintTo(connection, admin, tokenMint1.publicKey, user_token1_ata, admin, 1000000 * 10 ** 6);
 
 }
 

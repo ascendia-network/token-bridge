@@ -18,7 +18,7 @@ import {
   getBridgeTokenAccounts,
   getOrCreateUserATA,
   getUserNoncePda,
-  hexToUint8Array, SOLANA_CHAIN_ID
+  hexToUint8Array, numberToUint8Array, SOLANA_CHAIN_ID
 } from "../../src/sdk/utils";
 import { ReceivePayload, SendPayload, serializeReceivePayload, serializeSendPayload } from "../../src/backend/types";
 import { newEd25519Instruction } from "../../src/sdk/ed25519_ix";
@@ -209,8 +209,7 @@ describe("my-project", () => {
       amountTo: 50,
       chainTo: SOLANA_CHAIN_ID,
       flags: new Uint8Array(32),
-      flagData: new Uint8Array(0),
-      nonce: 0,
+      flagData: numberToUint8Array(0, 8)
     };
 
 
@@ -256,8 +255,7 @@ describe("my-project", () => {
       amountTo: 500,
       chainTo: SOLANA_CHAIN_ID,
       flags: new Uint8Array(32),
-      flagData: new Uint8Array(0),
-      nonce: 1,
+      flagData: numberToUint8Array(1, 8)
     };
 
 
@@ -443,8 +441,7 @@ describe("my-project", () => {
       amountTo: 50,
       chainTo: SOLANA_CHAIN_ID,
       flags: new Uint8Array(32),
-      flagData: new Uint8Array(0),
-      nonce: 2,
+      flagData: numberToUint8Array(2, 8)
     };
 
 

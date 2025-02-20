@@ -35,7 +35,6 @@ export interface ReceivePayload {
   chainTo: number;
   flags: Uint8Array;
   flagData: Uint8Array;
-  nonce: number;
 }
 
 const receiveSchema = {
@@ -45,7 +44,6 @@ const receiveSchema = {
   chainTo: 'u64',
   flags: _b32,
   flagData: { array: { type: 'u8' } },
-  nonce: 'u64'
 }
 
 

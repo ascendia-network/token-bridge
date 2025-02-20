@@ -1,5 +1,5 @@
 import { PublicKey, Signer } from "@solana/web3.js";
-import { hexToKeypair, hexToUint8Array, SOLANA_CHAIN_ID } from "../sdk/utils";
+import { hexToKeypair, hexToUint8Array, numberToUint8Array, SOLANA_CHAIN_ID } from "../sdk/utils";
 import { keccak_256 } from "@noble/hashes/sha3";
 import nacl from "tweetnacl";
 import { ReceivePayload, SendPayload, serializeReceivePayload, serializeSendPayload } from "./types";
@@ -30,8 +30,7 @@ export async function getReceivePayload(user: PublicKey) {
     amountTo: 50,
     chainTo: SOLANA_CHAIN_ID,
     flags: new Uint8Array(32),  // todo
-    flagData: new Uint8Array(0),  // todo
-    nonce: 0,
+    flagData: numberToUint8Array(0, 8),  // todo
   };
 
   const payload = serializeReceivePayload(value);

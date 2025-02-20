@@ -84,7 +84,7 @@ pub fn receive(ctx: Context<Receive>, serialized_args: Vec<u8>) -> Result<()> {
         CustomError::InvalidSignature
     );
 
-    require!(args.nonce == nonce.nonce_counter, CustomError::InvalidNonce);
+
     require!(
         args.chain_to == SOLANA_CHAIN_ID,
         CustomError::InvalidSignature
@@ -95,10 +95,10 @@ pub fn receive(ctx: Context<Receive>, serialized_args: Vec<u8>) -> Result<()> {
         CustomError::InvalidSignature
     );
 
-    if ctx.accounts.bridge_token.is_mintable {
-        msg!("minting");
-        msg!("Stored Mint Authority: {:?}", ctx.accounts.mint.mint_authority);
+    let args_nonce = u64::from_be_bytes(args.flag_data[0..8].try_into().unwrap());
+    require!(args_nonce == nonce.nonce_counter, CustomError::InvalidNonce);
 
+    if ctx.accounts.bridge_token.is_mintable {
         mint_spl_to_user(
             ctx.accounts.bridge_token.to_account_info(),
             ctx.accounts.receiver_token_account.to_account_info(),
@@ -108,9 +108,6 @@ pub fn receive(ctx: Context<Receive>, serialized_args: Vec<u8>) -> Result<()> {
             bridge_token.clone().into_inner(),
         )?;
     } else {
-        msg!("transferring");
-
-        // transfer tokens
         transfer_spl_to_user(
             ctx.accounts.bridge_token.to_account_info(),
             ctx.accounts.bridge_token_account.to_account_info(),

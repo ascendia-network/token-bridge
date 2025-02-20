@@ -88,7 +88,6 @@ pub struct ReceivePayload {
     pub chain_to: u64,
     pub flags: [u8; 32],
     pub flag_data: Vec<u8>,
-    pub nonce: u64,
 }
 
 #[event]

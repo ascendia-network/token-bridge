@@ -16,6 +16,22 @@ export function hexToUint8Array(hexString: string) {
   return bytes;
 }
 
+
+export function numberToUint8Array(num: number, length=8) {
+  if (num < 0 || length <= 0)
+    throw new Error("Number must be non-negative and length must be positive");
+
+  const bytes = new Uint8Array(length);
+  for (let i = 0; i < length; i++) {
+    bytes[length - 1 - i] = num & 0xff; // Extract the last 8 bits
+    num >>= 8; // Shift right by 8 bits
+  }
+
+  if (num > 0)
+    throw new Error("Number is too large for the specified byte length");
+  return bytes;
+}
+
 export function hexToKeypair(hexString: string) {
   return Keypair.fromSecretKey(hexToUint8Array(hexString));
 }

@@ -18,7 +18,7 @@ import {
   getBridgeTokenAccounts,
   getOrCreateUserATA,
   getUserNoncePda,
-  hexToUint8Array
+  hexToUint8Array, SOLANA_CHAIN_ID
 } from "../../src/sdk/utils";
 import { ReceivePayload, SendPayload, serializeReceivePayload, serializeSendPayload } from "../../src/backend/types";
 import { newEd25519Instruction } from "../../src/sdk/ed25519_ix";
@@ -147,7 +147,7 @@ describe("my-project", () => {
       tokenAddressTo: tokenTo,
       amountToSend: 50,
       feeAmount: 20,
-      chainFrom: 0x736F6C616E61,
+      chainFrom: SOLANA_CHAIN_ID,
       timestamp: Date.now(),
       flags: new Uint8Array(32),
       flagData: new Uint8Array(0),
@@ -207,7 +207,7 @@ describe("my-project", () => {
       to: user.publicKey.toBytes(),
       tokenAddressTo: token.toBytes(),
       amountTo: 50,
-      chainTo: 0x736F6C616E61,
+      chainTo: SOLANA_CHAIN_ID,
       flags: new Uint8Array(32),
       flagData: new Uint8Array(0),
       nonce: 0,
@@ -254,7 +254,7 @@ describe("my-project", () => {
       to: user.publicKey.toBytes(),
       tokenAddressTo: token.toBytes(),
       amountTo: 500,
-      chainTo: 0x736F6C616E61,
+      chainTo: SOLANA_CHAIN_ID,
       flags: new Uint8Array(32),
       flagData: new Uint8Array(0),
       nonce: 1,
@@ -310,7 +310,7 @@ describe("my-project", () => {
       tokenAddressTo: tokenTo,
       amountToSend: 50,
       feeAmount: 20,
-      chainFrom: 0x736F6C616E61,
+      chainFrom: SOLANA_CHAIN_ID,
       timestamp: Date.now(),
       flags: new Uint8Array(32),
       flagData: new Uint8Array(0),
@@ -375,7 +375,7 @@ describe("my-project", () => {
       tokenAddressTo: tokenTo,
       amountToSend: 5_000,
       feeAmount: 20,
-      chainFrom: 0x736F6C616E61,
+      chainFrom: SOLANA_CHAIN_ID,
       timestamp: Date.now(),
       flags: new Uint8Array(32),
       flagData: new Uint8Array(0),
@@ -441,7 +441,7 @@ describe("my-project", () => {
       to: user.publicKey.toBytes(),
       tokenAddressTo: token.toBytes(),
       amountTo: 50,
-      chainTo: 0x736F6C616E61,
+      chainTo: SOLANA_CHAIN_ID,
       flags: new Uint8Array(32),
       flagData: new Uint8Array(0),
       nonce: 2,

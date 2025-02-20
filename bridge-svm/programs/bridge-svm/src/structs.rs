@@ -91,7 +91,6 @@ pub struct ReceivePayload {
     pub nonce: u64,
 }
 
-// #[derive(BorshSerialize, BorshDeserialize, Debug, event)]
 #[event]
 pub struct SendEvent {
     pub from: Pubkey,  // source address (bytes32 because of cross-chain compatibility)

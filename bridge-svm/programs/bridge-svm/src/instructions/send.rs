@@ -4,9 +4,8 @@ use crate::utils::scale_amount;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{
     keccak::hash,
-    sysvar::instructions::{load_instruction_at_checked, ID as SYSVAR_INSTRUCTIONS_ID},
+    sysvar::instructions::{get_instruction_relative, ID as SYSVAR_INSTRUCTIONS_ID},
 };
-use anchor_lang::solana_program::sysvar::instructions::get_instruction_relative;
 use anchor_spl::token::Token;
 use anchor_spl::token_interface::{Mint, TokenAccount};
 

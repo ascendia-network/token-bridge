@@ -28,7 +28,7 @@ async function signReceipt(
   receiptWithMeta: ReceiptWithMeta
 ): Promise<string | undefined> {
   switch (receiptWithMeta.receipts.chainTo) {
-    case bytesToBigInt(stringToBytes("SOLANA", { size: 32 })): // Solana signature needed
+    case bytesToBigInt(stringToBytes("SOLANA", { size: 8 })): // Solana signature needed
       return await signReceiptForSolana(receiptWithMeta);
     default:
       return await signReceiptForEVM(receiptWithMeta);

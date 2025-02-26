@@ -2,7 +2,7 @@ import { encodeAbiParameters, hashMessage, keccak256 } from "viem";
 import { bridgeAbi } from "./abi/bridgeAbi";
 import { validateExistingTransactionEVM } from "./txValidator";
 import { type ReceiptWithMeta } from "../typeValidators";
-import { accountEVM } from "../config";
+import { config } from "../config";
 
 export async function signReceiptForEVM(
   receiptWithMeta: ReceiptWithMeta
@@ -31,7 +31,7 @@ export async function signReceiptForEVM(
 
   const messageHash = keccak256(message);
   const digest = hashMessage({ raw: messageHash });
-  const signature = await accountEVM.signMessage({ message: digest });
+  const signature = await config.accountEVM.signMessage({ message: digest });
   return signature;
 }
 

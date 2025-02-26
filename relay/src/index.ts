@@ -77,6 +77,8 @@ async function processTransactions() {
 }
 
 async function startRelayService() {
+  console.log("Using EVM account:", config.accountEVM.address);
+  console.log("Using Solana account:", config.accountSolana.publicKey.toBase58());
   while (true) {
     await processTransactions();
     await new Promise((resolve) =>

@@ -1,10 +1,10 @@
-import { accountEVM, config } from "../config";
+import { config } from "../config";
 import { validators, type ReceiptsToSignResponse } from "../typeValidators";
 
 export async function getUnsignedTransactionsEVM(): Promise<ReceiptsToSignResponse> {
   try {
     const response = await fetch(
-      `${config.BACKEND_URL}/evm/unsigned/${accountEVM.address}`
+      `${config.BACKEND_URL}/evm/unsigned/${config.accountEVM.address}`
     );
     if (response.ok) {
       const data = await response.json();

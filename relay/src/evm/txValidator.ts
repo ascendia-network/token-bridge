@@ -1,5 +1,5 @@
 import { createPublicClient, decodeAbiParameters, http } from "viem";
-import { rpcConfig } from "../config";
+import { config } from "../config";
 import { type ReceiptMetaEVM, type ReceiptWithMeta } from "../typeValidators";
 import { bridgeAbi } from "./abi/bridgeAbi";
 
@@ -11,8 +11,15 @@ export async function validateExistingTransactionEVM(
   if (!receiptMeta) {
     throw new Error("Receipt metadata is required for validation.");
   }
+  const rpcFrom =
+    config.rpcConfig[`RPC_URL_${receiptWithMeta.receipts.chainFrom}`];
+  if (!rpcFrom) {
+    throw new Error(
+      `RPC URL for chain ${receiptWithMeta.receipts.chainFrom} not found.`
+    );
+  }
   const publicClient = createPublicClient({
-    transport: http(rpcConfig[`RPC_URL_${receiptWithMeta.receipts.chainFrom}`]),
+    transport: http(rpcFrom),
   });
   const receipt = await publicClient.getTransactionReceipt({
     hash: receiptMeta.transactionHash,

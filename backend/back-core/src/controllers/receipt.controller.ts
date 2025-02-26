@@ -19,6 +19,9 @@ import { getContext } from "hono/context-storage";
 import { validatorAbi } from "../../abis/validatorAbi";
 import { consoleLogger } from "../utils";
 
+const SOLANA_CHAIN_ID = bytesToBigInt(stringToBytes("SOLANA", { size: 8 }));
+const SOLANA_DEV_CHAIN_ID = bytesToBigInt(stringToBytes("SOLANADN", { size: 8 }));
+
 export class ReceiptController {
   db: NodePgDatabase;
 
@@ -88,7 +91,8 @@ export class ReceiptController {
         receipts: typeof receipt.$inferSelect;
         receiptsMeta:
           | typeof receiptsMetaInIndexerEvm.$inferSelect
-          | typeof receiptsMetaInIndexerSolana.$inferSelect | null;
+          | typeof receiptsMetaInIndexerSolana.$inferSelect
+          | null;
       }>
     | Error
   > {
@@ -96,7 +100,10 @@ export class ReceiptController {
       .select({ receiptId: signatures.receiptId })
       .from(signatures)
       .where(eq(signatures.signedBy, pubkey));
-    const joinModel = chainEnum === "svm" ? receiptsMetaInIndexerEvm : receiptsMetaInIndexerSolana;
+    const joinModel =
+      chainEnum === "svm"
+        ? receiptsMetaInIndexerEvm
+        : receiptsMetaInIndexerSolana;
     const receipts = await this.db
       .select()
       .from(receipt)
@@ -104,13 +111,25 @@ export class ReceiptController {
         and(
           eq(receipt.claimed, false),
           chainEnum === "svm"
-            ? eq(
-                receipt.chainTo,
-                bytesToBigInt(stringToBytes("SOLANA", { size: 32 })).toString()
+            ? or(
+                eq(
+                  receipt.chainTo,
+                  SOLANA_CHAIN_ID.toString()
+                ),
+                eq(
+                  receipt.chainTo,
+                  SOLANA_DEV_CHAIN_ID.toString()
+                )
               )
-            : ne(
-                receipt.chainTo,
-                bytesToBigInt(stringToBytes("SOLANA", { size: 32 })).toString()
+            : and(
+                ne(
+                  receipt.chainTo,
+                  SOLANA_CHAIN_ID.toString()
+                ),
+                ne(
+                  receipt.chainTo,
+                  SOLANA_DEV_CHAIN_ID.toString()
+                )
               ),
           notInArray(
             receipt.receiptId,
@@ -127,7 +146,10 @@ export class ReceiptController {
     signature: `0x${string}`
   ): Promise<`0x${string}`> {
     const MiniReceiptAbi = bridgeAbi.find(
-      (abi) => abi.type === "function" && abi.name === "claim"
+      (abi) =>
+        abi.type === "function" &&
+        abi.name === "claim" &&
+        abi.inputs[0].internalType.includes("MiniReceipt")
     )?.inputs[0];
     if (!MiniReceiptAbi) throw new Error("Receipt ABI not found");
     const message = encodeAbiParameters(MiniReceiptAbi.components, [
@@ -187,23 +209,22 @@ export class ReceiptController {
     if (receiptToSign.claimed) {
       throw new Error("Receipt already claimed");
     }
-    if (
-      BigInt(receiptToSign.chainTo) !==
-      bytesToBigInt(stringToBytes("SOLANA", { size: 32 }))
-    ) {
-      const validSigner = await this.checkSignerEVM(receiptToSign, signature);
-      if (!validSigner) {
-        throw new Error("Invalid signer");
-      }
-      await this.db.insert(signatures).values({
-        receiptId,
-        signedBy: validSigner,
-        signature,
-      });
-      return true;
-    } else {
-      // TODO: Implement Solana signature verification
-      throw new Error("Solana signature verification not implemented");
+    switch (BigInt(receiptToSign.chainTo)) {
+      case SOLANA_CHAIN_ID:
+      case SOLANA_DEV_CHAIN_ID:
+        // TODO: Implement Solana signature verification
+        throw new Error("Solana signature verification not implemented");
+      default:
+        const validSigner = await this.checkSignerEVM(receiptToSign, signature);
+        if (!validSigner) {
+          throw new Error("Invalid signer");
+        }
+        await this.db.insert(signatures).values({
+          receiptId,
+          signedBy: validSigner,
+          signature,
+        });
+        return true;
     }
   }
 }

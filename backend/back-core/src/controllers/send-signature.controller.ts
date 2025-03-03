@@ -84,7 +84,10 @@ export class SendSignatureController {
     };
     let signature;
     if (EVM_NETWORKS.includes(networkFrom)) {
-      signature = await this.signEvmSendPayload(sendPayload, sendSignerPK);
+      signature = await this.signEvmSendPayload(
+        sendPayload,
+        sendSignerPK as `0x${string}`
+      );
     } else if (CHAIN_ID_TO_CHAIN_NAME[networkFrom] === "solana") {
       signature = await this.signSvmSendPayload(sendPayload, sendSignerPK);
     } else {
@@ -94,24 +97,76 @@ export class SendSignatureController {
     return { sendPayload, signature };
   }
 
-  async signEvmSendPayload(sendPayload: SendPayload, sendSignerPK: `0x${string}`) {
-    const PayloadAbi = bridgeAbi.find(
-          (abi) => abi.type === "function" && abi.name === "send" && abi.inputs[1].internalType.includes("SendPayload")
-    )?.inputs[1];
-    const payload = encodeAbiParameters(PayloadAbi.components, [
-      sendPayload.destChainId,
-      sendPayload.tokenAddress,
-      sendPayload.externalTokenAddress,
-      sendPayload.amountToSend,
-      sendPayload.feeAmount,
-      sendPayload.timestamp,
-      sendPayload.flags,
-      sendPayload.flagData,
-    ]);
+  async signEvmSendPayload(
+    sendPayload: SendPayload,
+    sendSignerPK: `0x${string}`
+  ) {
+    const PayloadAbi = {
+      name: "payload",
+      type: "tuple",
+      internalType: "struct BridgeTypes.SendPayload",
+      components: [
+        {
+          name: "destChainId",
+          type: "uint256",
+          internalType: "uint256",
+        },
+        {
+          name: "tokenAddress",
+          type: "bytes32",
+          internalType: "bytes32",
+        },
+        {
+          name: "externalTokenAddress",
+          type: "bytes32",
+          internalType: "bytes32",
+        },
+        {
+          name: "amountToSend",
+          type: "uint256",
+          internalType: "uint256",
+        },
+        {
+          name: "feeAmount",
+          type: "uint256",
+          internalType: "uint256",
+        },
+        {
+          name: "timestamp",
+          type: "uint256",
+          internalType: "uint256",
+        },
+        {
+          name: "flags",
+          type: "uint256",
+          internalType: "uint256",
+        },
+        {
+          name: "flagData",
+          type: "bytes",
+          internalType: "bytes",
+        },
+      ],
+    };
+    const payload = encodeAbiParameters<[typeof PayloadAbi]>(
+      [PayloadAbi],
+      [
+        {
+          destChainId: sendPayload.destChainId,
+          tokenAddress: sendPayload.tokenAddress,
+          externalTokenAddress: sendPayload.externalTokenAddress,
+          amountToSend: sendPayload.amountToSend,
+          feeAmount: sendPayload.feeAmount,
+          timestamp: sendPayload.timestamp,
+          flags: sendPayload.flags,
+          flagData: sendPayload.flagData,
+        },
+      ]
+    );
     const payloadHash = keccak256(payload);
     const digest = hashMessage({ raw: payloadHash });
     const signer = privateKeyToAccount(sendSignerPK);
-    return await signer.signMessage({message: digest});
+    return await signer.signMessage({ message: digest });
   }
 
   async signSvmSendPayload(sendPayload: SendPayload, sendSignerPK: string) {

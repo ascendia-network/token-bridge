@@ -18,9 +18,14 @@ import { bridgeAbi } from "../../abis/bridgeAbi";
 import { getContext } from "hono/context-storage";
 import { validatorAbi } from "../../abis/validatorAbi";
 import { consoleLogger } from "../utils";
+import { serializeReceivePayload, type ReceivePayload } from "../utils/solana";
+import nacl from "tweetnacl";
+import { PublicKey } from "@solana/web3.js";
 
 const SOLANA_CHAIN_ID = bytesToBigInt(stringToBytes("SOLANA", { size: 8 }));
-const SOLANA_DEV_CHAIN_ID = bytesToBigInt(stringToBytes("SOLANADN", { size: 8 }));
+const SOLANA_DEV_CHAIN_ID = bytesToBigInt(
+  stringToBytes("SOLANADN", { size: 8 })
+);
 
 export class ReceiptController {
   db: NodePgDatabase;
@@ -70,7 +75,7 @@ export class ReceiptController {
   }
 
   async getReceipt(
-    receiptId: `${number}-${number}-${number}`
+    receiptId: `${number}_${number}_${number}`
   ): Promise<typeof receipt.$inferSelect | Error> {
     try {
       const [result] = await this.db
@@ -112,24 +117,12 @@ export class ReceiptController {
           eq(receipt.claimed, false),
           chainEnum === "svm"
             ? or(
-                eq(
-                  receipt.chainTo,
-                  SOLANA_CHAIN_ID.toString()
-                ),
-                eq(
-                  receipt.chainTo,
-                  SOLANA_DEV_CHAIN_ID.toString()
-                )
+                eq(receipt.chainTo, SOLANA_CHAIN_ID.toString()),
+                eq(receipt.chainTo, SOLANA_DEV_CHAIN_ID.toString())
               )
             : and(
-                ne(
-                  receipt.chainTo,
-                  SOLANA_CHAIN_ID.toString()
-                ),
-                ne(
-                  receipt.chainTo,
-                  SOLANA_DEV_CHAIN_ID.toString()
-                )
+                ne(receipt.chainTo, SOLANA_CHAIN_ID.toString()),
+                ne(receipt.chainTo, SOLANA_DEV_CHAIN_ID.toString())
               ),
           notInArray(
             receipt.receiptId,
@@ -145,23 +138,70 @@ export class ReceiptController {
     receiptToSign: typeof receipt.$inferSelect,
     signature: `0x${string}`
   ): Promise<`0x${string}`> {
-    const MiniReceiptAbi = bridgeAbi.find(
-      (abi) =>
-        abi.type === "function" &&
-        abi.name === "claim" &&
-        abi.inputs[0].internalType.includes("MiniReceipt")
-    )?.inputs[0];
+    const MiniReceiptAbi = {
+      name: "receipt",
+      type: "tuple",
+      indexed: false,
+      internalType: "struct BridgeTypes.MiniReceipt",
+      components: [
+        {
+          name: "to",
+          type: "bytes32",
+          internalType: "bytes32",
+        },
+        {
+          name: "tokenAddressTo",
+          type: "bytes32",
+          internalType: "bytes32",
+        },
+        {
+          name: "amountTo",
+          type: "uint256",
+          internalType: "uint256",
+        },
+        {
+          name: "chainFrom",
+          type: "uint256",
+          internalType: "uint256",
+        },
+        {
+          name: "chainTo",
+          type: "uint256",
+          internalType: "uint256",
+        },
+        {
+          name: "eventId",
+          type: "uint256",
+          internalType: "uint256",
+        },
+        {
+          name: "flags",
+          type: "uint256",
+          internalType: "uint256",
+        },
+        {
+          name: "data",
+          type: "bytes",
+          internalType: "bytes",
+        },
+      ],
+    };
     if (!MiniReceiptAbi) throw new Error("Receipt ABI not found");
-    const message = encodeAbiParameters(MiniReceiptAbi.components, [
-      receiptToSign.to as `0x${string}`,
-      receiptToSign.tokenAddressTo as `0x${string}`,
-      BigInt(receiptToSign.amountTo),
-      BigInt(receiptToSign.chainFrom),
-      BigInt(receiptToSign.chainTo),
-      BigInt(receiptToSign.eventId),
-      BigInt(receiptToSign.flags),
-      receiptToSign.data as `0x${string}`,
-    ]);
+    const message = encodeAbiParameters<[typeof MiniReceiptAbi]>(
+      [MiniReceiptAbi],
+      [
+        {
+          to: receiptToSign.to as `0x${string}`,
+          tokenAddressTo: receiptToSign.tokenAddressTo as `0x${string}`,
+          amountTo: BigInt(receiptToSign.amountTo),
+          chainFrom: BigInt(receiptToSign.chainFrom),
+          chainTo: BigInt(receiptToSign.chainTo),
+          eventId: BigInt(receiptToSign.eventId),
+          flags: BigInt(receiptToSign.flags),
+          data: receiptToSign.data as `0x${string}`,
+        },
+      ]
+    );
     const messageHash = keccak256(message);
     const digest = hashMessage({ raw: messageHash });
     const signer = await recoverMessageAddress({ message: digest, signature });
@@ -195,8 +235,36 @@ export class ReceiptController {
     return signer;
   }
 
+  private async checkSignerSolana(
+    receiptToSign: typeof receipt.$inferSelect,
+    signer: string,
+    signature: `0x${string}`
+  ): Promise<string> {
+    consoleLogger("Solana signature verification not implemented, skipping");
+    const value: ReceivePayload = {
+      to: stringToBytes(receiptToSign.to),
+      tokenAddressTo: stringToBytes(receiptToSign.tokenAddressTo),
+      amountTo: Number(receiptToSign.amountTo),
+      chainTo: BigInt(receiptToSign.chainTo),
+      flags: stringToBytes(receiptToSign.flags),
+      flagData: stringToBytes(receiptToSign.data),
+    };
+    const payload = serializeReceivePayload(value);
+    const isValid = nacl.sign.detached.verify(
+      payload,
+      Buffer.from(signature.slice(2), "hex"),
+      new PublicKey(signer).toBytes(),
+    );
+    if (!isValid) {
+      throw new Error("Invalid signature");
+    }
+    // TODO: Check if signer is a validator on-chain
+    return signer;
+  }
+
   async addSignature(
-    receiptId: `${number}-${number}-${number}`,
+    receiptId: `${number}_${number}_${number}`,
+    signer: string,
     signature: `0x${string}`
   ): Promise<boolean> {
     const [receiptToSign] = await this.db
@@ -213,10 +281,17 @@ export class ReceiptController {
       case SOLANA_CHAIN_ID:
       case SOLANA_DEV_CHAIN_ID:
         // TODO: Implement Solana signature verification
-        throw new Error("Solana signature verification not implemented");
+        consoleLogger("Solana signature verification not implemented, skipping");
+        const signedBy = await this.checkSignerSolana(receiptToSign, signer, signature);
+        await this.db.insert(signatures).values({
+          receiptId,
+          signedBy,
+          signature,
+        });
+        return true;
       default:
         const validSigner = await this.checkSignerEVM(receiptToSign, signature);
-        if (!validSigner) {
+        if (!validSigner || validSigner !== signer) {
           throw new Error("Invalid signer");
         }
         await this.db.insert(signatures).values({

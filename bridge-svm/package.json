@@ -4,6 +4,7 @@
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
     "copyidl": "cp ./target/idl/*.json ./src/idl/idl.json && cp ./target/types/*.ts ./src/idl/idlType.ts",
+    "gen_address": "solana-keygen grind --starts-with amb:1",
     "test": "ts-node src/example.ts"
   },
   "dependencies": {

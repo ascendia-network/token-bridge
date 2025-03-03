@@ -87,12 +87,12 @@ pub fn receive(ctx: Context<Receive>, serialized_args: Vec<u8>) -> Result<()> {
 
     require!(
         args.chain_to == SOLANA_CHAIN_ID,
-        CustomError::InvalidSignature
+        CustomError::InvalidArgs
     );
 
     require!(
         ctx.accounts.mint.key() == args.token_address_to,
-        CustomError::InvalidSignature
+        CustomError::InvalidArgs
     );
 
     let args_nonce = u64::from_be_bytes(args.flag_data[0..8].try_into().unwrap());

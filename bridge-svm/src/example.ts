@@ -2,8 +2,8 @@ import { clusterApiUrl, Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { BorshCoder, EventParser, Program } from "@coral-xyz/anchor";
 import type { AmbSolBridge } from "./idl/idlType";
 import idl from "./idl/idl.json";
-import { getBridgeAccounts, getOrCreateUserATA, hexToUint8Array } from "./sdk/utils";
-import { createMint, mintTo } from "@solana/spl-token";
+import { getOrCreateUserATA, hexToUint8Array } from "./sdk/utils";
+import { mintTo } from "@solana/spl-token";
 import { Buffer } from "buffer";
 import { receiveSigners, sendSigner } from "./backend/signs";
 import { keccak_256 } from "@noble/hashes/sha3";
@@ -19,8 +19,6 @@ const admin = Keypair.fromSecretKey( adminKeypair)
 const token = Keypair.fromSecretKey(tokenKeypair)
 
 const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-// const provider = new AnchorProvider(connection, {connection}, {});
-// setProvider(provider);
 export const program = new Program(idl as AmbSolBridge, {connection});
 
 

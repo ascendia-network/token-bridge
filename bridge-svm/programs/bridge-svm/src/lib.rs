@@ -6,7 +6,7 @@ pub mod utils;
 
 use crate::instructions::*;
 
-declare_id!("ambav8knXhcnxFdp6nMg9HH6K9HjuS6noQNoRvNatCH");
+declare_id!("ambZMSUBvU8bLfxop5uupQd9tcafeJKea1KoyTv2yM1");
 
 
 

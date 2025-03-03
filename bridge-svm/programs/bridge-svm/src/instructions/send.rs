@@ -76,20 +76,20 @@ pub fn send(ctx: Context<Send>, serialized_args: Vec<u8>, recipient: [u8; 20]) -
 
     require!(
         args.chain_from == SOLANA_CHAIN_ID,
-        CustomError::InvalidSignature
+        CustomError::InvalidArgs
     );
     require!(
         (Clock::get()?.unix_timestamp as u64) < args.timestamp + SIGNATURE_VALIDITY_TIME,
-        CustomError::InvalidSignature
+        CustomError::InvalidArgs
     );
 
     require!(
         ctx.accounts.mint.key() == args.token_address,
-        CustomError::InvalidSignature
+        CustomError::InvalidArgs
     );
     require!(
         ctx.accounts.bridge_token.amb_token == args.token_address_to,
-        CustomError::InvalidSignature
+        CustomError::InvalidArgs
     );
 
     // transfer fee to state PDA

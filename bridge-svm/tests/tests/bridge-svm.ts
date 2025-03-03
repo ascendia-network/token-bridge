@@ -92,20 +92,20 @@ describe("my-project", () => {
     await mintTo(connection, user, tokenMint1.publicKey, user_token1_ata, admin, 10 * 10 ** 6);
 
 
-    // initialize token 1
+    // initialize token 1 - primary (non-mintable)
     await program.methods.initializeToken([...ambTokenAddress1], 18, false).accounts({
       // @ts-ignore
       admin: admin.publicKey,
       mint: tokenMint1.publicKey,
     }).signers([admin]).rpc();
-    // initialize token 2
+    // initialize token 2 - synthetic (mintable)
     await program.methods.initializeToken([...ambTokenAddress2], 18, true).accounts({
       // @ts-ignore
       admin: admin.publicKey,
       mint: tokenMint2.publicKey,
       bridgeTokenAccount: null  // pass null to not create bridge token account
     }).signers([admin]).rpc();
-    // initialize token 3
+    // initialize token 3 - wrapped native
     await program.methods.initializeToken([...ambTokenAddress3], 18, false).accounts({
       // @ts-ignore
       admin: admin.publicKey,
@@ -366,8 +366,8 @@ describe("my-project", () => {
     const [_, bridge_token_ata] = getBridgeTokenAccounts(tokenFrom, program.programId);
 
 
-    const tokenBalanceBridge = await connection.getTokenAccountBalance(bridge_token_ata);
-    console.log("tokenBalanceBridge", tokenBalanceBridge)
+    // const tokenBalanceBridge = await connection.getTokenAccountBalance(bridge_token_ata);
+    // console.log("tokenBalanceBridge", tokenBalanceBridge)
 
 
     const value: SendPayload = {

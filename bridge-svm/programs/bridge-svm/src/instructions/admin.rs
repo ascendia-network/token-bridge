@@ -57,7 +57,6 @@ pub struct CreateToken<'info> {
     pub system_program: Program<'info, System>,
 }
 
-
 #[derive(Accounts)]
 pub struct UpdateState<'info> {
     #[account(
@@ -84,10 +83,24 @@ pub fn initialize(
     Ok(())
 }
 
-pub fn initialize_token(ctx: Context<CreateToken>, amb_token: [u8; 20], amb_decimals: u8, is_mintable: bool) -> Result<()> {
+pub fn initialize_token(
+    ctx: Context<CreateToken>,
+    amb_token: [u8; 20],
+    amb_decimals: u8,
+    is_mintable: bool,
+) -> Result<()> {
     let bridge_token = &mut ctx.accounts.bridge_token;
 
-    require!(ctx.accounts.bridge_token_account.is_some() == !is_mintable, ErrorCode::RequireViolated);
+    require!(
+        is_mintable == !ctx.accounts.bridge_token_account.is_some(),
+        ErrorCode::RequireViolated
+    );
+    if is_mintable {
+        require!(
+            ctx.accounts.mint.mint_authority.expect("no mint authority") == bridge_token.key(),
+            ErrorCode::RequireViolated
+        );
+    }
 
     bridge_token.set_inner(TokenConfig::new(
         ctx.accounts.mint.key(),

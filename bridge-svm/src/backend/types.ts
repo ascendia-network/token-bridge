@@ -11,7 +11,7 @@ export interface SendPayload {
   tokenAddressTo: Uint8Array;
   amountToSend: number;
   feeAmount: number;
-  chainFrom: number;
+  chainFrom: number | bigint;
   timestamp: number;
   flags: Uint8Array;
   flagData: Uint8Array;
@@ -32,7 +32,7 @@ export interface ReceivePayload {
   to: Uint8Array;
   tokenAddressTo: Uint8Array;
   amountTo: number;
-  chainTo: number;
+  chainTo: number | bigint;
   flags: Uint8Array;
   flagData: Uint8Array;
 }

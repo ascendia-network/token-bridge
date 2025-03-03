@@ -3,7 +3,7 @@ import { Connection, Keypair, PublicKey, type Signer } from "@solana/web3.js";
 import { getAssociatedTokenAddressSync, getOrCreateAssociatedTokenAccount } from "@solana/spl-token";
 
 
-export const SOLANA_CHAIN_ID = 0x736F6C616E61;
+export const SOLANA_CHAIN_ID = 0x534f4c414e41444en;  // "SOLANADN"
 export const AMB_CHAIN_ID = 22040;
 
 

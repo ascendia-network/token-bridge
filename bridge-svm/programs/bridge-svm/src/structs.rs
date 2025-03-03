@@ -2,9 +2,9 @@ use anchor_lang::prelude::*;
 use borsh::{BorshDeserialize, BorshSerialize};
 
 
-pub const SOLANA_CHAIN_ID: u64 = 0x736F6C616E61; // "solana" in hex
+pub const SOLANA_CHAIN_ID: u64 = 0x534f4c414e41444e; // "SOLANADN" in hex
 pub const AMB_CHAIN_ID: u64 = 22040;
-pub const SIGNATURE_VALIDITY_TIME: u64 = 30*60; // 30 minutes
+pub const SIGNATURE_VALIDITY_TIME: u64 = 30 * 60; // 30 minutes
 
 pub const ZERO_PUBKEY: Pubkey = Pubkey::new_from_array([0u8; 32]);
 
@@ -18,10 +18,9 @@ pub struct GlobalState {
 }
 
 impl GlobalState {
-    pub const SEED_PREFIX: &'static[u8] = b"global_state";
+    pub const SEED_PREFIX: &'static [u8] = b"global_state";
     pub const ACCOUNT_SIZE: usize = 8 + 32 + 32 + 32 + 8 + 1;     // discriminator (8) + admin (32) + send_signer (32) + receive_signer (32) + nonce (8) + pause (1)
 }
-
 
 
 #[account]
@@ -49,7 +48,7 @@ pub struct NonceAccount {
 }
 
 impl NonceAccount {
-    pub const SEED_PREFIX: &'static[u8] = b"nonce";
+    pub const SEED_PREFIX: &'static [u8] = b"nonce";
     pub const ACCOUNT_SIZE: usize = 8 + 8;     // discriminator (8) + nonce (8)
 }
 
@@ -63,9 +62,10 @@ pub enum CustomError {
     #[msg("Invalid token")]
     InvalidToken,
     #[msg("Invalid serialization")]
-    InvalidSerialization
+    InvalidSerialization,
+    #[msg("Invalid input arguments")]
+    InvalidArgs,
 }
-
 
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]

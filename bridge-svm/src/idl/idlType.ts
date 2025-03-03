@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/amb_sol_bridge.json`.
  */
 export type AmbSolBridge = {
-  "address": "ambav8knXhcnxFdp6nMg9HH6K9HjuS6noQNoRvNatCH",
+  "address": "ambZMSUBvU8bLfxop5uupQd9tcafeJKea1KoyTv2yM1",
   "metadata": {
     "name": "ambSolBridge",
     "version": "0.1.0",
@@ -142,6 +142,7 @@ export type AmbSolBridge = {
         {
           "name": "bridgeTokenAccount",
           "writable": true,
+          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -258,6 +259,10 @@ export type AmbSolBridge = {
         {
           "name": "ambDecimals",
           "type": "u8"
+        },
+        {
+          "name": "isMintable",
+          "type": "bool"
         }
       ]
     },
@@ -439,6 +444,7 @@ export type AmbSolBridge = {
         {
           "name": "bridgeTokenAccount",
           "writable": true,
+          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -527,6 +533,10 @@ export type AmbSolBridge = {
           }
         },
         {
+          "name": "mint",
+          "writable": true
+        },
+        {
           "name": "ixSysvar",
           "docs": [
             "the supplied Sysvar could be anything else.",
@@ -534,9 +544,6 @@ export type AmbSolBridge = {
             "in the Anchor framework yet, so this is the safe approach."
           ],
           "address": "Sysvar1nstructions1111111111111111111111111"
-        },
-        {
-          "name": "mint"
         },
         {
           "name": "tokenProgram",
@@ -710,6 +717,97 @@ export type AmbSolBridge = {
         },
         {
           "name": "bridgeTokenAccount",
+          "writable": true,
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "bridgeToken"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "mint",
           "writable": true
         },
         {
@@ -720,9 +818,6 @@ export type AmbSolBridge = {
             "in the Anchor framework yet, so this is the safe approach."
           ],
           "address": "Sysvar1nstructions1111111111111111111111111"
-        },
-        {
-          "name": "mint"
         },
         {
           "name": "tokenProgram",
@@ -846,6 +941,19 @@ export type AmbSolBridge = {
   ],
   "events": [
     {
+      "name": "receivePayload",
+      "discriminator": [
+        106,
+        38,
+        196,
+        36,
+        206,
+        174,
+        71,
+        34
+      ]
+    },
+    {
       "name": "sendEvent",
       "discriminator": [
         140,
@@ -879,6 +987,11 @@ export type AmbSolBridge = {
       "code": 6003,
       "name": "invalidSerialization",
       "msg": "Invalid serialization"
+    },
+    {
+      "code": 6004,
+      "name": "invalidArgs",
+      "msg": "Invalid input arguments"
     }
   ],
   "types": [
@@ -918,6 +1031,43 @@ export type AmbSolBridge = {
           {
             "name": "nonceCounter",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "receivePayload",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "to",
+            "type": "pubkey"
+          },
+          {
+            "name": "tokenAddressTo",
+            "type": "pubkey"
+          },
+          {
+            "name": "amountTo",
+            "type": "u64"
+          },
+          {
+            "name": "chainTo",
+            "type": "u64"
+          },
+          {
+            "name": "flags",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "flagData",
+            "type": "bytes"
           }
         ]
       }
@@ -1015,6 +1165,10 @@ export type AmbSolBridge = {
           {
             "name": "ambDecimals",
             "type": "u8"
+          },
+          {
+            "name": "isMintable",
+            "type": "bool"
           },
           {
             "name": "bump",

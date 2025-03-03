@@ -1,16 +1,28 @@
 import nacl from "tweetnacl";
-import bs58 from "bs58";
-import { decodeUTF8 } from "tweetnacl-util";
 import { accountSolana } from "../config";
 import { ReceiptWithMeta } from "../typeValidators";
+import { ReceivePayload, serializeReceivePayload } from "./utils";
+import { validateExistingTransactionSolana } from "./txValidator";
 
 export async function signReceiptForSolana(
   receiptWithMeta: ReceiptWithMeta
-): Promise<string | undefined> {
-  throw new Error("Solana signing not implemented.");
+): Promise<`0x${string}` | undefined> {
   const receipt = receiptWithMeta.receipts;
-  const messageBytes = decodeUTF8(message);
+  try {
+      await validateExistingTransactionSolana(receiptWithMeta);
+    } catch (error) {
+      console.error("Error validating transaction:", error);
+      return;
+    }
+  const payload: ReceivePayload = {
+    to: Buffer.from(receipt.to, "hex"),
+    tokenAddressTo: Buffer.from(receipt.tokenAddressTo, "hex"),
+    amountTo: Number.parseInt(receipt.amountTo.toString()),
+    chainTo: BigInt(receipt.chainTo),
+    flags: Buffer.from(receipt.flags.toString(16), "hex"),
+    flagData: Buffer.from(receipt.data, "hex"),
+  };
+  const messageBytes = serializeReceivePayload(payload);
   const signatureBytes = nacl.sign.detached(messageBytes, accountSolana.secretKey);
-  const signature = bs58.encode(signatureBytes);
-  return signature;
+  return Buffer.from(signatureBytes).toString("hex") as `0x${string}`; // signature;
 }

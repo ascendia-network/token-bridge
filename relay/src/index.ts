@@ -8,27 +8,29 @@
  */
 import { stringToBytes, bytesToBigInt } from "viem";
 import { config } from "./config";
-import { type ReceiptsToSignResponse, type FullReceiptDB, type ReceiptWithMeta } from "./typeValidators";
+import {
+  type ReceiptsToSignResponse,
+  type FullReceiptDB,
+  type ReceiptWithMeta,
+} from "./typeValidators";
 import { signReceiptForEVM } from "./evm/sign";
 import { signReceiptForSolana } from "./solana/sign";
 import { getUnsignedTransactionsEVM } from "./evm/getUnsigned";
 import { getUnsignedTransactionsSolana } from "./solana/getUnsigned";
 
 async function getUnsignedTransactions(): Promise<ReceiptsToSignResponse> {
-  // TODO: Implement this function for getting unsigned transactions from the backend. (EVM and Solana)
-  throw new Error("Not implemented.");
   // maybe needs just to merge both responses
   const evmTransactions = await getUnsignedTransactionsEVM();
   const solanaTransactions = await getUnsignedTransactionsSolana();
   return [...evmTransactions, ...solanaTransactions];
 }
 
-
 async function signReceipt(
   receiptWithMeta: ReceiptWithMeta
-): Promise<string | undefined> {
+): Promise<`0x${string}` | undefined> {
   switch (receiptWithMeta.receipts.chainTo) {
     case bytesToBigInt(stringToBytes("SOLANA", { size: 8 })): // Solana signature needed
+    case bytesToBigInt(stringToBytes("SOLANADN", { size: 8 })): // Solana signature needed
       return await signReceiptForSolana(receiptWithMeta);
     default:
       return await signReceiptForEVM(receiptWithMeta);
@@ -37,6 +39,7 @@ async function signReceipt(
 
 async function postSignature(
   receiptId: FullReceiptDB["receiptId"],
+  signer: string,
   signature: string
 ) {
   try {
@@ -45,7 +48,10 @@ async function postSignature(
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ signature }),
+        body: JSON.stringify({
+          signer,
+          signature
+         }),
       }
     );
     if (response.ok) {
@@ -65,9 +71,19 @@ async function processTransactions() {
   try {
     const transactions = await getUnsignedTransactions();
     for (const transaction of transactions) {
+      let signer = null;
+      switch (transaction.receipts.chainTo) {
+        case bytesToBigInt(stringToBytes("SOLANA", { size: 8 })): 
+        case bytesToBigInt(stringToBytes("SOLANADN", { size: 8 })):
+          signer = config.accountSolana.publicKey.toBase58();
+          break;
+        default:
+          signer = config.accountEVM.address;
+          break;
+      }
       const signature = await signReceipt(transaction);
       if (signature) {
-        await postSignature(transaction.receipts.receiptId, signature);
+        await postSignature(transaction.receipts.receiptId, signer, signature);
       }
     }
     console.log(`Processed ${transactions.length} transactions.`);
@@ -78,7 +94,10 @@ async function processTransactions() {
 
 async function startRelayService() {
   console.log("Using EVM account:", config.accountEVM.address);
-  console.log("Using Solana account:", config.accountSolana.publicKey.toBase58());
+  console.log(
+    "Using Solana account:",
+    config.accountSolana.publicKey.toBase58()
+  );
   while (true) {
     await processTransactions();
     await new Promise((resolve) =>

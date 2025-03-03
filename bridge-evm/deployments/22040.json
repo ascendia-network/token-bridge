@@ -2,23 +2,28 @@
   "contracts": [
     {
       "contractName": "AccessManager",
-      "implementationAddress": "0xFfE071bF7D51D85D5702Ed37D001Ad8D4A693a68",
+      "implementationAddress": "0xe951151F76A5d9c88620DC68005C5d6Db72E4084",
       "proxyAddress": "0x0000000000000000000000000000000000000000"
     },
     {
       "contractName": "Validator",
-      "implementationAddress": "0x6e66a952c1FeE85a4db16c2CA569D278045F93cD",
-      "proxyAddress": "0x0B918467B743662A46372556ABdfA17441dc2F44"
+      "implementationAddress": "0x19d8Be6485e3815ab5cd78e8c453B22ec9B56156",
+      "proxyAddress": "0xC803220067828D62e53814151b7edbaB63f20f16"
     },
     {
       "contractName": "ERC20Bridged",
-      "implementationAddress": "0x144cA9a9EeEAfCdC5e8222e2Ac49baa67ec5e7e4",
-      "proxyAddress": "0x7940a5038432C4650029FA863cc8C40830fe6A0b"
+      "implementationAddress": "0x0941834183213b175b40838fA8befD17CAB025de",
+      "proxyAddress": "0xd49Ed92Bf862365512EE4B98f921e65ce50437C0"
+    },
+    {
+      "contractName": "BridgeSolana",
+      "implementationAddress": "0xe67c35129191E8Ad3de49dEeD1FF3aceC5fC381A",
+      "proxyAddress": "0x81c448672fc9167aa5c00B2eD773e8d2ff3F19BE"
     },
     {
       "contractName": "Bridge",
-      "implementationAddress": "0x9579d503193b31b5E2d41B4820dc3154268219c0",
-      "proxyAddress": "0x6D10438D535b9d8d279ea6be187366c42026d37b"
+      "implementationAddress": "0xB545b61E7a63F213380b98Ac1A28093581c600d4",
+      "proxyAddress": "0xAe91d2F64BDDC37a9E3dd39507E5Bb58955d1813"
     }
   ]
 }

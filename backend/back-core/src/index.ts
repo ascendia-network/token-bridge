@@ -5,9 +5,10 @@ import { prettyJSON } from "hono/pretty-json";
 import { contextStorage } from "hono/context-storage";
 import { serve } from "@hono/node-server";
 import { swaggerUI } from "@hono/swagger-ui";
-import { OpenAPIHono } from "@hono/zod-openapi";
 import { consoleLogger } from "./utils";
 import { config } from "dotenv";
+import { openAPISpecs } from "hono-openapi";
+import { Hono } from "hono";
 config();
 export type Env = {
   DATABASE_URL: string;
@@ -17,11 +18,24 @@ export type Env = {
 };
 
 
-const app = new OpenAPIHono<{ Bindings: Env }>({ strict: false });
+const app = new Hono<{ Bindings: Env }>({ strict: false });
 app.use(logger(consoleLogger));
 app.use(contextStorage());
 app.use("*", prettyJSON());
-app.get("/ui", swaggerUI({ url: "/doc" }));
+app.get(
+  "/openapi",
+  openAPISpecs(app, {
+    documentation: {
+      info: {
+        title: "Hono API",
+        version: "1.0.0",
+        description: "Greeting API",
+      },
+      servers: [{ url: "http://localhost:3000", description: "Local Server" }],
+    },
+  })
+);
+app.get("/ui", swaggerUI({ url: "/openapi" }));
 app.use("/api/*", cors());
 app.route("/api", routes);
 

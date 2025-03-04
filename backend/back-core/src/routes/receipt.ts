@@ -1,6 +1,7 @@
 import { Dependency } from "hono-simple-di";
 import { z } from "zod";
-import { zValidator } from "@hono/zod-validator";
+import { describeRoute } from "hono-openapi";
+import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { ReceiptController } from "../controllers/receipt.controller";
 import {
   evmAddressValidatorSchema,
@@ -8,7 +9,9 @@ import {
   svmAddressValidatorSchema,
   svmAddressBytes32Hex,
   evmAddressBytes32Hex,
-} from "./utils.js";
+  unsignedReceiptsResponseSchema,
+  receiptResponseSchema,
+} from "./utils";
 import { Hono } from "hono";
 import { env } from "hono/adapter";
 
@@ -26,7 +29,36 @@ to the "/receipts" endpoint. When a GET request is made to this endpoint, the co
 function will be executed. */
 
 receiptRoutes.get(
-  "/evm/unsigned/:address{0x[a-fA-F0-9]{40}}",
+  "/evm/unsigned/:address",
+  describeRoute({
+    description:
+      "Get unsigned EVM receipts that need to be signed by given address",
+    responses: {
+      200: {
+        description: "Returns unsigned EVM receipts with receipt metadata",
+        content: {
+          "application/json": {
+            schema: resolver(unsignedReceiptsResponseSchema),
+          },
+        },
+      },
+      400: {
+        description: "Returns error message",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                message: {
+                  type: "string",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  }),
   zValidator("param", evmAddressValidatorSchema),
   receiptControllerDep.middleware("receiptController"),
   async (c) => {
@@ -37,13 +69,42 @@ receiptRoutes.get(
       return c.json(data, 200);
     } catch (error) {
       console.log(error);
-      return c.json(error, 400);
+      return c.json(error as Error, 400);
     }
   }
 );
 
 receiptRoutes.get(
-  "/svm/unsigned/:address{[1-9A-HJ-NP-Za-km-z]{32,44}}",
+  "/svm/unsigned/:address",
+  describeRoute({
+    description:
+      "Get unsigned Solana receipts that need to be signed by given address",
+    responses: {
+      200: {
+        description: "Returns unsigned EVM receipts with receipt metadata",
+        content: {
+          "application/json": {
+            schema: resolver(unsignedReceiptsResponseSchema),
+          },
+        },
+      },
+      400: {
+        description: "Returns error message",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                message: {
+                  type: "string",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  }),
   zValidator("param", svmAddressValidatorSchema),
   receiptControllerDep.middleware("receiptController"),
   async (c) => {
@@ -54,13 +115,41 @@ receiptRoutes.get(
       return c.json(data, 200);
     } catch (error) {
       console.error(error);
-      return c.json(error, 400);
+      return c.json(error as Error, 400);
     }
   }
 );
 
 receiptRoutes.get(
-  "/:id{[0-9]+_[0-9]+_[0-9]+}",
+  "/:id",
+  describeRoute({
+    description: "Get receipt by id",
+    responses: {
+      200: {
+        description: "Returns receipt",
+        content: {
+          "application/json": {
+            schema: resolver(receiptResponseSchema),
+          },
+        },
+      },
+      400: {
+        description: "Returns error message",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                message: {
+                  type: "string",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  }),
   zValidator("param", receiptIdValidatorSchema),
   receiptControllerDep.middleware("receiptController"),
   async (c) => {
@@ -71,13 +160,50 @@ receiptRoutes.get(
       return c.json(data, 200);
     } catch (error) {
       console.log(error);
-      return c.json(error, 400);
+      return c.json(error as Error, 400);
     }
   }
 );
 
 receiptRoutes.post(
-  "/:id{[0-9]+_[0-9]+_[0-9]+}",
+  "/:id",
+  describeRoute({
+    description: "Add signature to receipt",
+    responses: {
+      201: {
+        description: "Returns receipt",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                signed: {
+                  type: "boolean",
+                },
+              },
+              example: { signed: true },
+              description: "If receipt has been signed",
+            },
+          },
+        },
+      },
+      400: {
+        description: "Returns error message",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                message: {
+                  type: "string",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  }),
   zValidator("param", receiptIdValidatorSchema),
   zValidator(
     "json",
@@ -103,16 +229,44 @@ receiptRoutes.post(
       const signature = c.req.valid("json").signature as `0x${string}`;
       const signer = c.req.valid("json").signer;
       const data = await receiptController.addSignature(receiptId, signer, signature);
-      return c.json(data, 201);
+      return c.json({signed: data}, 201);
     } catch (error) {
       console.log(error);
-      return c.json(error, 400);
+      return c.json(error as Error, 400);
     }
   }
 );
 
 receiptRoutes.get(
-  "/:address{(0x[a-fA-F0-9]{40}|[1-9A-HJ-NP-Za-km-z]{32,44})}?",
+  "/:userAddress?",
+  describeRoute({
+    description: "Get all receipts for a user",
+    responses: {
+      200: {
+        description: "Returns receipts",
+        content: {
+          "application/json": {
+            schema: resolver(z.array(receiptResponseSchema)),
+          },
+        },
+      },
+      400: {
+        description: "Returns error message",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                message: {
+                  type: "string",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  }),
   zValidator(
     "param",
     z.object({
@@ -144,7 +298,7 @@ receiptRoutes.get(
       return c.json(data, 200);
     } catch (error) {
       console.log(error);
-      return c.json(error, 400);
+      return c.json(error as Error, 400);
     }
   }
 );

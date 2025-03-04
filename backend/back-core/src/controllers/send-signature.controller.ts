@@ -15,6 +15,7 @@ import { bigIntToBuffer } from "../utils/buffer";
 import { bridgeAbi } from "../../abis/bridgeAbi";
 import { encodeAbiParameters, hashMessage, keccak256 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
+import { SendPayload } from "../routes/utils";
 
 const EVM_NETWORKS = ["22040", "16718", "1", "56", "8453", "84532"];
 
@@ -31,24 +32,13 @@ const CHAIN_ID_TO_CHAIN_NAME: Record<string, string> = {
 };
 
 interface SendSignatureArgs {
-  networkFrom: string;
-  networkTo: string;
+  networkFrom: bigint;
+  networkTo: bigint;
   tokenAddress: string;
   externalTokenAddress: string;
-  amount: string;
+  amount: bigint;
   isMaxAmount: boolean;
-  flags: string;
-  flagData: string;
-}
-
-interface SendPayload {
-  destChainId: string;
-  tokenAddress: string;
-  externalTokenAddress: string;
-  amountToSend: string;
-  feeAmount: string;
-  timestamp: number;
-  flags: string;
+  flags: bigint;
   flagData: string;
 }
 

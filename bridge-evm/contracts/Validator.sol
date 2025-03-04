@@ -15,10 +15,7 @@ contract Validator is ValidatorUpgradeable {
         address[] calldata validators_,
         address payloadSigner_,
         uint256 feeValidityWindow_
-    )
-        public
-        initializer
-    {
+    ) public initializer {
         __Validator_init(
             authority_, validators_, payloadSigner_, feeValidityWindow_
         );

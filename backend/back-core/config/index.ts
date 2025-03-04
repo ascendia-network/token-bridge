@@ -13,6 +13,7 @@ import path from "path";
 export interface Config {
   networks: { [net: string]: string };
   contracts: { [net: string]: string };
+  tokensConfigUrl: string;
   fees: {
     networks: {
       [net: string]: {
@@ -22,10 +23,12 @@ export interface Config {
   };
 }
 
-export const stage = env.STAGE || "prod";
+export const stage = env.STAGE || "test";
 
 export const sendSignerPK = env.SEND_SIGNER_PK!;
-export const stageConfig: Config = require(path.resolve(__dirname, `../config/${stage}.json`));
+export const stageConfig: Config = await import(`../config/${stage}.json`, { assert: { type: "json" } }).then(m => m.default);
+
+
 
 
 

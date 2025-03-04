@@ -13,11 +13,9 @@ library ReceiptUtils {
     /// Convert full receipt to mini receipt
     /// @param receipt receipt to convert
     /// @return mini receipt converted
-    function asMini(BridgeTypes.FullReceipt memory receipt)
-        internal
-        pure
-        returns (BridgeTypes.MiniReceipt memory mini)
-    {
+    function asMini(
+        BridgeTypes.FullReceipt memory receipt
+    ) internal pure returns (BridgeTypes.MiniReceipt memory mini) {
         return BridgeTypes.MiniReceipt({
             to: receipt.to,
             tokenAddressTo: receipt.tokenAddressTo,
@@ -34,11 +32,9 @@ library ReceiptUtils {
     /// @dev using [toEthSignedMessageHash](https://docs.openzeppelin.com/contracts/5.x/api/utils#MessageHashUtils-toEthSignedMessageHash-bytes32-) from OpenZeppelin's MessageHashUtils
     /// @param receipt receipt to convert
     /// @return hash converted
-    function toHash(BridgeTypes.FullReceipt memory receipt)
-        internal
-        pure
-        returns (bytes32 hash)
-    {
+    function toHash(
+        BridgeTypes.FullReceipt memory receipt
+    ) internal pure returns (bytes32 hash) {
         return toEthSignedMessageHash(asMini(receipt));
     }
 
@@ -46,11 +42,9 @@ library ReceiptUtils {
     /// @dev using [toEthSignedMessageHash](https://docs.openzeppelin.com/contracts/5.x/api/utils#MessageHashUtils-toEthSignedMessageHash-bytes32-) from OpenZeppelin's MessageHashUtils
     /// @param receipt receipt to convert
     /// @return hash converted
-    function toHash(BridgeTypes.MiniReceipt memory receipt)
-        internal
-        pure
-        returns (bytes32 hash)
-    {
+    function toHash(
+        BridgeTypes.MiniReceipt memory receipt
+    ) internal pure returns (bytes32 hash) {
         return toEthSignedMessageHash(receipt);
     }
 
@@ -58,11 +52,9 @@ library ReceiptUtils {
     /// @dev using [toEthSignedMessageHash](https://docs.openzeppelin.com/contracts/5.x/api/utils#MessageHashUtils-toEthSignedMessageHash-bytes32-) from OpenZeppelin's MessageHashUtils
     /// @param receipt receipt to convert
     /// @return hash converted
-    function toEthSignedMessageHash(BridgeTypes.MiniReceipt memory receipt)
-        internal
-        pure
-        returns (bytes32 hash)
-    {
+    function toEthSignedMessageHash(
+        BridgeTypes.MiniReceipt memory receipt
+    ) internal pure returns (bytes32 hash) {
         bytes32 messageHash = keccak256(
             abi.encode(
                 receipt.to,

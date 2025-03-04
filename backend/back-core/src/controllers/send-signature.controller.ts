@@ -7,14 +7,28 @@
  *  This Source Code Form is “Incompatible With Secondary Licenses”, as defined by the Mozilla Public License, v. 2.0.
  */
 import { getFees } from "../fee";
-import { ethers } from "ethers";
 import { sendSignerPK } from "../../config";
 import { Keypair } from "@solana/web3.js";
 import bs58 from "bs58";
 import nacl from "tweetnacl";
 import { bigIntToBuffer } from "../utils/buffer";
+import { bridgeAbi } from "../../abis/bridgeAbi";
+import { encodeAbiParameters, hashMessage, keccak256 } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
 
-const EVM_NETWORKS = ["ambrosus", "base", "ethereum", "bsc"];
+const EVM_NETWORKS = ["22040", "16718", "1", "56", "8453", "84532"];
+
+const CHAIN_ID_TO_CHAIN_NAME: Record<string, string> = {
+  "1": "eth",
+  "56": "bsc",
+  "8453": "base",
+  "16718": "amb",
+  "6003100671677628416": "solana",
+  // testnets
+  "22040": "amb-test",
+  "84532": "base-test",
+  "6003100671677645902": "solana-dev",
+};
 
 interface SendSignatureArgs {
   networkFrom: string;
@@ -28,6 +42,7 @@ interface SendSignatureArgs {
 }
 
 interface SendPayload {
+  destChainId: string;
   tokenAddress: string;
   externalTokenAddress: string;
   amountToSend: string;
@@ -38,9 +53,7 @@ interface SendPayload {
 }
 
 export class SendSignatureController {
-
-  constructor() {
-  }
+  constructor() {}
 
   async getSendSignature({
                            networkFrom,
@@ -55,52 +68,114 @@ export class SendSignatureController {
     const timestamp = Date.now() / 1000;
 
     const sendPayload: SendPayload = {
+      destChainId: networkTo,
       tokenAddress,
       externalTokenAddress,
       amountToSend,
       feeAmount,
       timestamp,
       flags,
-      flagData
+      flagData,
     };
     let signature;
     if (EVM_NETWORKS.includes(networkFrom)) {
-      signature = await this.signEvmSendPayload(sendPayload, sendSignerPK);
-    } else if (networkFrom === "solana") {
+      signature = await this.signEvmSendPayload(
+        sendPayload,
+        sendSignerPK as `0x${string}`
+      );
+    } else if (CHAIN_ID_TO_CHAIN_NAME[networkFrom] === "solana") {
       signature = await this.signSvmSendPayload(sendPayload, sendSignerPK);
+    } else {
+      throw new Error("Unsupported network");
     }
 
     return { sendPayload, signature };
   }
 
-  async signEvmSendPayload(sendPayload: SendPayload, sendSignerPK: string) {
-    const payload = ethers.AbiCoder.defaultAbiCoder().encode(
-      ["bytes32", "bytes32", "uint", "uint", "uint", "uint", "bytes"],
+  async signEvmSendPayload(
+    sendPayload: SendPayload,
+    sendSignerPK: `0x${string}`
+  ) {
+    const PayloadAbi = {
+      name: "payload",
+      type: "tuple",
+      internalType: "struct BridgeTypes.SendPayload",
+      components: [
+        {
+          name: "destChainId",
+          type: "uint256",
+          internalType: "uint256",
+        },
+        {
+          name: "tokenAddress",
+          type: "bytes32",
+          internalType: "bytes32",
+        },
+        {
+          name: "externalTokenAddress",
+          type: "bytes32",
+          internalType: "bytes32",
+        },
+        {
+          name: "amountToSend",
+          type: "uint256",
+          internalType: "uint256",
+        },
+        {
+          name: "feeAmount",
+          type: "uint256",
+          internalType: "uint256",
+        },
+        {
+          name: "timestamp",
+          type: "uint256",
+          internalType: "uint256",
+        },
+        {
+          name: "flags",
+          type: "uint256",
+          internalType: "uint256",
+        },
+        {
+          name: "flagData",
+          type: "bytes",
+          internalType: "bytes",
+        },
+      ],
+    };
+    const payload = encodeAbiParameters<[typeof PayloadAbi]>(
+      [PayloadAbi],
       [
-        sendPayload.tokenAddress,
-        sendPayload.externalTokenAddress,
-        sendPayload.amountToSend,
-        sendPayload.feeAmount,
-        sendPayload.timestamp,
-        sendPayload.flags,
-        sendPayload.flagData
+        {
+          destChainId: sendPayload.destChainId,
+          tokenAddress: sendPayload.tokenAddress,
+          externalTokenAddress: sendPayload.externalTokenAddress,
+          amountToSend: sendPayload.amountToSend,
+          feeAmount: sendPayload.feeAmount,
+          timestamp: sendPayload.timestamp,
+          flags: sendPayload.flags,
+          flagData: sendPayload.flagData,
+        },
       ]
     );
-    const signer = new ethers.Wallet(sendSignerPK);
-    return await signer.signMessage(ethers.getBytes(payload));
+    const payloadHash = keccak256(payload);
+    const digest = hashMessage({ raw: payloadHash });
+    const signer = privateKeyToAccount(sendSignerPK);
+    return await signer.signMessage({ message: digest });
   }
 
   async signSvmSendPayload(sendPayload: SendPayload, sendSignerPK: string) {
     const signer = Keypair.fromSecretKey(bs58.decode(sendSignerPK));
 
     const payload = Buffer.concat([
+      bigIntToBuffer(BigInt(sendPayload.destChainId), 32),
       Buffer.from(sendPayload.tokenAddress, "hex"),
       Buffer.from(sendPayload.externalTokenAddress, "hex"),
-      bigIntToBuffer(BigInt(sendPayload.amountToSend), 8),
-      bigIntToBuffer(BigInt(sendPayload.feeAmount), 8),
-      bigIntToBuffer(BigInt(sendPayload.timestamp), 8),
-      bigIntToBuffer(BigInt(sendPayload.flags), 4),
-      Buffer.from(sendPayload.flagData, "hex")
+      bigIntToBuffer(BigInt(sendPayload.amountToSend), 32),
+      bigIntToBuffer(BigInt(sendPayload.feeAmount), 32),
+      bigIntToBuffer(BigInt(sendPayload.timestamp), 32),
+      bigIntToBuffer(BigInt(sendPayload.flags), 32),
+      Buffer.from(sendPayload.flagData, "hex"),
     ]);
 
     const signature = nacl.sign.detached(payload, signer.secretKey);
@@ -108,4 +183,3 @@ export class SendSignatureController {
     return bs58.encode(signature);
   }
 }
-

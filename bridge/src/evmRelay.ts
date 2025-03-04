@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import { Config } from "./init";
 
+//TODO: rewrite this (? use WS instead of HTTP long-polling)
 const config = new Config();
 const provider = new ethers.JsonRpcProvider(config.evmApiUrl);
 const evmABI = [
@@ -10,11 +11,11 @@ const evmABI = [
       { indexed: false, name: "to", type: "string" },
       { indexed: false, name: "token", type: "string" },
       { indexed: false, name: "amount", type: "uint256" },
-      { indexed: true, name: "txHash", type: "bytes32" },
+      { indexed: true, name: "txHash", type: "bytes32" }
     ],
     name: "TokensLocked",
-    type: "event",
-  },
+    type: "event"
+  }
 ];
 
 async function checkConnection() {
@@ -25,6 +26,7 @@ async function checkConnection() {
     console.error("Failed to connect to evm node:", error);
   }
 }
+
 checkConnection();
 
 const wallet = new ethers.Wallet(config.evmPrivateKey, provider);
@@ -37,12 +39,12 @@ contract.on(
     token: string,
     amount: BigInt,
     txHash: string,
-    event: any,
+    event: any
   ) => {
     const abiCoder = new ethers.AbiCoder();
     const encodedMessage = abiCoder.encode(
       ["string", "string", "uint256", "bytes32"],
-      [to, token, amount, txHash],
+      [to, token, amount, txHash]
     );
 
     const messageHash = ethers.keccak256(encodedMessage);
@@ -51,9 +53,9 @@ contract.on(
     console.log(ethers.getBytes(messageHash));
     console.log(
       "Address:",
-      ethers.verifyMessage(ethers.getBytes(messageHash), signature),
+      ethers.verifyMessage(ethers.getBytes(messageHash), signature)
     );
-  },
+  }
 );
 
 async function sendSignatureToBackend(
@@ -61,20 +63,20 @@ async function sendSignatureToBackend(
   token: string,
   amount: BigInt,
   txHash: string,
-  signature: string,
+  signature: string
 ) {
   const data = {
     to,
     token,
     amount: amount.toString(),
     txHash,
-    signature,
+    signature
   };
   try {
     const response = await fetch(config.signatureStorage, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
     });
 
     if (response.ok) {
@@ -82,7 +84,7 @@ async function sendSignatureToBackend(
     } else {
       console.error(
         "Failed to send signature to backend. Response:",
-        await response.text(),
+        await response.text()
       );
     }
   } catch (error) {

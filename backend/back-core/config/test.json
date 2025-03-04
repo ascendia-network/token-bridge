@@ -1,0 +1,15 @@
+{
+  "networks": {
+    "amb": "https://network.ambrosus.io/"
+  },
+  "contracts": {
+    "ambsol": "0xe10eB55f6EeF66218BbE58B749428ec4A51D6659"
+  },
+  "fees": {
+    "networks": {
+      "amb": {
+        "minBridgeFeeUSD": 0.01
+      }
+    }
+  }
+}

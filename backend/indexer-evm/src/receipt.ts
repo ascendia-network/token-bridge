@@ -1,19 +1,25 @@
 import { type Context, type Event } from "ponder:registry";
 
-import { claimed, receipt, receiptMeta } from "ponder:schema";
+import { receiptsClaimed, receiptsSent, receiptMeta } from "ponder:schema";
 
 export async function saveReceiptSend(
   context: Context,
   event: Event<"bridge:TokenLocked">
 ): Promise<string> {
   const receiptEntry = {
+    receiptId:
+      event.args.receipt.chainFrom +
+      "_" +
+      event.args.receipt.chainTo +
+      "_" +
+      event.args.receipt.eventId,
     timestamp: event.block.timestamp,
     bridgeAddress: event.log.address,
     ...event.args.receipt,
   };
 
   const entity = await context.db
-    .insert(receipt)
+    .insert(receiptsSent)
     .values(receiptEntry)
     .onConflictDoNothing();
 
@@ -45,13 +51,19 @@ export async function saveReceiptWithdraw(
   event: Event<"bridge:TokenUnlocked">
 ) {
   const receiptEntry = {
+    receiptId:
+      event.args.receipt.chainFrom +
+      "_" +
+      event.args.receipt.chainTo +
+      "_" +
+      event.args.receipt.eventId,
     timestamp: event.block.timestamp,
     bridgeAddress: event.log.address,
     ...event.args.receipt,
   };
 
   const entity = await context.db
-    .insert(claimed)
+    .insert(receiptsClaimed)
     .values(receiptEntry)
     .onConflictDoNothing();
   if (entity) {

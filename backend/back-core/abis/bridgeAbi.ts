@@ -1,4 +1,4 @@
-import { AbiItem } from "viem";
+import { type AbiItem } from "viem";
 
 export const bridgeAbi = [
   {
@@ -398,6 +398,11 @@ export const bridgeAbi = [
         internalType: "address",
       },
       {
+        name: "tokenBeacon_",
+        type: "address",
+        internalType: "address",
+      },
+      {
         name: "SAMB_",
         type: "address",
         internalType: "address",
@@ -789,15 +794,15 @@ export const bridgeAbi = [
         internalType: "bytes32",
       },
       {
-        name: "chainTo",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
         name: "payload",
         type: "tuple",
         internalType: "struct BridgeTypes.SendPayload",
         components: [
+          {
+            name: "destChainId",
+            type: "uint256",
+            internalType: "uint256",
+          },
           {
             name: "tokenAddress",
             type: "bytes32",
@@ -917,15 +922,15 @@ export const bridgeAbi = [
         internalType: "bytes32",
       },
       {
-        name: "chainTo",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
         name: "payload",
         type: "tuple",
         internalType: "struct BridgeTypes.SendPayload",
         components: [
+          {
+            name: "destChainId",
+            type: "uint256",
+            internalType: "uint256",
+          },
           {
             name: "tokenAddress",
             type: "bytes32",
@@ -1586,22 +1591,6 @@ export const bridgeAbi = [
     type: "error",
     name: "NotInitializing",
     inputs: [],
-  },
-  {
-    type: "error",
-    name: "SafeCastOverflowedUintDowncast",
-    inputs: [
-      {
-        name: "bits",
-        type: "uint8",
-        internalType: "uint8",
-      },
-      {
-        name: "value",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
   },
   {
     type: "error",

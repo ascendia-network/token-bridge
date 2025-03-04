@@ -1,4 +1,11 @@
 [profile.default]
+fs_permissions = [
+  { access = "read-write", path = "./deployments"},
+  { access = "read", path = "./receipts"},
+  { access = "read", path = "./payloads"},
+  { access = "read-write", path = "./out"},
+  {access = "read", path = "./"}
+]
 via-ir=true
 ffi = true
 ast = true
@@ -15,7 +22,7 @@ optimizer = true
 runs = 1000
 [fmt]
 single_line_statement_blocks = "multi"
-multiline_func_header = "all"
+multiline_func_header = "params_first"
 sort_imports = true
 contract_new_lines = true
 override_spacing = true

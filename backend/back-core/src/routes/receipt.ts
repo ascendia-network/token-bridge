@@ -53,7 +53,7 @@ receiptRoutes.get(
       const data = await receiptController.getUnsignedReceipts(pubkey, "svm");
       return c.json(data, 200);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return c.json(error, 400);
     }
   }
@@ -82,6 +82,7 @@ receiptRoutes.post(
   zValidator(
     "json",
     z.object({
+      signer: z.string(),
       signature: z
         .string()
         .regex(/^(0x|0X)?[a-fA-F0-9]{130}$/)
@@ -100,7 +101,8 @@ receiptRoutes.post(
       const { receiptController } = c.var;
       const receiptId = c.req.valid("param").receiptId;
       const signature = c.req.valid("json").signature as `0x${string}`;
-      const data = await receiptController.addSignature(receiptId, signature);
+      const signer = c.req.valid("json").signer;
+      const data = await receiptController.addSignature(receiptId, signer, signature);
       return c.json(data, 201);
     } catch (error) {
       console.log(error);

@@ -10,6 +10,8 @@
 import { Dependency } from "hono-simple-di";
 import { Hono } from "hono";
 import { SendSignatureController } from "../controllers/send-signature.controller";
+import { zValidator } from "@hono/zod-validator";
+import { evmAddressValidatorSchema, sendSignatureQuerySchema } from "./utils";
 
 const sendSignatureControllerDep = new Dependency(
   (c) => {
@@ -21,6 +23,7 @@ export const sendSignatureRoutes = new Hono();
 
 sendSignatureRoutes.get(
   "/",
+  zValidator("query", sendSignatureQuerySchema),
   sendSignatureControllerDep.middleware("sendSignatureController"),
   async (c) => {
     try {

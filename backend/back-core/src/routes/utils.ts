@@ -23,7 +23,7 @@ export const svmAddressBytes32Hex = z
     if (hexAddress.length !== 64 + 2) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Not a valid Solana address",
+        message: "Not a valid Solana address"
       });
       // This is a special symbol you can use to
       // return early from the transform function.
@@ -44,22 +44,22 @@ export const signRequestValidatorSchema = z.object({
         return processed.slice(2);
       }
       return `0x${processed}` as `0x${string}`;
-    }),
+    })
 });
 
 export const evmAddressValidatorSchema = z.object({
-  address: z.string().regex(EvmAddressRegex),
+  address: z.string().regex(EvmAddressRegex)
 });
 
 export const svmAddressValidatorSchema = z.object({
-  address: z.string().regex(SvmAddressRegex),
+  address: z.string().regex(SvmAddressRegex)
 });
 
 export const receiptIdValidatorSchema = z.object({
   receiptId: z
     .string()
     .regex(receiptIdRegex)
-    .transform((val) => val as `${number}_${number}_${number}`),
+    .transform((val) => val as `${number}_${number}_${number}`)
 });
 
 export const payloadValidatorSchema = z.object({
@@ -76,13 +76,28 @@ export const payloadValidatorSchema = z.object({
       }
       return `0x${processed}` as `0x${string}`;
     })
-    .optional(),
+    .optional()
 });
 
 export const payloadEvmValidatorSchema = payloadValidatorSchema.extend({
-  tokenAddress: evmAddressBytes32Hex,
+  tokenAddress: evmAddressBytes32Hex
 });
 
 export const payloadSvmValidatorSchema = payloadValidatorSchema.extend({
-  tokenAddress: svmAddressBytes32Hex,
+  tokenAddress: svmAddressBytes32Hex
+});
+
+
+export const sendSignatureQuerySchema = z.object({
+  networkFrom: z.string().min(1, "networkFrom is required"),
+  networkTo: z.string().min(1, "networkTo is required"),
+  tokenAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid token address"),
+  amount: z.coerce.string().min(1, "amount is required"),
+  isMaxAmount: z
+    .string()
+    .regex(/^(true|false)$/, "isMaxAmount must be 'true' or 'false'")
+    .transform((val) => val === "true"),
+  externalTokenAddress: z
+    .string()
+    .regex(/^0x[a-fA-F0-9]{40}$/, "Invalid external token address")
 });

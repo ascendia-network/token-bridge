@@ -16,6 +16,8 @@ interface IWrapped is IERC20 {
     /// Withdraw tokens from the contract (a.k.a unwrap tokens)
     /// @param amount amount of tokens to withdraw
     /// @dev converts ERC20 tokens to native currency with the same amount
-    function withdraw(uint256 amount) external;
+    function withdraw(
+        uint256 amount
+    ) external;
 
 }

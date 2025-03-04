@@ -29,6 +29,7 @@ export async function getReceivePayload(user: PublicKey) {
     tokenAddressTo: hexToUint8Array("0x999999999988888888888888777777777777776666666666666665555555555"),
     amountTo: 50,
     chainTo: SOLANA_CHAIN_ID,
+    eventId: 1,
     flags: new Uint8Array(32),  // todo
     flagData: numberToUint8Array(0, 8),  // todo
   };

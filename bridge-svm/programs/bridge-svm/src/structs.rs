@@ -86,6 +86,7 @@ pub struct ReceivePayload {
     pub token_address_to: Pubkey,
     pub amount_to: u64,
     pub chain_to: u64,
+    pub event_id: u64,
     pub flags: [u8; 32],
     pub flag_data: Vec<u8>,
 }

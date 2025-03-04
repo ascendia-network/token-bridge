@@ -209,6 +209,7 @@ describe("my-project", () => {
       tokenAddressTo: token.toBytes(),
       amountTo: 50,
       chainTo: SOLANA_CHAIN_ID,
+      eventId: 1,
       flags: new Uint8Array(32),
       flagData: numberToUint8Array(0, 8)
     };
@@ -255,6 +256,7 @@ describe("my-project", () => {
       tokenAddressTo: token.toBytes(),
       amountTo: 500,
       chainTo: SOLANA_CHAIN_ID,
+      eventId: 1,
       flags: new Uint8Array(32),
       flagData: numberToUint8Array(1, 8)
     };
@@ -442,6 +444,7 @@ describe("my-project", () => {
       tokenAddressTo: token.toBytes(),
       amountTo: 50,
       chainTo: SOLANA_CHAIN_ID,
+      eventId: 1,
       flags: new Uint8Array(32),
       flagData: numberToUint8Array(2, 8)
     };

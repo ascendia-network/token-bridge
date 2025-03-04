@@ -33,6 +33,7 @@ export interface ReceivePayload {
   tokenAddressTo: Uint8Array;
   amountTo: number;
   chainTo: number | bigint;
+  eventId: number;
   flags: Uint8Array;
   flagData: Uint8Array;
 }
@@ -42,6 +43,7 @@ const receiveSchema = {
   tokenAddressTo: _b32,
   amountTo: 'u64',
   chainTo: 'u64',
+  eventId: 'u64',
   flags: _b32,
   flagData: { array: { type: 'u8' } },
 }

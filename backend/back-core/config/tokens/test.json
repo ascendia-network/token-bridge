@@ -1,0 +1,54 @@
+{
+  "bridges": {
+    "sol": {
+      "amb": "0x81c448672fc9167aa5c00B2eD773e8d2ff3F19BE",
+      "side": "ambZMSUBvU8bLfxop5uupQd9tcafeJKea1KoyTv2yM1"
+    },
+    "base": {
+      "amb": "0xAe91d2F64BDDC37a9E3dd39507E5Bb58955d1813"
+    }
+  },
+  "tokens": {
+    "SAMB": {
+      "isActive": true,
+      "name": "Synthetic Amber",
+      "symbol": "SAMB",
+      "denomination": 18,
+      "decimals": {
+        "amb": 18,
+        "base": 18,
+        "sol": 6
+      },
+      "logo": "https://media-exp1.licdn.com/dms/image/C560BAQFuR2Fncbgbtg/company-logo_200_200/0/1636390910839?e=2159024400&v=beta&t=W0WA5w02tIEH859mVypmzB_FPn29tS5JqTEYr4EYvps",
+      "primaryNets": [
+        "amb"
+      ],
+      "addresses": {
+        "amb": "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b",
+        "sol": "samb9vCFCTEvoi3eWDErSCb5GvTq8Kgv6VKSqvt7pgi"
+      },
+      "nativeAnalog": "AMB"
+    },
+    "USDC": {
+      "isActive": true,
+      "name": "USD Coin",
+      "symbol": "USDC",
+      "denomination": 6,
+      "decimals": {
+        "amb": 18,
+        "bsc": 18,
+        "eth": 6
+      },
+      "logo": "https://etherscan.io/token/images/centre-usdc_28.png",
+      "primaryNets": [
+        "base",
+        "sol"
+      ],
+      "addresses": {
+        "amb": "0x8132928B8F4c0d278cc849b9b98Dffb28aE0B685",
+        "sol": "usdc3xpQ18NLAumSUvadS62srrkxQWrvQHugk8Nv7MA"
+      },
+      "nativeAnalog": ""
+    }
+  }
+}

@@ -678,5 +678,4 @@ export const bridgeIdl = {
     },
   ],
 } as const satisfies Idl;
-export type AmbSolBridge = typeof bridgeIdl;
 export default bridgeIdl;

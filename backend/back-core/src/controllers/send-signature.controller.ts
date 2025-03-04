@@ -12,13 +12,19 @@ import { Keypair } from "@solana/web3.js";
 import bs58 from "bs58";
 import nacl from "tweetnacl";
 import { bigIntToBuffer } from "../utils/buffer";
-import { bridgeAbi } from "../../abis/bridgeAbi";
 import { encodeAbiParameters, hashMessage, keccak256 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { SendPayload } from "../routes/utils";
+import { SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID } from "../utils/solana";
 
-const EVM_NETWORKS = ["22040", "16718", "1", "56", "8453", "84532"];
-
+const EVM_NETWORKS = [
+  "16718", // amb
+  "8453", // base
+  "1", // eth
+  "56", // bsc
+  "22040", // amb-test
+  "84532" // base-test
+];
 const CHAIN_ID_TO_CHAIN_NAME: Record<string, string> = {
   "1": "eth",
   "56": "bsc",
@@ -46,15 +52,28 @@ export class SendSignatureController {
   constructor() {}
 
   async getSendSignature({
-                           networkFrom,
-                           networkTo,
-                           tokenAddress,
-                           amount,
-                           isMaxAmount,
-                           externalTokenAddress,
-                           flags, flagData
-                         }: SendSignatureArgs) {
-    const { feeAmount, amountToSend } = await getFees(networkFrom, networkTo, tokenAddress, amount, isMaxAmount);
+    networkFrom,
+    networkTo,
+    tokenAddress,
+    amount,
+    isMaxAmount,
+    externalTokenAddress,
+    flags,
+    flagData,
+  }: SendSignatureArgs) {
+    if (
+      !CHAIN_ID_TO_CHAIN_NAME[networkFrom.toString()] ||
+      !CHAIN_ID_TO_CHAIN_NAME[networkTo.toString()]
+    ) {
+      throw new Error("Invalid network id");
+    }
+    const { feeAmount, amountToSend } = await getFees(
+      CHAIN_ID_TO_CHAIN_NAME[networkFrom.toString()],
+      CHAIN_ID_TO_CHAIN_NAME[networkTo.toString()],
+      tokenAddress,
+      amount,
+      isMaxAmount
+    );
     const timestamp = Date.now() / 1000;
 
     const sendPayload: SendPayload = {
@@ -68,17 +87,19 @@ export class SendSignatureController {
       flagData,
     };
     let signature;
-    if (EVM_NETWORKS.includes(networkFrom)) {
-      signature = await this.signEvmSendPayload(
-        sendPayload,
-        sendSignerPK as `0x${string}`
-      );
-    } else if (CHAIN_ID_TO_CHAIN_NAME[networkFrom] === "solana") {
-      signature = await this.signSvmSendPayload(sendPayload, sendSignerPK);
-    } else {
-      throw new Error("Unsupported network");
-    }
 
+    switch (networkFrom) {
+      case SOLANA_CHAIN_ID:
+      case SOLANA_DEV_CHAIN_ID:
+        signature = await this.signSvmSendPayload(sendPayload, sendSignerPK);
+        break;
+      default:
+        signature = await this.signEvmSendPayload(
+          sendPayload,
+          sendSignerPK as `0x${string}`
+        );
+        break;
+    }
     return { sendPayload, signature };
   }
 

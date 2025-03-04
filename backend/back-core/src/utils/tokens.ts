@@ -10,7 +10,8 @@ interface Token {
 const tokens: { [addr: string]: Token } = {
   // todo get native tokens from config (after update to new config format)
   "eth-0x0000000000000000000000000000000000000000": { name: "ETH", denomination: 18, isNative: true },
-  "amb-0x0000000000000000000000000000000000000000": { name: "AMB", denomination: 18, isNative: true }
+  "amb-0x0000000000000000000000000000000000000000": { name: "AMB", denomination: 18, isNative: true },
+  "amb-test-0x0000000000000000000000000000000000000000": { name: "AMB", denomination: 18, isNative: true },
 };
 
 if (stage === "prod") {

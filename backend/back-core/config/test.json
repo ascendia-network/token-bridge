@@ -5,6 +5,7 @@
   "contracts": {
     "ambsol": "0xe10eB55f6EeF66218BbE58B749428ec4A51D6659"
   },
+  "tokensConfigUrl": "https://raw.githubusercontent.com/ambrosus/token-bridge/refs/heads/backend/backend/back-core/config/tokens/test.json",
   "fees": {
     "networks": {
       "amb": {

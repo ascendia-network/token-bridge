@@ -22,7 +22,6 @@ export async function getTokenUSDPriceByAddress(networkName: string, tokenAddr: 
 export async function getTokenUSDPrice(tokenSymbol: string) {
   if (symbolMapping[tokenSymbol])
     tokenSymbol = symbolMapping[tokenSymbol];
-
   const price = await cachedPrice.get(tokenSymbol);
   return new Decimal(price);
 }

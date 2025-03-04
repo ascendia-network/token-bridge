@@ -22,7 +22,8 @@ export const evmAddressBytes32Hex = z
   .openapi({
     type: "string",
     description: "EVM address in bytes32 hex format",
-    example: "0x000000000000000000000000C6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
+    example:
+      "0x000000000000000000000000C6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
   });
 
 export const svmAddressBytes32Hex = z
@@ -34,7 +35,7 @@ export const svmAddressBytes32Hex = z
     if (hexAddress.length !== 64 + 2) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Not a valid Solana address"
+        message: "Not a valid Solana address",
       });
       // This is a special symbol you can use to
       // return early from the transform function.
@@ -43,7 +44,8 @@ export const svmAddressBytes32Hex = z
       return z.NEVER;
     }
     return hexAddress as `0x${string}`;
-  }).openapi({
+  })
+  .openapi({
     type: "string",
     description: "Solana base58 address in bytes32 hex format",
     example:
@@ -60,18 +62,15 @@ export const signRequestValidatorSchema = z.object({
         return processed.slice(2);
       }
       return `0x${processed}` as `0x${string}`;
-    })
+    }),
 });
 
 export const evmAddressValidatorSchema = z.object({
-  address: z
-    .string()
-    .regex(EvmAddressRegex)
-    .openapi({
-      type: "string",
-      description: "EVM address",
-      example: "0xe0b52EC5cE3e124ab5306ea42463bE85aeb5eDDd",
-    }),
+  address: z.string().regex(EvmAddressRegex).openapi({
+    type: "string",
+    description: "EVM address",
+    example: "0xe0b52EC5cE3e124ab5306ea42463bE85aeb5eDDd",
+  }),
 });
 
 export const svmAddressValidatorSchema = z.object({
@@ -86,11 +85,12 @@ export const receiptIdValidatorSchema = z.object({
   receiptId: z
     .string()
     .regex(receiptIdRegex)
-    .transform((val) => val as `${number}_${number}_${number}`).openapi({
+    .transform((val) => val as `${number}_${number}_${number}`)
+    .openapi({
       type: "string",
       description: "Receipt ID as 'chainFrom_chainTo_receiptId'",
       example: "1_22040_3",
-    })
+    }),
 });
 
 export const payloadValidatorSchema = z.object({
@@ -107,17 +107,16 @@ export const payloadValidatorSchema = z.object({
       }
       return `0x${processed}` as `0x${string}`;
     })
-    .optional()
+    .optional(),
 });
 
 export const payloadEvmValidatorSchema = payloadValidatorSchema.extend({
-  tokenAddress: evmAddressBytes32Hex
+  tokenAddress: evmAddressBytes32Hex,
 });
 
 export const payloadSvmValidatorSchema = payloadValidatorSchema.extend({
-  tokenAddress: svmAddressBytes32Hex
+  tokenAddress: svmAddressBytes32Hex,
 });
-
 
 export const sendSignatureQuerySchema = z.object({
   networkFrom: z.coerce.bigint().min(1n, "networkFrom is required").openapi({
@@ -169,111 +168,148 @@ const ReceiptSchema = createSelectSchema(receipt, {
       example: "6003100671677646000_22040_3",
       description: "Receipt ID as 'chainFrom_chainTo_eventId'",
     }),
-  timestamp: z.bigint().openapi({
-    example: 1633632000n,
-    description: "Timestamp of the transaction",
-  }),
-  bridgeAddress: (schema) =>
-    schema.regex(EvmAddressRegex || SvmAddressRegex).openapi({
+  timestamp: (schema) =>
+    schema.openapi({
+      example: "1633632000",
+      description: "Timestamp of the transaction",
+    }),
+  bridgeAddress: z
+    .union([
+      z.string().regex(EvmAddressRegex),
+      z.string().regex(SvmAddressRegex),
+    ])
+    .openapi({
       examples: [
         "0xe0b52EC5cE3e124ab5306ea42463bE85aeb5eDDd",
         "FMYR5BFh3JapZS1cfwYViiBMYJxFGwKdchnghBnBtxkk",
       ],
       description: "Bridge address",
     }),
-  from: z.union([evmAddressBytes32Hex, svmAddressBytes32Hex]).openapi({
-    examples: [
-      "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
-    ],
-    description: "Sender address",
-  }),
-  to: z.union([evmAddressBytes32Hex, svmAddressBytes32Hex]).openapi({
-    examples: [
-      "0x000000000000000000000000C6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
-    ],
-    description: "Receiver address",
-  }),
-  tokenAddressFrom: z
-    .union([evmAddressBytes32Hex, svmAddressBytes32Hex])
-    .openapi({
-      examples: [
-        "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
-        "0x000000000000000000000000C6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
-      ],
-      description: "Token address on the sender chain",
+  from: (schema) =>
+    schema
+      .regex(/^0x[a-fA-F0-9]{64}$/)
+      .min(66)
+      .max(66)
+      .openapi({
+        examples: [
+          "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
+        ],
+        description: "Sender address",
+      }),
+  to: (schema) =>
+    schema
+      .regex(/^0x[a-fA-F0-9]{64}$/)
+      .min(66)
+      .max(66)
+      .openapi({
+        examples: [
+          "0x000000000000000000000000C6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
+        ],
+        description: "Receiver address",
+      }),
+  tokenAddressFrom: (schema) =>
+    schema
+      .regex(/^0x[a-fA-F0-9]{64}$/)
+      .min(66)
+      .max(66)
+      .openapi({
+        examples: [
+          "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
+          "0x000000000000000000000000C6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
+        ],
+        description: "Token address on the sender chain",
+      }),
+  tokenAddressTo: (schema) =>
+    schema
+      .regex(/^0x[a-fA-F0-9]{64}$/)
+      .min(66)
+      .max(66)
+      .openapi({
+        examples: [
+          "0x000000000000000000000000C6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
+          "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
+        ],
+        description: "Token address on the receiver chain",
+      }),
+  amountFrom: (schema) =>
+    schema.openapi({
+      example: "1000000000000000000",
+      description: "Amount of tokens on the sender chain",
     }),
-  tokenAddressTo: z
-    .union([evmAddressBytes32Hex, svmAddressBytes32Hex])
-    .openapi({
-      examples: [
-        "0x000000000000000000000000C6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
-        "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
-      ],
-      description: "Token address on the receiver chain",
+  amountTo: (schema) =>
+    schema.openapi({
+      example: "1000000000000000000",
+      description: "Amount of tokens on the receiver chain",
     }),
-  amountFrom: z.bigint().positive().openapi({
-    example: 1000000000000000000n,
-    description: "Amount of tokens on the sender chain",
-  }),
-  amountTo: z.bigint().positive().openapi({
-    example: 1000000000000000000n,
-    description: "Amount of tokens on the receiver chain",
-  }),
-  chainFrom: z.bigint().positive().openapi({
-    example: SOLANA_DEV_CHAIN_ID,
-    description: "Chain ID of the sender",
-  }),
-  chainTo: z.bigint().positive().openapi({
-    example: 22040n,
-    description: "Chain ID of the receiver",
-  }),
-  eventId: z.bigint().nonnegative().openapi({
-    example: 3n,
+  chainFrom: (schema) =>
+    schema.openapi({
+      example: SOLANA_DEV_CHAIN_ID.toString(),
+      description: "Chain ID of the sender",
+    }),
+  chainTo: (schema) =>
+    schema.openapi({
+      example: "22040",
+      description: "Chain ID of the receiver",
+    }),
+  eventId:(schema) =>
+    schema.openapi({
+    example: "3",
     description: "Event ID",
   }),
-  flags: z.bigint().nonnegative().openapi({
-    example: 0n,
-    description: "Flags for the transaction",
-  }),
+  flags: (schema) =>
+    schema.openapi({
+      example: "0",
+      description: "Flags for the transaction",
+    }),
   data: (schema) =>
     schema.openapi({
       example: "",
       description: "Data for the flags",
     }),
-  claimed: z.boolean().openapi({
-    example: false,
-    description: "If receipt has been claimed",
-  }),
+  claimed: (schema) =>
+    schema.openapi({
+      example: false,
+      description: "If receipt has been claimed",
+    }),
 });
 
-export const receiptMetaEvmSchema = createSelectSchema(receiptsMetaInIndexerEvm, {
-  receiptId: (schema) =>
-    schema.regex(receiptIdRegex).openapi({
-      example: "6003100671677646000_22040_3",
-      description: "Receipt ID as 'chainFrom_chainTo_eventId'",
-    }),
-  blockHash: (schema) =>
-    schema.openapi({
-      example: "0x1c5d488013f993bc30b0fdd2a378fe157c634cb00fa2c47ee4f8a8d332450e30",
-      description: "Block hash",
-    }),
-  blockNumber: z.bigint().positive().openapi({
-    example: 12345678n,
-    description: "Block number",
-  }),
-  timestamp: z.bigint().openapi({
-    example: 1633632000n,
-    description: "Timestamp of the transaction",
-  }),
-  transactionHash: (schema) => schema.openapi({
-    example: "0x48abbe56ad2eec690800f8cd79fa24908f430269a1931d30647b1c9daec19b1b",
-    description: "Transaction hash",
-  }),
-  transactionIndex: z.number().positive().openapi({
-    example: 1,
-    description: "Transaction index in the block",
-  }),
-});
+export const receiptMetaEvmSchema = createSelectSchema(
+  receiptsMetaInIndexerEvm,
+  {
+    receiptId: (schema) =>
+      schema.regex(receiptIdRegex).openapi({
+        example: "6003100671677646000_22040_3",
+        description: "Receipt ID as 'chainFrom_chainTo_eventId'",
+      }),
+    blockHash: (schema) =>
+      schema.openapi({
+        example:
+          "0x1c5d488013f993bc30b0fdd2a378fe157c634cb00fa2c47ee4f8a8d332450e30",
+        description: "Block hash",
+      }),
+    blockNumber: (schema) =>
+      schema.openapi({
+        example: "12345678",
+        description: "Block number",
+      }),
+    timestamp: (schema) =>
+      schema.openapi({
+        example: "1633632000",
+        description: "Timestamp of the transaction",
+      }),
+    transactionHash: (schema) =>
+      schema.openapi({
+        example:
+          "0x48abbe56ad2eec690800f8cd79fa24908f430269a1931d30647b1c9daec19b1b",
+        description: "Transaction hash",
+      }),
+    transactionIndex: (schema) =>
+      schema.openapi({
+        example: 1,
+        description: "Transaction index in the block",
+      }),
+  }
+);
 
 export const receiptMetaSolanaSchema = createSelectSchema(
   receiptsMetaInIndexerSolana,
@@ -288,24 +324,27 @@ export const receiptMetaSolanaSchema = createSelectSchema(
         example: null,
         description: "Not appliable to solana",
       }),
-    blockNumber: z.bigint().positive().openapi({
-      example: 12345678n,
-      description: "Block number (slot)",
-    }),
-    timestamp: z.bigint().openapi({
-      example: 1633632000n,
-      description: "Timestamp of the transaction",
-    }),
+    blockNumber: (schema) =>
+      schema.openapi({
+        example: "12345678",
+        description: "Block number (slot)",
+      }),
+    timestamp: (schema) =>
+      schema.openapi({
+        example: "1633632000",
+        description: "Timestamp of the transaction",
+      }),
     transactionHash: (schema) =>
       schema.openapi({
         example:
           "4HkfnhW93nGRiT3s9YnVnN4fS6masj5FJ99bsTb1AX13NNdaE1BkfVidQ4hTB41MUVcPShft4fRDnZgBBDwWzED5",
         description: "Transaction signature",
       }),
-    transactionIndex: z.number().positive().openapi({
-      example: 1,
-      description: "Transaction index in the block",
-    }),
+    transactionIndex: (schema) =>
+      schema.openapi({
+        example: 1,
+        description: "Transaction index in the block",
+      }),
   }
 );
 
@@ -373,6 +412,7 @@ export const sendPayloadResponseSchema = z.object({
   signature: z.string().regex(signatureRegex).openapi({
     type: "string",
     description: "Signature of the transaction",
-    example: "0x14610d481d0b786920d49cb6318a03ac781ae3a031b306932773c0aad66339547d271ec0c306f62f4e297a8a6cd4c05774863a24852b3fe9a499a355a5fe8fb11b"
+    example:
+      "0x14610d481d0b786920d49cb6318a03ac781ae3a031b306932773c0aad66339547d271ec0c306f62f4e297a8a6cd4c05774863a24852b3fe9a499a355a5fe8fb11b",
   }),
 });

@@ -16,12 +16,10 @@ import {
 import { Hono } from "hono";
 import { env } from "hono/adapter";
 
-const receiptControllerDep = new Dependency(
-  (c) => {
-    const { DATABASE_URL } = env<{ DATABASE_URL: string }>(c);
-    return new ReceiptController(DATABASE_URL);
-  }
-);
+const receiptControllerDep = new Dependency((c) => {
+  const { DATABASE_URL } = env<{ DATABASE_URL: string }>(c);
+  return new ReceiptController(DATABASE_URL);
+});
 
 export const receiptRoutes = new Hono();
 
@@ -82,7 +80,7 @@ receiptRoutes.get(
       "Get unsigned Solana receipts that need to be signed by given address",
     responses: {
       200: {
-        description: "Returns unsigned EVM receipts with receipt metadata",
+        description: "Returns unsigned Solana receipts with receipt metadata",
         content: {
           "application/json": {
             schema: resolver(unsignedReceiptsResponseSchema),
@@ -121,16 +119,90 @@ receiptRoutes.get(
   }
 );
 
+async function getReceipts(
+  receiptController: ReceiptController,
+  limit: number,
+  offset: number,
+  ordering: "asc" | "desc",
+  userAddress: string | undefined = undefined
+) {
+  const data = await receiptController.getAllReceipts(
+    limit,
+    offset,
+    ordering,
+    userAddress
+  );
+  return z.array(receiptResponseSchema).parse(data);
+}
+
 receiptRoutes.get(
-  "/:receiptId",
+  "/",
   describeRoute({
-    description: "Get receipt by id",
+    description: "Get all receipts",
     responses: {
       200: {
-        description: "Returns receipt",
+        description: "Returns receipts",
         content: {
           "application/json": {
-            schema: resolver(receiptResponseSchema),
+            schema: resolver(z.array(receiptResponseSchema)),
+          },
+        },
+      },
+      400: {
+        // 400 Bad Request
+        description: "Returns error message",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                message: {
+                  type: "string",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  }),
+  zValidator(
+    "query",
+    z.object({
+      limit: z.coerce.number().optional().default(50),
+      offset: z.coerce.number().optional().default(0),
+      ordering: z.enum(["asc", "desc"]).optional().default("desc"),
+    })
+  ),
+  receiptControllerDep.middleware("receiptController"),
+  async (c) => {
+    const { limit, offset, ordering } = c.req.valid("query");
+    const { receiptController } = c.var;
+    try {
+      const data = await getReceipts(
+        receiptController,
+        limit,
+        offset,
+        ordering
+      );
+      return c.json(data, 200);
+    } catch (error) {
+      console.error(error);
+      return c.json(error as Error, 400);
+    }
+  }
+);
+
+receiptRoutes.get(
+  "/:userAddress?",
+  describeRoute({
+    description: "Get all receipts for a user",
+    responses: {
+      200: {
+        description: "Returns receipts",
+        content: {
+          "application/json": {
+            schema: resolver(z.array(receiptResponseSchema)),
           },
         },
       },
@@ -151,16 +223,38 @@ receiptRoutes.get(
       },
     },
   }),
-  zValidator("param", receiptIdValidatorSchema),
+  zValidator(
+    "param",
+    z.object({
+      userAddress: z
+        .union([evmAddressBytes32Hex, svmAddressBytes32Hex])
+        .optional(),
+    })
+  ),
+  zValidator(
+    "query",
+    z.object({
+      limit: z.coerce.number().optional().default(50),
+      offset: z.coerce.number().optional().default(0),
+      ordering: z.enum(["asc", "desc"]).optional().default("desc"),
+    })
+  ),
   receiptControllerDep.middleware("receiptController"),
   async (c) => {
+    const { userAddress } = c.req.valid("param");
+    const { limit, offset, ordering } = c.req.valid("query");
+    const { receiptController } = c.var;
     try {
-      const receiptId = c.req.valid("param").receiptId;
-      const { receiptController } = c.var;
-      const data = await receiptController.getReceipt(receiptId);
-      return c.json(receiptResponseSchema.parse(data), 200);
+      const data = await getReceipts(
+        receiptController,
+        limit,
+        offset,
+        ordering,
+        userAddress
+      );
+      return c.json(data, 200);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return c.json(error as Error, 400);
     }
   }
@@ -249,15 +343,15 @@ receiptRoutes.post(
 );
 
 receiptRoutes.get(
-  "/:userAddress?",
+  "/:receiptId",
   describeRoute({
-    description: "Get all receipts for a user",
+    description: "Get receipt by id",
     responses: {
       200: {
-        description: "Returns receipts",
+        description: "Returns receipt",
         content: {
           "application/json": {
-            schema: resolver(z.array(receiptResponseSchema)),
+            schema: resolver(receiptResponseSchema),
           },
         },
       },
@@ -278,35 +372,14 @@ receiptRoutes.get(
       },
     },
   }),
-  zValidator(
-    "param",
-    z.object({
-      userAddress: z
-        .union([evmAddressBytes32Hex, svmAddressBytes32Hex])
-        .optional(),
-    })
-  ),
-  zValidator(
-    "query",
-    z.object({
-      limit: z.number().optional().default(50),
-      offset: z.number().optional().default(0),
-      ordering: z.enum(["asc", "desc"]).optional().default("desc"),
-    })
-  ),
+  zValidator("param", receiptIdValidatorSchema),
   receiptControllerDep.middleware("receiptController"),
   async (c) => {
     try {
-      const { limit, offset, ordering } = c.req.valid("query");
-      const { userAddress } = c.req.valid("param");
+      const receiptId = c.req.valid("param").receiptId;
       const { receiptController } = c.var;
-      const data = await receiptController.getAllReceipts(
-        limit,
-        offset,
-        ordering,
-        userAddress
-      );
-      return c.json(data, 200);
+      const data = await receiptController.getReceipt(receiptId);
+      return c.json(receiptResponseSchema.parse(data), 200);
     } catch (error) {
       console.log(error);
       return c.json(error as Error, 400);

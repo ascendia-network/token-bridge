@@ -72,6 +72,9 @@ export class ReceiptController {
     receiptId: `${number}_${number}_${number}`
   ): Promise<typeof receipt.$inferSelect | Error> {
     try {
+      consoleLogger("Refreshing materialized view...");
+      await this.db.refreshMaterializedView(receipt);
+      consoleLogger("Materialized view refreshed");
       const [result] = await this.db
         .select()
         .from(receipt)
@@ -94,7 +97,10 @@ export class ReceiptController {
           | null;
       }>
     | Error
-  > {
+    > {
+    consoleLogger("Refreshing materialized view...");
+    await this.db.refreshMaterializedView(receipt);
+    consoleLogger("Materialized view refreshed");
     const signedByRelayer = await this.db
       .select({ receiptId: signatures.receiptId })
       .from(signatures)
@@ -261,6 +267,9 @@ export class ReceiptController {
     signer: string,
     signature: `0x${string}`
   ): Promise<boolean> {
+    consoleLogger("Refreshing materialized view...");
+    await this.db.refreshMaterializedView(receipt);
+    consoleLogger("Materialized view refreshed");
     const [receiptToSign] = await this.db
       .select()
       .from(receipt)

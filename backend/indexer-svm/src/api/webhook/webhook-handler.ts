@@ -1,5 +1,4 @@
 import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
-import bs58 from "bs58";
 import { BorshCoder, EventParser, Program } from "@coral-xyz/anchor";
 import * as idl from "../../idl/idl.json";
 import type { AmbSolBridge } from "../../idl/idlType";
@@ -28,6 +27,7 @@ export async function webhookHandler(request, reply) {
         if (log.name === "SendEvent") {
           console.log("RESULT!", processSendEvent(log, event));
           ({ model, values: insertValues } = processSendEvent(log, event));
+          insertValues.receiptId = `${insertValues.chainFrom}_${insertValues.chainTo}_${insertValues.eventId}`;
         } else if (log.name === "ReceiveEvent") {
           console.log("ReceiveEvent:", log);
           continue; //TODO!

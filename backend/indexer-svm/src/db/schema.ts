@@ -4,9 +4,9 @@ import {
   text,
   numeric,
   integer,
-  primaryKey,
+  primaryKey
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
+import { SQL, sql } from "drizzle-orm";
 
 export const indexerSolana = pgSchema("indexer_solana");
 
@@ -16,7 +16,7 @@ export const receiptsMeta = indexerSolana.table("receiptsMeta", {
   blockNumber: numeric("block_number", { precision: 78, scale: 0 }),
   timestamp: numeric({ precision: 78, scale: 0 }),
   transactionHash: text("transaction_hash"),
-  transactionIndex: integer("transaction_index"),
+  transactionIndex: integer("transaction_index")
 });
 
 export const receiptsClaimed = indexerSolana.table(
@@ -40,28 +40,19 @@ export const receiptsClaimed = indexerSolana.table(
     chainFrom: numeric("chain_from", { precision: 78, scale: 0 }).notNull(),
     chainTo: numeric("chain_to", { precision: 78, scale: 0 }).notNull(),
     eventId: numeric("event_id", { precision: 78, scale: 0 }).notNull(),
-    flags: numeric({ precision: 78, scale: 0 }).notNull(),
+    flags: numeric({ precision: 78, scale: 0 }).notNull()
   },
   (table) => [
     primaryKey({
-      columns: [table.chainFrom, table.chainTo, table.eventId],
-    }),
+      columns: [table.chainFrom, table.chainTo, table.eventId]
+    })
   ]
 );
 
 export const receiptsSent = indexerSolana.table(
   "receiptsSent",
   {
-    receiptId: text("receipt_id")
-      .notNull()
-      .$defaultFn(
-        (): string =>
-          `${receiptsClaimed.chainFrom}_${receiptsClaimed.chainTo}_${receiptsClaimed.eventId}`
-      )
-      .$onUpdateFn(
-        (): string =>
-          `${receiptsClaimed.chainFrom}_${receiptsClaimed.chainTo}_${receiptsClaimed.eventId}`
-      ),
+    receiptId: text("receipt_id").notNull(),
     timestamp: numeric({ precision: 78, scale: 0 }).notNull(),
     bridgeAddress: text("bridge_address").notNull(),
     from: text().notNull(),
@@ -74,11 +65,11 @@ export const receiptsSent = indexerSolana.table(
     chainTo: numeric("chain_to", { precision: 78, scale: 0 }).notNull(),
     eventId: numeric("event_id", { precision: 78, scale: 0 }).notNull(),
     flags: numeric({ precision: 78, scale: 0 }).notNull(),
-    data: text().notNull(),
+    data: text().notNull()
   },
   (table) => [
     primaryKey({
-      columns: [table.chainFrom, table.chainTo, table.eventId],
-    }),
+      columns: [table.chainFrom, table.chainTo, table.eventId]
+    })
   ]
 );

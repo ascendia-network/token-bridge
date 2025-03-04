@@ -23,6 +23,8 @@ interface SendSignatureArgs {
   externalTokenAddress: string;
   amount: string;
   isMaxAmount: boolean;
+  flags: string;
+  flagData: string;
 }
 
 interface SendPayload {
@@ -46,12 +48,11 @@ export class SendSignatureController {
                            tokenAddress,
                            amount,
                            isMaxAmount,
-                           externalTokenAddress
+                           externalTokenAddress,
+                           flags, flagData
                          }: SendSignatureArgs) {
     const { feeAmount, amountToSend } = await getFees(networkFrom, networkTo, tokenAddress, amount, isMaxAmount);
     const timestamp = Date.now() / 1000;
-    const flags = "0x0";
-    const flagData = "";
 
     const sendPayload: SendPayload = {
       tokenAddress,

@@ -33,8 +33,10 @@ sendSignatureRoutes.get(
         tokenAddress,
         amount,
         isMaxAmount,
-        externalTokenAddress
-      } = c.req.valid("query");
+        externalTokenAddress,
+        flags,
+        flagData
+      } = c.req.query();
       const { sendSignatureController } = c.var;
       const data = await sendSignatureController.getSendSignature({
         networkFrom,
@@ -42,7 +44,9 @@ sendSignatureRoutes.get(
         networkTo,
         tokenAddress,
         amount,
-        isMaxAmount: Boolean(isMaxAmount)
+        isMaxAmount: Boolean(isMaxAmount),
+        flags,
+        flagData
       });
       return c.json(data, 200);
     } catch (error) {

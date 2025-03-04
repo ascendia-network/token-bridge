@@ -11,6 +11,7 @@ import {
   evmAddressBytes32Hex,
   unsignedReceiptsResponseSchema,
   receiptResponseSchema,
+  signatureRegex,
 } from "./utils";
 import { Hono } from "hono";
 import { env } from "hono/adapter";
@@ -112,7 +113,7 @@ receiptRoutes.get(
       const pubkey = c.req.valid("param").address;
       const { receiptController } = c.var;
       const data = await receiptController.getUnsignedReceipts(pubkey, "svm");
-      return c.json(data, 200);
+      return c.json(unsignedReceiptsResponseSchema.parse(data), 200);
     } catch (error) {
       console.error(error);
       return c.json(error as Error, 400);
@@ -121,7 +122,7 @@ receiptRoutes.get(
 );
 
 receiptRoutes.get(
-  "/:id",
+  "/:receiptId",
   describeRoute({
     description: "Get receipt by id",
     responses: {
@@ -157,7 +158,7 @@ receiptRoutes.get(
       const receiptId = c.req.valid("param").receiptId;
       const { receiptController } = c.var;
       const data = await receiptController.getReceipt(receiptId);
-      return c.json(data, 200);
+      return c.json(receiptResponseSchema.parse(data), 200);
     } catch (error) {
       console.log(error);
       return c.json(error as Error, 400);
@@ -166,7 +167,7 @@ receiptRoutes.get(
 );
 
 receiptRoutes.post(
-  "/:id",
+  "/:receiptId",
   describeRoute({
     description: "Add signature to receipt",
     responses: {
@@ -208,10 +209,16 @@ receiptRoutes.post(
   zValidator(
     "json",
     z.object({
-      signer: z.string(),
+      signer: z.string().openapi({
+        examples: [
+          "0xe0b52EC5cE3e124ab5306ea42463bE85aeb5eDDd",
+          "FMYR5BFh3JapZS1cfwYViiBMYJxFGwKdchnghBnBtxkk",
+        ],
+        description: "Signer address",
+      }),
       signature: z
         .string()
-        .regex(/^(0x|0X)?[a-fA-F0-9]{130}$/)
+        .regex(signatureRegex)
         .transform((val) => {
           const processed = String(val);
           if (processed.startsWith("0X") || processed.startsWith("0x")) {
@@ -228,8 +235,12 @@ receiptRoutes.post(
       const receiptId = c.req.valid("param").receiptId;
       const signature = c.req.valid("json").signature as `0x${string}`;
       const signer = c.req.valid("json").signer;
-      const data = await receiptController.addSignature(receiptId, signer, signature);
-      return c.json({signed: data}, 201);
+      const data = await receiptController.addSignature(
+        receiptId,
+        signer,
+        signature
+      );
+      return c.json({ signed: data }, 201);
     } catch (error) {
       console.log(error);
       return c.json(error as Error, 400);

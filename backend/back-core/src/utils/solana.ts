@@ -1,5 +1,11 @@
 import { Buffer } from "buffer";
 import * as borsh from "borsh";
+import { bytesToBigInt, stringToBytes } from "viem";
+
+export const SOLANA_CHAIN_ID = bytesToBigInt(stringToBytes("SOLANA", { size: 8 }));
+export const SOLANA_DEV_CHAIN_ID = bytesToBigInt(
+  stringToBytes("SOLANADN", { size: 8 })
+);
 
 const _b20 = { array: { type: "u8", len: 20 } };
 const _b32 = { array: { type: "u8", len: 32 } };

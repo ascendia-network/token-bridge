@@ -5,7 +5,6 @@ import { receiptsMetaInIndexerSolana } from "../db/schema/solana.schema";
 import { eq, or, asc, desc, ne, and, notInArray } from "drizzle-orm";
 import {
   stringToBytes,
-  bytesToBigInt,
   encodeAbiParameters,
   keccak256,
   hashMessage,
@@ -18,6 +17,9 @@ import { bridgeAbi } from "../../abis/bridgeAbi";
 import { getContext } from "hono/context-storage";
 import { validatorAbi } from "../../abis/validatorAbi";
 import { consoleLogger } from "../utils";
+import { serializeReceivePayload, SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID, type ReceivePayload } from "../utils/solana";
+import nacl from "tweetnacl";
+import { PublicKey } from "@solana/web3.js";
 
 export class ReceiptController {
   db: NodePgDatabase;
@@ -67,7 +69,7 @@ export class ReceiptController {
   }
 
   async getReceipt(
-    receiptId: `${number}-${number}-${number}`
+    receiptId: `${number}_${number}_${number}`
   ): Promise<typeof receipt.$inferSelect | Error> {
     try {
       const [result] = await this.db
@@ -88,7 +90,8 @@ export class ReceiptController {
         receipts: typeof receipt.$inferSelect;
         receiptsMeta:
           | typeof receiptsMetaInIndexerEvm.$inferSelect
-          | typeof receiptsMetaInIndexerSolana.$inferSelect | null;
+          | typeof receiptsMetaInIndexerSolana.$inferSelect
+          | null;
       }>
     | Error
   > {
@@ -96,7 +99,10 @@ export class ReceiptController {
       .select({ receiptId: signatures.receiptId })
       .from(signatures)
       .where(eq(signatures.signedBy, pubkey));
-    const joinModel = chainEnum === "svm" ? receiptsMetaInIndexerEvm : receiptsMetaInIndexerSolana;
+    const joinModel =
+      chainEnum === "svm"
+        ? receiptsMetaInIndexerEvm
+        : receiptsMetaInIndexerSolana;
     const receipts = await this.db
       .select()
       .from(receipt)
@@ -104,13 +110,13 @@ export class ReceiptController {
         and(
           eq(receipt.claimed, false),
           chainEnum === "svm"
-            ? eq(
-                receipt.chainTo,
-                bytesToBigInt(stringToBytes("SOLANA", { size: 32 })).toString()
+            ? or(
+                eq(receipt.chainTo, SOLANA_CHAIN_ID.toString()),
+                eq(receipt.chainTo, SOLANA_DEV_CHAIN_ID.toString())
               )
-            : ne(
-                receipt.chainTo,
-                bytesToBigInt(stringToBytes("SOLANA", { size: 32 })).toString()
+            : and(
+                ne(receipt.chainTo, SOLANA_CHAIN_ID.toString()),
+                ne(receipt.chainTo, SOLANA_DEV_CHAIN_ID.toString())
               ),
           notInArray(
             receipt.receiptId,
@@ -126,20 +132,70 @@ export class ReceiptController {
     receiptToSign: typeof receipt.$inferSelect,
     signature: `0x${string}`
   ): Promise<`0x${string}`> {
-    const MiniReceiptAbi = bridgeAbi.find(
-      (abi) => abi.type === "function" && abi.name === "claim"
-    )?.inputs[0];
+    const MiniReceiptAbi = {
+      name: "receipt",
+      type: "tuple",
+      indexed: false,
+      internalType: "struct BridgeTypes.MiniReceipt",
+      components: [
+        {
+          name: "to",
+          type: "bytes32",
+          internalType: "bytes32",
+        },
+        {
+          name: "tokenAddressTo",
+          type: "bytes32",
+          internalType: "bytes32",
+        },
+        {
+          name: "amountTo",
+          type: "uint256",
+          internalType: "uint256",
+        },
+        {
+          name: "chainFrom",
+          type: "uint256",
+          internalType: "uint256",
+        },
+        {
+          name: "chainTo",
+          type: "uint256",
+          internalType: "uint256",
+        },
+        {
+          name: "eventId",
+          type: "uint256",
+          internalType: "uint256",
+        },
+        {
+          name: "flags",
+          type: "uint256",
+          internalType: "uint256",
+        },
+        {
+          name: "data",
+          type: "bytes",
+          internalType: "bytes",
+        },
+      ],
+    };
     if (!MiniReceiptAbi) throw new Error("Receipt ABI not found");
-    const message = encodeAbiParameters(MiniReceiptAbi.components, [
-      receiptToSign.to as `0x${string}`,
-      receiptToSign.tokenAddressTo as `0x${string}`,
-      BigInt(receiptToSign.amountTo),
-      BigInt(receiptToSign.chainFrom),
-      BigInt(receiptToSign.chainTo),
-      BigInt(receiptToSign.eventId),
-      BigInt(receiptToSign.flags),
-      receiptToSign.data as `0x${string}`,
-    ]);
+    const message = encodeAbiParameters<[typeof MiniReceiptAbi]>(
+      [MiniReceiptAbi],
+      [
+        {
+          to: receiptToSign.to as `0x${string}`,
+          tokenAddressTo: receiptToSign.tokenAddressTo as `0x${string}`,
+          amountTo: BigInt(receiptToSign.amountTo),
+          chainFrom: BigInt(receiptToSign.chainFrom),
+          chainTo: BigInt(receiptToSign.chainTo),
+          eventId: BigInt(receiptToSign.eventId),
+          flags: BigInt(receiptToSign.flags),
+          data: receiptToSign.data as `0x${string}`,
+        },
+      ]
+    );
     const messageHash = keccak256(message);
     const digest = hashMessage({ raw: messageHash });
     const signer = await recoverMessageAddress({ message: digest, signature });
@@ -173,8 +229,36 @@ export class ReceiptController {
     return signer;
   }
 
+  private async checkSignerSolana(
+    receiptToSign: typeof receipt.$inferSelect,
+    signer: string,
+    signature: `0x${string}`
+  ): Promise<string> {
+    consoleLogger("Solana signature verification not implemented, skipping");
+    const value: ReceivePayload = {
+      to: stringToBytes(receiptToSign.to),
+      tokenAddressTo: stringToBytes(receiptToSign.tokenAddressTo),
+      amountTo: Number(receiptToSign.amountTo),
+      chainTo: BigInt(receiptToSign.chainTo),
+      flags: stringToBytes(receiptToSign.flags),
+      flagData: stringToBytes(receiptToSign.data),
+    };
+    const payload = serializeReceivePayload(value);
+    const isValid = nacl.sign.detached.verify(
+      payload,
+      Buffer.from(signature.slice(2), "hex"),
+      new PublicKey(signer).toBytes(),
+    );
+    if (!isValid) {
+      throw new Error("Invalid signature");
+    }
+    // TODO: Check if signer is a validator on-chain
+    return signer;
+  }
+
   async addSignature(
-    receiptId: `${number}-${number}-${number}`,
+    receiptId: `${number}_${number}_${number}`,
+    signer: string,
     signature: `0x${string}`
   ): Promise<boolean> {
     const [receiptToSign] = await this.db
@@ -187,23 +271,29 @@ export class ReceiptController {
     if (receiptToSign.claimed) {
       throw new Error("Receipt already claimed");
     }
-    if (
-      BigInt(receiptToSign.chainTo) !==
-      bytesToBigInt(stringToBytes("SOLANA", { size: 32 }))
-    ) {
-      const validSigner = await this.checkSignerEVM(receiptToSign, signature);
-      if (!validSigner) {
-        throw new Error("Invalid signer");
-      }
-      await this.db.insert(signatures).values({
-        receiptId,
-        signedBy: validSigner,
-        signature,
-      });
-      return true;
-    } else {
-      // TODO: Implement Solana signature verification
-      throw new Error("Solana signature verification not implemented");
+    switch (BigInt(receiptToSign.chainTo)) {
+      case SOLANA_CHAIN_ID:
+      case SOLANA_DEV_CHAIN_ID:
+        // TODO: Implement Solana signature verification
+        consoleLogger("Solana signature verification not implemented, skipping");
+        const signedBy = await this.checkSignerSolana(receiptToSign, signer, signature);
+        await this.db.insert(signatures).values({
+          receiptId,
+          signedBy,
+          signature,
+        });
+        return true;
+      default:
+        const validSigner = await this.checkSignerEVM(receiptToSign, signature);
+        if (!validSigner || validSigner !== signer) {
+          throw new Error("Invalid signer");
+        }
+        await this.db.insert(signatures).values({
+          receiptId,
+          signedBy: validSigner,
+          signature,
+        });
+        return true;
     }
   }
 }

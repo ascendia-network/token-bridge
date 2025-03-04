@@ -1057,6 +1057,10 @@ export type AmbSolBridge = {
             "type": "u64"
           },
           {
+            "name": "eventId",
+            "type": "u64"
+          },
+          {
             "name": "flags",
             "type": {
               "array": [

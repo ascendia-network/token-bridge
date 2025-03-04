@@ -1051,6 +1051,10 @@
             "type": "u64"
           },
           {
+            "name": "event_id",
+            "type": "u64"
+          },
+          {
             "name": "flags",
             "type": {
               "array": [

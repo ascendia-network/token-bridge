@@ -120,11 +120,11 @@ export const payloadSvmValidatorSchema = payloadValidatorSchema.extend({
 
 
 export const sendSignatureQuerySchema = z.object({
-  networkFrom: z.bigint().min(1n, "networkFrom is required").openapi({
+  networkFrom: z.coerce.bigint().min(1n, "networkFrom is required").openapi({
     example: 1n,
     description: "Chain ID of the sender",
   }),
-  networkTo: z.bigint().min(1n, "networkTo is required").openapi({
+  networkTo: z.coerce.bigint().min(1n, "networkTo is required").openapi({
     example: SOLANA_DEV_CHAIN_ID,
     description: "Chain ID of the receiver",
   }),
@@ -136,11 +136,11 @@ export const sendSignatureQuerySchema = z.object({
         "0x000000000000000000000000C6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
       description: "Token address in bytes32 hex format",
     }),
-  amount: z.bigint().positive().min(1n, "amount is required").openapi({
+  amount: z.coerce.bigint().positive().min(1n, "amount is required").openapi({
     example: 1000000000000000000n,
     description: "Amount of tokens to send",
   }),
-  isMaxAmount: z.boolean().default(false).openapi({
+  isMaxAmount: z.coerce.boolean().default(false).openapi({
     example: false,
     description:
       "Whether to send the maximum amount of tokens (only for native tokens)",
@@ -153,7 +153,7 @@ export const sendSignatureQuerySchema = z.object({
         "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
       description: "External token address in bytes32 hex format",
     }),
-  flags: z.bigint().nonnegative().default(0n).openapi({
+  flags: z.coerce.bigint().nonnegative().default(0n).openapi({
     example: 0n,
     description: "Flags for the transaction",
   }),

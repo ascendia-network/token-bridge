@@ -9,6 +9,8 @@ import {AddressUtils} from "../contracts/utils/AddressUtils.sol";
 
 contract AddressUtilsTest is Test {
 
+    string constant JS_ADDRESS_PATH = "./test/differential_testing/bytes2address.js";
+
     function bytesToAddress(
         bytes memory bys
     ) private pure returns (address addr) {
@@ -24,7 +26,7 @@ contract AddressUtilsTest is Test {
 
         // Build ffi command string
         runJsInputs[0] = "node";
-        runJsInputs[1] = "./test/differential_testing/bytes2address.js";
+        runJsInputs[1] = JS_ADDRESS_PATH;
         runJsInputs[2] = Strings.toHexString(uint256(data), 32);
         runJsInputs[3] = "false";
 
@@ -43,7 +45,7 @@ contract AddressUtilsTest is Test {
 
         // Build ffi command string
         runJsInputs[0] = "node";
-        runJsInputs[1] = "./test/differential_testing/bytes2address.js";
+        runJsInputs[1] = JS_ADDRESS_PATH;
         runJsInputs[2] = Strings.toHexString(uint256(data), 32);
         runJsInputs[3] = "true";
 
@@ -62,7 +64,7 @@ contract AddressUtilsTest is Test {
 
         // Build ffi command string
         runJsInputs[0] = "node";
-        runJsInputs[1] = "./test/differential_testing/bytes2address.js";
+        runJsInputs[1] = JS_ADDRESS_PATH;
         runJsInputs[2] = Strings.toHexString(uint256(data), 32);
 
         // Run command and capture output
@@ -80,12 +82,13 @@ contract AddressUtilsTest is Test {
         string[] memory runJsInputs = new string[](3);
         // Build ffi command string
         runJsInputs[0] = "node";
-        runJsInputs[1] = "./test/differential_testing/bytes2address.js";
+        runJsInputs[1] = JS_ADDRESS_PATH;
         runJsInputs[2] = dataStr;
 
         // Run command and capture output
         bytes memory jsResult = vm.ffi(runJsInputs);
         address jsGenerated = bytesToAddress(jsResult);
+        
         address expected = AddressUtils.toAddress(dataStr);
         assertEq(expected, jsGenerated);
     }

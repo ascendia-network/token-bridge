@@ -25,12 +25,12 @@
     "deploy:validator:testnet:force": "FORCE_DEPLOY=true forge script -v -g 200 --slow --legacy --broadcast --rpc-url https://network.ambrosus-test.io --verifier sourcify --verifier-url https://sourcify.ambrosus.io/ --verify ./script/DeployValidator.s.sol",
     "deploy:validator:devnet:force": "FORCE_DEPLOY=true forge script -v -g 200 --slow --legacy --broadcast --rpc-url https://network.ambrosus-dev.io --verifier sourcify --verifier-url https://sourcify.ambrosus.io/ --verify ./script/DeployValidator.s.sol",
     "deploy:validator:mainnet:force": "FORCE_DEPLOY=true forge script -v -g 200 --slow --legacy --broadcast --rpc-url https://network.ambrosus.io --verifier sourcify --verifier-url https://sourcify.ambrosus.io/ --verify ./script/DeployValidator.s.sol",
-    "deploy:authtority:testnet": "forge script -v -g 200 --slow --legacy --broadcast --rpc-url https://network.ambrosus-test.io --verifier sourcify --verifier-url https://sourcify.ambrosus.io/ --verify ./script/DeployAuthority.s.sol",
-    "deploy:authtority:devnet": "forge script -v -g 200 --slow --legacy --broadcast --rpc-url https://network.ambrosus-dev.io --verifier sourcify --verifier-url https://sourcify.ambrosus.io/ --verify ./script/DeployAuthority.s.sol",
-    "deploy:authtority:mainnet": "forge script -v -g 200 --slow --legacy --broadcast --rpc-url https://network.ambrosus.io --verifier sourcify --verifier-url https://sourcify.ambrosus.io/ --verify ./script/DeployAuthority.s.sol",
-    "deploy:authtority:testnet:force": "FORCE_DEPLOY=true forge script -v -g 200 --slow --legacy --broadcast --rpc-url https://network.ambrosus-test.io --verifier sourcify --verifier-url https://sourcify.ambrosus.io/ --verify ./script/DeployAuthority.s.sol",
-    "deploy:authtority:devnet:force": "FORCE_DEPLOY=true forge script -v -g 200 --slow --legacy --broadcast --rpc-url https://network.ambrosus-dev.io --verifier sourcify --verifier-url https://sourcify.ambrosus.io/ --verify ./script/DeployAuthority.s.sol",
-    "deploy:authtority:mainnet:force": "FORCE_DEPLOY=true forge script -v -g 200 --slow --legacy --broadcast --rpc-url https://network.ambrosus.io --verifier sourcify --verifier-url https://sourcify.ambrosus.io/ --verify ./script/DeployAuthority.s.sol"
+    "deploy:authority:testnet": "forge script -v -g 200 --slow --legacy --broadcast --rpc-url https://network.ambrosus-test.io --verifier sourcify --verifier-url https://sourcify.ambrosus.io/ --verify ./script/DeployAuthority.s.sol",
+    "deploy:authority:devnet": "forge script -v -g 200 --slow --legacy --broadcast --rpc-url https://network.ambrosus-dev.io --verifier sourcify --verifier-url https://sourcify.ambrosus.io/ --verify ./script/DeployAuthority.s.sol",
+    "deploy:authority:mainnet": "forge script -v -g 200 --slow --legacy --broadcast --rpc-url https://network.ambrosus.io --verifier sourcify --verifier-url https://sourcify.ambrosus.io/ --verify ./script/DeployAuthority.s.sol",
+    "deploy:authority:testnet:force": "FORCE_DEPLOY=true forge script -v -g 200 --slow --legacy --broadcast --rpc-url https://network.ambrosus-test.io --verifier sourcify --verifier-url https://sourcify.ambrosus.io/ --verify ./script/DeployAuthority.s.sol",
+    "deploy:authority:devnet:force": "FORCE_DEPLOY=true forge script -v -g 200 --slow --legacy --broadcast --rpc-url https://network.ambrosus-dev.io --verifier sourcify --verifier-url https://sourcify.ambrosus.io/ --verify ./script/DeployAuthority.s.sol",
+    "deploy:authority:mainnet:force": "FORCE_DEPLOY=true forge script -v -g 200 --slow --legacy --broadcast --rpc-url https://network.ambrosus.io --verifier sourcify --verifier-url https://sourcify.ambrosus.io/ --verify ./script/DeployAuthority.s.sol"
   },
   "keywords": [],
   "author": "",

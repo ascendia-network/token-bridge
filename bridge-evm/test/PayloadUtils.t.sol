@@ -27,6 +27,8 @@ contract PayloadUtilsTest is Test {
         return string(abi.encodePacked("0x", converted));
     }
 
+    string constant JS_PAYLOAD_HASH_PATH = "./test/differential_testing/payload2hash.js";
+
     function test_fuzz_payload2hash(
         uint256 destChainId, // destination chain id
         bytes32 tokenAddress, // address of the token contract
@@ -37,6 +39,13 @@ contract PayloadUtilsTest is Test {
         uint256 flags, // flags of the sending operation
         bytes memory flagData // additional data of the sending operation (unused for now)
     ) public {
+        // Validate inputs
+        require(flagData.length <= 1024, "Data too large");
+        require(amountToSend <= type(uint256).max, "Amount to send overflow");
+        require(feeAmount <= type(uint256).max, "Fee amount overflow");
+        require(timestamp <= type(uint256).max, "Timestamp overflow");
+        require(flags <= type(uint256).max, "Flags overflow");
+
         string[] memory runJsInputs = new string[](10);
         BridgeTypes.SendPayload memory payload = BridgeTypes.SendPayload({
             destChainId: destChainId,
@@ -51,7 +60,7 @@ contract PayloadUtilsTest is Test {
 
         // Build ffi command string
         runJsInputs[0] = "node";
-        runJsInputs[1] = "./test/differential_testing/payload2hash.js";
+        runJsInputs[1] = JS_PAYLOAD_HASH_PATH;
         runJsInputs[2] = Strings.toHexString(uint256(destChainId), 32);
         runJsInputs[3] = Strings.toHexString(uint256(tokenAddress), 32);
         runJsInputs[4] = Strings.toHexString(uint256(externalTokenAddress), 32);

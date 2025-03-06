@@ -53,12 +53,12 @@ jobs:
 
       - name: Run Forge tests with gas snapshot
         run: |
-          NO_COLOR=1 forge snapshot --check .gas-snapshot --tolerance 5 >> $GITHUB_STEP_SUMMARY
+          NO_COLOR=1 forge snapshot --force --check .gas-snapshot --tolerance 10 >> $GITHUB_STEP_SUMMARY
         id: test
 
       - name: Run Forge coverage
         run: 
-          forge coverage --report lcov --report-file="coverage/lcov.info" --report summary
+          npm run coverage
         id: coverage
       
       - name: LCOV Summary

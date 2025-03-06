@@ -344,7 +344,7 @@ contract DeployerBase is Script {
             )
         );
         bridgeSolana = BridgeSolana(proxy);
-        console.log("Bridge for Solana deployed at:", address(bridge));
+        console.log("Bridge for Solana deployed at:", address(bridgeSolana));
         console.log(
             "   Implementation address:",
             Upgrades.getImplementationAddress(proxy)

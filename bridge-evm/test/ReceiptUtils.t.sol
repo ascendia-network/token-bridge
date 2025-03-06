@@ -27,6 +27,8 @@ contract ReceiptUtilsTest is Test {
         return string(abi.encodePacked("0x", converted));
     }
 
+    string constant JS_RECEIPT_HASH_PATH = "./test/differential_testing/receipt2hash.js";
+
     function test_fuzz_fullReceipt2hash(
         bytes32 from, // source address (bytes32 because of cross-chain compatibility)
         bytes32 to, // destination address (bytes32 because of cross-chain compatibility)
@@ -40,6 +42,11 @@ contract ReceiptUtilsTest is Test {
         uint256 flags, // flags for receiver
         bytes memory data // additional data of the transaction (eg. user nonce for Solana)
     ) public {
+        // Validate inputs
+        require(data.length <= 1024, "Data too large");
+        require(amountFrom <= type(uint256).max, "Amount from overflow");
+        require(amountTo <= type(uint256).max, "Amount to overflow");
+
         string[] memory runJsInputs = new string[](14);
         BridgeTypes.FullReceipt memory receipt = BridgeTypes.FullReceipt({
             from: from,
@@ -57,7 +64,7 @@ contract ReceiptUtilsTest is Test {
 
         // Build ffi command string
         runJsInputs[0] = "node";
-        runJsInputs[1] = "./test/differential_testing/receipt2hash.js";
+        runJsInputs[1] = JS_RECEIPT_HASH_PATH;
         runJsInputs[2] = "--full";
         runJsInputs[3] = Strings.toHexString(uint256(from), 32);
         runJsInputs[4] = Strings.toHexString(uint256(to), 32);
@@ -72,7 +79,13 @@ contract ReceiptUtilsTest is Test {
         runJsInputs[13] = iToHex(data);
 
         // Run command and capture output
-        bytes memory jsResult = vm.ffi(runJsInputs);
+
+        bytes memory jsResult;
+        try vm.ffi(runJsInputs) returns (bytes memory result) {
+            jsResult = result;
+        } catch {
+            revert("JavaScript execution failed");
+        }
         bytes32 jsGenerated = abi.decode(jsResult, (bytes32));
 
         bytes32 expectedHash = ReceiptUtils.toHash(receipt);
@@ -89,6 +102,10 @@ contract ReceiptUtilsTest is Test {
         uint256 flags, // flags for receiver
         bytes memory data // additional data of the transaction (eg. user nonce for Solana)
     ) public {
+        // Validate inputs
+        require(data.length <= 1024, "Data too large");
+        require(amountTo <= type(uint256).max, "Amount to overflow");
+
         string[] memory runJsInputs = new string[](11);
         BridgeTypes.MiniReceipt memory receipt = BridgeTypes.MiniReceipt({
             to: to,
@@ -103,7 +120,7 @@ contract ReceiptUtilsTest is Test {
 
         // Build ffi command string
         runJsInputs[0] = "node";
-        runJsInputs[1] = "./test/differential_testing/receipt2hash.js";
+        runJsInputs[1] = JS_RECEIPT_HASH_PATH;
         runJsInputs[2] = "--mini";
         runJsInputs[3] = Strings.toHexString(uint256(to), 32);
         runJsInputs[4] = Strings.toHexString(uint256(tokenAddressTo), 32);

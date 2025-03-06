@@ -9,6 +9,7 @@
     "coverage": "npm run pretest && FOUNDRY_PROFILE=coverage forge coverage --report lcov --report-file='coverage/lcov.info' --report summary",
     "build": "forge build",
     "test": "forge test",
+    "snapshot": "forge snapshot",
     "docgen": "forge doc",
     "lint": "forge fmt",
     "postinstall": "forge install",

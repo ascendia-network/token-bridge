@@ -1,7 +1,7 @@
 import { z } from "zod";
 import "zod-openapi/extend";
 import { Base58 } from "ox";
-import { receipt } from "../db/schema/core.schema";
+import { receipt, signatures } from "../db/schema/core.schema";
 import { receiptsMetaInIndexerEvm } from "../db/schema/evm.schema";
 import { receiptsMetaInIndexerSolana } from "../db/schema/solana.schema";
 import { createSelectSchema } from "drizzle-zod";
@@ -361,7 +361,33 @@ export const unsignedReceiptsResponseSchema = z.array(
   })
 );
 
-export const receiptResponseSchema = ReceiptSchema;
+const signaturesSchema = createSelectSchema(signatures, {
+  receiptId: (schema: z.ZodString) =>
+    schema.regex(receiptIdRegex).openapi({
+      example: "6003100671677646000_22040_3",
+      description: "Receipt ID as 'chainFrom_chainTo_eventId",
+    }),
+  signedBy: (schema: z.ZodString) =>
+    schema.openapi({
+      examples: [
+        "GCSfaYKrPKirtS33JzVZbAZmbwyGenWTXx9Zf77qo882",
+        "0x0659f7D44aE52AA209319de9Ea99Da2FebABfD81",
+      ],
+      description: "Address of the relayer",
+    }),
+  signature: (schema: z.ZodString) =>
+    schema.regex(signatureRegex).openapi({
+      example:
+        "0x14610d481d0b786920d49cb6318a03ac781ae3a031b306932773c0aad66339547d271ec0c306f62f4e297a8a6cd4c05774863a24852b3fe9a499a355a5fe8fb11b",
+      description: "Signature of the transaction",
+    }),
+}).omit({ id: true });
+
+export const receiptResponseSchema = z.object({
+  receipt: ReceiptSchema,
+  receiptMeta: z.array(ReceiptMetaSchema),
+  signatures: z.array(signaturesSchema),
+});
 
 export const SendPayload = z.object({
   destChainId: z.bigint().min(1n, "networkTo is required").openapi({

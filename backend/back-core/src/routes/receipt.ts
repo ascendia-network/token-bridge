@@ -194,7 +194,7 @@ receiptRoutes.get(
 );
 
 receiptRoutes.get(
-  "/:userAddress?",
+  "/user/:userAddress?",
   describeRoute({
     description: "Get all receipts for a user",
     responses: {
@@ -379,6 +379,7 @@ receiptRoutes.get(
       const receiptId = c.req.valid("param").receiptId;
       const { receiptController } = c.var;
       const data = await receiptController.getReceipt(receiptId);
+      console.log(data);
       return c.json(receiptResponseSchema.parse(data), 200);
     } catch (error) {
       console.log(error);

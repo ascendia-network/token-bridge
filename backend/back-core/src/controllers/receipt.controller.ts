@@ -2,7 +2,7 @@ import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
 import { receipt, signatures } from "../db/schema/core.schema";
 import { receiptsMetaInIndexerEvm } from "../db/schema/evm.schema";
 import { receiptsMetaInIndexerSolana } from "../db/schema/solana.schema";
-import { eq, or, asc, desc, ne, and, notInArray } from "drizzle-orm";
+import { eq, or, asc, desc, ne, and, notInArray, inArray } from "drizzle-orm";
 import {
   toBytes,
   encodeAbiParameters,
@@ -39,7 +39,17 @@ export class ReceiptController {
     offset: number = 0,
     ordering: "asc" | "desc" = "desc",
     userAddress?: string
-  ): Promise<Array<typeof receipt.$inferSelect> | Error> {
+  ): Promise<
+    | Array<{
+        receipt: typeof receipt.$inferSelect;
+        receiptMeta: Array<
+          | typeof receiptsMetaInIndexerEvm.$inferSelect
+          | typeof receiptsMetaInIndexerSolana.$inferSelect
+        >;
+        signatures: Array<Omit<typeof signatures.$inferSelect, "id">>;
+      }>
+    | Error
+  > {
     try {
       consoleLogger("Refreshing materialized view...");
       await this.db.refreshMaterializedView(receipt);
@@ -56,14 +66,73 @@ export class ReceiptController {
         baseQuery = this.db.select().from(receipt);
       }
       consoleLogger("Selecting receipts...");
+
       const result = await baseQuery
         .orderBy(
           ordering === "asc" ? asc(receipt.timestamp) : desc(receipt.timestamp)
         )
         .limit(limit)
         .offset(offset);
+      const metasEvm = await this.db
+        .select({
+          receiptId: receiptsMetaInIndexerEvm.receiptId,
+          blockHash: receiptsMetaInIndexerEvm.blockHash,
+          blockNumber: receiptsMetaInIndexerEvm.blockNumber,
+          timestamp: receiptsMetaInIndexerEvm.timestamp,
+          transactionHash: receiptsMetaInIndexerEvm.transactionHash,
+          transactionIndex: receiptsMetaInIndexerEvm.transactionIndex,
+        })
+        .from(receiptsMetaInIndexerEvm)
+        .where(
+          inArray(
+            receiptsMetaInIndexerEvm.receiptId,
+            result.map((r) => r.receiptId)
+          )
+        );
+      const metasSolana = await this.db
+        .select({
+          receiptId: receiptsMetaInIndexerSolana.receiptId,
+          blockHash: receiptsMetaInIndexerSolana.blockHash,
+          blockNumber: receiptsMetaInIndexerSolana.blockNumber,
+          timestamp: receiptsMetaInIndexerSolana.timestamp,
+          transactionHash: receiptsMetaInIndexerSolana.transactionHash,
+          transactionIndex: receiptsMetaInIndexerSolana.transactionIndex,
+        })
+        .from(receiptsMetaInIndexerSolana)
+        .where(
+          inArray(
+            receiptsMetaInIndexerSolana.receiptId,
+            result.map((r) => r.receiptId)
+          )
+        );
+      const signaturesData = await this.db
+        .select({
+          receiptId: signatures.receiptId,
+          signedBy: signatures.signedBy,
+          signature: signatures.signature
+        })
+        .from(signatures)
+        .where(
+          inArray(
+            signatures.receiptId,
+            result.map((r) => r.receiptId)
+          )
+        ).orderBy(asc(signatures.signedBy));
       consoleLogger("Receipts selected", result.length.toString());
-      return result;
+      return result.map((r) => {
+        const metaEvm = metasEvm.filter((m) => m.receiptId === r.receiptId);
+        const metaSolana = metasSolana.filter(
+          (m) => m.receiptId === r.receiptId
+        );
+        const signature = signaturesData.filter(
+          (s) => s.receiptId === r.receiptId
+        );
+        return {
+          receipt: r,
+          receiptMeta: [...metaEvm, ...metaSolana],
+          signatures: [...signature],
+        };
+      });
     } catch (error) {
       consoleLogger(
         "Error selecting receipts",
@@ -74,18 +143,63 @@ export class ReceiptController {
     }
   }
 
-  async getReceipt(
-    receiptId: `${number}_${number}_${number}`
-  ): Promise<typeof receipt.$inferSelect | Error> {
+  async getReceipt(receiptId: `${number}_${number}_${number}`): Promise<
+    | {
+        receipt: typeof receipt.$inferSelect;
+        receiptMeta: Array<
+          | typeof receiptsMetaInIndexerEvm.$inferSelect
+          | typeof receiptsMetaInIndexerSolana.$inferSelect
+        >;
+        signatures: Array<Omit<typeof signatures.$inferSelect, "id">>;
+      }
+    | Error
+  > {
     try {
       consoleLogger("Refreshing materialized view...");
       await this.db.refreshMaterializedView(receipt);
       consoleLogger("Materialized view refreshed");
+      const metaEvm = await this.db
+        .select({
+          receiptId: receiptsMetaInIndexerEvm.receiptId,
+          blockHash: receiptsMetaInIndexerEvm.blockHash,
+          blockNumber: receiptsMetaInIndexerEvm.blockNumber,
+          timestamp: receiptsMetaInIndexerEvm.timestamp,
+          transactionHash: receiptsMetaInIndexerEvm.transactionHash,
+          transactionIndex: receiptsMetaInIndexerEvm.transactionIndex,
+        })
+        .from(receiptsMetaInIndexerEvm)
+        .where(eq(receiptsMetaInIndexerEvm.receiptId, receiptId));
+      const metaSolana = await this.db
+        .select({
+          receiptId: receiptsMetaInIndexerSolana.receiptId,
+          blockHash: receiptsMetaInIndexerSolana.blockHash,
+          blockNumber: receiptsMetaInIndexerSolana.blockNumber,
+          timestamp: receiptsMetaInIndexerSolana.timestamp,
+          transactionHash: receiptsMetaInIndexerSolana.transactionHash,
+          transactionIndex: receiptsMetaInIndexerSolana.transactionIndex,
+        })
+        .from(receiptsMetaInIndexerSolana)
+        .where(eq(receiptsMetaInIndexerSolana.receiptId, receiptId));
+      const signaturesData = await this.db
+        .select({
+          receiptId: signatures.receiptId,
+          signedBy: signatures.signedBy,
+          signature: signatures.signature,
+        })
+        .from(signatures)
+        .where(eq(signatures.receiptId, receiptId))
+        .orderBy(asc(signatures.signedBy));
       const [result] = await this.db
         .select()
         .from(receipt)
         .where(eq(receipt.receiptId, receiptId));
-      return result;
+
+      console.log("Receipt selected", result);
+      return {
+        receipt: result,
+        receiptMeta: [...metaEvm, ...metaSolana],
+        signatures: signaturesData,
+      };
     } catch (error) {
       return error as Error;
     }

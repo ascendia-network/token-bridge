@@ -1,4 +1,4 @@
-import { type AbiItem } from "viem";
+import type { AbiItem } from "viem";
 
 export const ERC20Abi = [
   {

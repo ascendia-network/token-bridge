@@ -196,7 +196,73 @@ export const validatorAbi = [
       {
         name: "receipt",
         type: "tuple",
-        internalType: "struct BridgeTypes.Receipt",
+        internalType: "struct BridgeTypes.MiniReceipt",
+        components: [
+          {
+            name: "to",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "tokenAddressTo",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "amountTo",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "chainFrom",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "chainTo",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "eventId",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "flags",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "data",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
+      },
+      {
+        name: "combinedSignatures",
+        type: "bytes",
+        internalType: "bytes",
+      },
+    ],
+    outputs: [
+      {
+        name: "isValid",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "validate",
+    inputs: [
+      {
+        name: "receipt",
+        type: "tuple",
+        internalType: "struct BridgeTypes.FullReceipt",
         components: [
           {
             name: "from",
@@ -209,12 +275,22 @@ export const validatorAbi = [
             internalType: "bytes32",
           },
           {
-            name: "tokenAddress",
+            name: "tokenAddressFrom",
             type: "bytes32",
             internalType: "bytes32",
           },
           {
-            name: "amount",
+            name: "tokenAddressTo",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "amountFrom",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "amountTo",
             type: "uint256",
             internalType: "uint256",
           },
@@ -270,7 +346,17 @@ export const validatorAbi = [
         internalType: "struct BridgeTypes.SendPayload",
         components: [
           {
+            name: "destChainId",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
             name: "tokenAddress",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "externalTokenAddress",
             type: "bytes32",
             internalType: "bytes32",
           },

@@ -11,6 +11,7 @@ import {AccessManager} from
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 import {Bridge} from "../contracts/Bridge.sol";
+import {BridgeSolana} from "../contracts/BridgeSolana.sol";
 
 import {Validator} from "../contracts/Validator.sol";
 import {ERC20Bridged} from "../contracts/token/ERC20Bridged.sol";
@@ -21,6 +22,7 @@ contract DeployerBase is Script {
     AccessManager authority;
     Validator validator;
     Bridge bridge;
+    BridgeSolana bridgeSolana;
     TokenBeacon tokenBeacon;
     VmSafe.Wallet deployer;
 
@@ -318,6 +320,45 @@ contract DeployerBase is Script {
         return bridge;
     }
 
+    function deployBridgeSolana() public returns (BridgeSolana) {
+        address wrappedToken = vm.envAddress("WRAPPED_TOKEN");
+        address payable feeReceiver =
+            payable(vm.envOr("FEE_RECEIVER", address(0)));
+        uint256 nativeSendAmount = vm.envOr("NATIVE_SEND_AMOUNT", uint256(0));
+        address payable proxy = payable(
+            address(
+                Upgrades.deployUUPSProxy(
+                    "BridgeSolana.sol",
+                    abi.encodeCall(
+                        Bridge.initialize,
+                        (
+                            address(authority),
+                            address(tokenBeacon),
+                            wrappedToken,
+                            validator,
+                            feeReceiver,
+                            nativeSendAmount
+                        )
+                    )
+                )
+            )
+        );
+        bridgeSolana = BridgeSolana(proxy);
+        console.log("Bridge for Solana deployed at:", address(bridge));
+        console.log(
+            "   Implementation address:",
+            Upgrades.getImplementationAddress(proxy)
+        );
+        addDeployment(
+            Deployment({
+                contractName: "BridgeSolana",
+                proxyAddress: proxy,
+                implementationAddress: Upgrades.getImplementationAddress(proxy)
+            })
+        );
+        return bridgeSolana;
+    }
+
     function getAuthority() public returns (AccessManager) {
         (bool deployed, address authorityAddress) =
             checkDeployed("AccessManager");
@@ -358,6 +399,16 @@ contract DeployerBase is Script {
             bridge = deployBridge();
         }
         return bridge;
+    }
+
+    function getBridgeSolana() public returns (BridgeSolana) {
+        (bool deployed, address bridgeAddress) = checkDeployed("BridgeSolana");
+        if (deployed) {
+            bridgeSolana = BridgeSolana(payable(bridgeAddress));
+        } else {
+            bridgeSolana = deployBridgeSolana();
+        }
+        return bridgeSolana;
     }
 
     function run() public virtual {}

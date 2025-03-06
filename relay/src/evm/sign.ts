@@ -7,12 +7,6 @@ import { config } from "../config";
 export async function signReceiptForEVM(
   receiptWithMeta: ReceiptWithMeta
 ): Promise<`0x${string}` | undefined> {
-  try {
-    await validateExistingTransactionEVM(receiptWithMeta);
-  } catch (error) {
-    console.error("Error validating transaction:", error);
-    return;
-  }
   const receipt = receiptWithMeta.receipts;
   const MiniReceiptAbi = bridgeAbi.find(
     (abi) => abi.type === "function" && abi.name === "claim"

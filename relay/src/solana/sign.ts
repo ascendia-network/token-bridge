@@ -8,12 +8,6 @@ export async function signReceiptForSolana(
   receiptWithMeta: ReceiptWithMeta
 ): Promise<`0x${string}` | undefined> {
   const receipt = receiptWithMeta.receipts;
-  try {
-      await validateExistingTransactionSolana(receiptWithMeta);
-    } catch (error) {
-      console.error("Error validating transaction:", error);
-      return;
-    }
   const payload: ReceivePayload = {
     to: Buffer.from(receipt.to, "hex"),
     tokenAddressTo: Buffer.from(receipt.tokenAddressTo, "hex"),

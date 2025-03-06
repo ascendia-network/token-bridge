@@ -17,6 +17,8 @@ import { signReceiptForEVM } from "./evm/sign";
 import { signReceiptForSolana } from "./solana/sign";
 import { getUnsignedTransactionsEVM } from "./evm/getUnsigned";
 import { getUnsignedTransactionsSolana } from "./solana/getUnsigned";
+import validateExistingTransactionEVM from "./evm/txValidator";
+import validateExistingTransactionSolana from "./solana/txValidator";
 
 async function getUnsignedTransactions(): Promise<ReceiptsToSignResponse> {
   // maybe needs just to merge both responses
@@ -80,6 +82,22 @@ async function processTransactions() {
         default:
           signer = config.accountEVM.address;
           break;
+      }
+      let txValidator: CallableFunction;
+      switch (transaction.receipts.chainFrom) {
+        case bytesToBigInt(stringToBytes("SOLANA", { size: 8 })): 
+        case bytesToBigInt(stringToBytes("SOLANADN", { size: 8 })):
+          txValidator = validateExistingTransactionSolana;
+          break;
+        default:
+          txValidator = validateExistingTransactionEVM;
+          break;
+      }
+      try {
+          await txValidator(transaction);
+      } catch (error) {
+        console.error(`Error validating transaction ${transaction.receiptsMeta?.transactionHash}:`, error);
+        continue;
       }
       const signature = await signReceipt(transaction);
       if (signature) {

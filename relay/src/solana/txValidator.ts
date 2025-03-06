@@ -13,13 +13,7 @@ export async function validateExistingTransactionSolana(
   if (!receiptMeta) {
     throw new Error("Receipt metadata is required for validation.");
   }
-  const rpcSolana = config.rpcConfig.RPC_URL_SOLANA;
-  if (!rpcSolana) {
-    throw new Error(
-      `RPC URL for Solana not found.`
-    );
-  }
-  const connection = new Connection(rpcSolana, "confirmed");
+  const connection = config.rpcConfig[`RPC_URL_${receiptWithMeta.receipts.chainFrom}`] as Connection;
   const receipt = await connection.getParsedTransaction(
     receiptMeta.transactionHash,
     {

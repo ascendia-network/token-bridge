@@ -1,12 +1,13 @@
+import { Connection } from "@solana/web3.js";
 import { z } from "zod";
 
 
 
-export const RPCValidator = z.string().url("Invalid RPC URL");
+export const RPCValidator = z.string().url("Invalid RPC URL").or(z.instanceof(Connection));
 export const RPCConfig = z.preprocess((arg, ctx) => {
   if (typeof arg === "object" && arg !== null) {
     const filtered = Object.keys(arg)
-      .filter((key) => /RPC_URL_[0-9]+/.test(key) || key === "RPC_URL_SOLANA")
+      .filter((key) => /RPC_URL_[0-9]+/.test(key))
       .reduce((obj, key) => {
         obj[key] = (arg as any)[key];
         return obj;
@@ -19,7 +20,7 @@ export const RPCConfig = z.preprocess((arg, ctx) => {
       message: "RPC config must be an object",
     });
   }
-}, z.record(z.literal("RPC_URL_SOLANA").or(z.string().regex(/RPC_URL_[0-9]+/)), RPCValidator));
+}, z.record(z.string().regex(/RPC_URL_[0-9]+/), RPCValidator));
 export const EnvConfig = z.object({
   BACKEND_URL: z
     .string()

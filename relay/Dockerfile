@@ -13,28 +13,22 @@ WORKDIR /app
 COPY --chown=builder:nodejs package*json /app/
 COPY --chown=builder:nodejs tsconfig.json /app/
 COPY --chown=builder:nodejs src /app/src
-COPY --chown=builder:nodejs config /app/config
-COPY --chown=builder:nodejs abis /app/abis
-COPY --chown=builder:nodejs drizzle*config.ts /app/
 
 RUN npm ci
-RUN --mount=type=secret,id=DATABASE_URL,env=DATABASE_URL \
-  npm run build && npm prune --production
+RUN npm run build && npm prune --production
 #-------------------------------------------------------------------------------
 FROM base AS runner
 
 RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 hono
+RUN adduser --system --uid 1001 relay
 
 WORKDIR /app
 
-COPY --from=builder --chown=hono:nodejs /app/node_modules /app/node_modules
-COPY --from=builder --chown=hono:nodejs /app/dist /app/dist
-COPY --from=builder --chown=hono:nodejs /app/config /app/config
-COPY --from=builder --chown=hono:nodejs /app/abis /app/abis
-COPY --from=builder --chown=hono:nodejs /app/package.json /app/package.json
+COPY --from=builder --chown=relay:nodejs /app/node_modules /app/node_modules
+COPY --from=builder --chown=relay:nodejs /app/dist /app/dist
+COPY --from=builder --chown=relay:nodejs /app/package.json /app/package.json
 
-USER hono
+USER relay
 
 ENV NODE_ENV=production
 EXPOSE 3000

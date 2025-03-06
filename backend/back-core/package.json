@@ -23,7 +23,7 @@
     "build": "pkgroll",
     "predev": "npm run prebuild",
     "dev": "tsx watch src/index.ts",
-    "start": "tsx ./dist/index.cjs"
+    "start": "tsx dist/index.cjs"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.8",

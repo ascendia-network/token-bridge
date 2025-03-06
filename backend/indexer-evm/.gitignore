@@ -1,17 +1,32 @@
-# Dependencies
-/node_modules
+# dev
+.yarn/
+!.yarn/releases
+.vscode/*
+!.vscode/launch.json
+!.vscode/*.code-snippets
+.idea/workspace.xml
+.idea/usage.statistics.xml
+.idea/shelf
 
-# Debug
+# Dependencies
+node_modules/
+
+# logs
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Misc
+# misc
 .DS_Store
 
 # Env files
 .env*.local
+.env
+.env.production
 
 # Ponder
 /generated/

@@ -1,13 +1,25 @@
 {
   "name": "relay",
   "version": "1.0.0",
-  "main": "dist/index.js",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    "require": {
+      "types": "./dist/index.d.cts",
+      "default": "./dist/index.cjs"
+    },
+    "import": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    }
+  },
   "scripts": {
-    "build": "rm -rf ./dist/ && tsc -p tsconfig.json",
+    "build": "pkgroll",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prestart": "npm run build",
-    "start": "npm run build && node dist/index.js",
-    "start:local": "ts-node ./src/evm/index.ts"
+    "start": "tsx dist/index.cjs",
+    "dev": "tsx watch src/index.ts"
   },
   "author": "",
   "license": "ISC",
@@ -20,12 +32,15 @@
     "bs58": "^6.0.0",
     "dotenv": "^16.4.7",
     "micro-key-producer": "^0.7.5",
+    "tsx": "^4.19.3",
     "tweetnacl": "^1.0.3",
     "tweetnacl-util": "^0.15.1",
     "viem": "^2.23.3",
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@types/node": "^22.13.4"
+    "@types/node": "^22.13.4",
+    "pkgroll": "^2.11.2",
+    "typescript": "^5.7.3"
   }
 }

@@ -4,7 +4,9 @@ import { validators, type ReceiptsToSignResponse } from "../typeValidators";
 export async function getUnsignedTransactionsSolana(): Promise<ReceiptsToSignResponse> {
   try {
     const response = await fetch(
-      `${config.BACKEND_URL}/svm/unsigned/${accountSolana.publicKey.toBase58()}`
+      `${
+        config.BACKEND_URL
+      }/api/receipts/svm/unsigned/${accountSolana.publicKey.toBase58()}`
     );
     if (response.ok) {
       const data = await response.json();

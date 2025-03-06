@@ -65,7 +65,7 @@
         "sol"
       ],
       "addresses": {
-        "amb": "0xC6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
+        "amb-test": "0xC6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
         "sol": "So11111111111111111111111111111111111111112"
       },
       "nativeAnalog": "SOL"

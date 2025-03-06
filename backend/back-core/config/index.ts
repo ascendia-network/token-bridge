@@ -10,6 +10,10 @@
 import { env } from "process";
 import * as dotenv from "dotenv";
 
+// Require trick to import JSON files
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+
 dotenv.config();
 
 export interface Config {
@@ -28,9 +32,5 @@ export interface Config {
 export const stage = env.STAGE || "test";
 
 export const sendSignerMnemonic = env.SEND_SIGNER_MNEMONIC!;
+
 export const stageConfig: Config = require(`../config/${stage}.json`);
-
-
-
-
-

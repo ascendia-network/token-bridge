@@ -192,7 +192,6 @@ export class ReceiptController {
         },
       ],
     };
-    if (!MiniReceiptAbi) throw new Error("Receipt ABI not found");
     const message = encodeAbiParameters<[typeof MiniReceiptAbi]>(
       [MiniReceiptAbi],
       [

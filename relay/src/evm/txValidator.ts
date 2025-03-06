@@ -1,18 +1,18 @@
-import { createPublicClient, decodeAbiParameters, http } from "viem";
+import { createPublicClient, decodeAbiParameters, http, keccak256 } from "viem";
 import { config } from "../config";
-import { type ReceiptMetaEVM, type ReceiptWithMeta } from "../typeValidators";
-import { bridgeAbi } from "./abi/bridgeAbi";
+import { type ReceiptMeta, type ReceiptWithMeta } from "../typeValidators";
 
 export async function validateExistingTransactionEVM(
   receiptWithMeta: ReceiptWithMeta
 ): Promise<void> {
-  const receiptMeta: ReceiptMetaEVM | undefined =
-    receiptWithMeta.receiptsMeta as ReceiptMetaEVM | undefined;
+  const receiptMeta: ReceiptMeta | undefined = receiptWithMeta.receiptsMeta as
+    | ReceiptMeta
+    | undefined;
   if (!receiptMeta) {
     throw new Error("Receipt metadata is required for validation.");
   }
   const rpcFrom =
-    config.rpcConfig[`RPC_URL_${receiptWithMeta.receipts.chainFrom}`];
+    config.rpcConfig[`RPC_URL_${receiptWithMeta.receipts.chainFrom}`] as string;
   if (!rpcFrom) {
     throw new Error(
       `RPC URL for chain ${receiptWithMeta.receipts.chainFrom} not found.`
@@ -22,7 +22,7 @@ export async function validateExistingTransactionEVM(
     transport: http(rpcFrom),
   });
   const receipt = await publicClient.getTransactionReceipt({
-    hash: receiptMeta.transactionHash,
+    hash: receiptMeta.transactionHash as `0x${string}`,
   });
   if (!receipt) {
     throw new Error(
@@ -31,19 +31,104 @@ export async function validateExistingTransactionEVM(
   }
 
   const logFound = receipt.logs.find(
-    (log) => log.transactionHash === receiptMeta.transactionHash
+    (log) =>
+      log.transactionHash === receiptMeta.transactionHash &&
+      log.topics[0] ===
+        keccak256(
+          Buffer.from(
+            "TokenLocked((bytes32,bytes32,bytes32,bytes32,uint256,uint256,uint256,uint256,uint256,uint256,bytes))"
+          )
+        )
   );
   if (!logFound) {
     throw new Error(
       `Event log for transaction hash ${receiptMeta.transactionHash} not found.`
     );
   }
-  const ReceiptAbi = bridgeAbi.find(
-    (abi) => abi.type === "event" && abi.name === "TokenLocked"
-  )?.inputs;
-  if (!ReceiptAbi) throw new Error("Receipt ABI not found");
-  const parsedLog = decodeAbiParameters(ReceiptAbi, logFound.data);
-
+  console.log(logFound);
+  const ReceiptAbi = {
+    name: "receipt",
+    type: "tuple",
+    indexed: false,
+    internalType: "struct BridgeTypes.FullReceipt",
+    components: [
+      {
+        name: "from",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "to",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "tokenAddressFrom",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "tokenAddressTo",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "amountFrom",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "amountTo",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "chainFrom",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "chainTo",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "eventId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "flags",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "data",
+        type: "bytes",
+        internalType: "bytes",
+      },
+    ],
+  };
+  console.log(logFound.data);
+  const parsedLog = decodeAbiParameters(
+    [ReceiptAbi],
+    logFound.data
+  ) as readonly [
+    {
+      from: `0x${string}`;
+      to: `0x${string}`;
+      tokenAddressTo: `0x${string}`;
+      tokenAddressFrom: `0x${string}`;
+      amountFrom: bigint;
+      amountTo: bigint;
+      chainFrom: bigint;
+      chainTo: bigint;
+      eventId: bigint;
+      flags: bigint;
+      data: `0x${string}` | "" | null;
+    }
+  ];
+  console.log(parsedLog);
   if (
     parsedLog[0].to !== receiptWithMeta.receipts.to ||
     parsedLog[0].tokenAddressTo !== receiptWithMeta.receipts.tokenAddressTo ||

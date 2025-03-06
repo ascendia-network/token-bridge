@@ -28,11 +28,12 @@ export const EnvConfig = z.object({
     .default("http://localhost:3000"),
   MNEMONIC: z.string().nonempty("Mnemonic is required").readonly(),
   POLLING_INTERVAL: z
+    .coerce
     .number()
     .int("Polling interval must be an integer")
     .positive("Polling interval must be positive")
     .min(1000, "Polling interval must be at least 1000ms")
-    .default(5000),
+    .default(10000),
 });
 
 export type EnvConfig = z.infer<typeof EnvConfig>;

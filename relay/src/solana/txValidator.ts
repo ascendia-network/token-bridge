@@ -1,6 +1,6 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { config } from "../config";
-import { type ReceiptMetaSolana, type ReceiptWithMeta } from "../typeValidators";
+import { type ReceiptMeta, type ReceiptWithMeta } from "../typeValidators";
 import { bridgeIdl } from "./idl/bridgeIdl";
 import { BorshCoder, EventParser, Program } from "@coral-xyz/anchor";
 import * as utils from "./utils";
@@ -8,12 +8,15 @@ import * as utils from "./utils";
 export async function validateExistingTransactionSolana(
   receiptWithMeta: ReceiptWithMeta
 ): Promise<void> {
-  const receiptMeta: ReceiptMetaSolana | undefined =
-    receiptWithMeta.receiptsMeta as ReceiptMetaSolana | undefined;
+  const receiptMeta: ReceiptMeta | undefined = receiptWithMeta.receiptsMeta as
+    | ReceiptMeta
+    | undefined;
   if (!receiptMeta) {
     throw new Error("Receipt metadata is required for validation.");
   }
-  const connection = config.rpcConfig[`RPC_URL_${receiptWithMeta.receipts.chainFrom}`] as Connection;
+  const connection = config.rpcConfig[
+    `RPC_URL_${receiptWithMeta.receipts.chainFrom}`
+  ] as Connection;
   const receipt = await connection.getParsedTransaction(
     receiptMeta.transactionHash,
     {
@@ -30,7 +33,10 @@ export async function validateExistingTransactionSolana(
       `Transaction hash ${receiptMeta.transactionHash} does not have metadata.`
     );
   }
-  if (receipt.meta.logMessages === null || receipt.meta.logMessages === undefined) {
+  if (
+    receipt.meta.logMessages === null ||
+    receipt.meta.logMessages === undefined
+  ) {
     throw new Error(
       `Transaction hash ${receiptMeta.transactionHash} does not have log messages.`
     );
@@ -52,14 +58,18 @@ export async function validateExistingTransactionSolana(
       if (
         utils.toHex(eventData.from) !== receiptWithMeta.receipts.from ||
         utils.toHexFromBytes(eventData.to) !== receiptWithMeta.receipts.to ||
-        utils.toHex(eventData.token_address_from) !== receiptWithMeta.receipts.tokenAddressFrom ||
-        utils.toHexFromBytes(eventData.token_address_to) !== receiptWithMeta.receipts.tokenAddressTo ||
+        utils.toHex(eventData.token_address_from) !==
+          receiptWithMeta.receipts.tokenAddressFrom ||
+        utils.toHexFromBytes(eventData.token_address_to) !==
+          receiptWithMeta.receipts.tokenAddressTo ||
         BigInt(eventData.amount_from) !== receiptWithMeta.receipts.amountFrom ||
-        BigInt(utils.toHexFromBytes(eventData.amount_to)) !== receiptWithMeta.receipts.amountTo ||
+        BigInt(utils.toHexFromBytes(eventData.amount_to)) !==
+          receiptWithMeta.receipts.amountTo ||
         BigInt(eventData.chain_from) !== receiptWithMeta.receipts.chainFrom ||
         BigInt(eventData.chain_to) !== receiptWithMeta.receipts.chainTo ||
         BigInt(eventData.event_id) !== receiptWithMeta.receipts.eventId ||
-        BigInt(utils.toHexFromBytes(eventData.flags)) !== receiptWithMeta.receipts.flags ||
+        BigInt(utils.toHexFromBytes(eventData.flags)) !==
+          receiptWithMeta.receipts.flags ||
         utils.toHex(eventData.data) !== receiptWithMeta.receipts.data
       )
         throw new Error(

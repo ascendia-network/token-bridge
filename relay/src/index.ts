@@ -99,9 +99,14 @@ async function processTransactions() {
         console.error(`Error validating transaction ${transaction.receiptsMeta?.transactionHash}:`, error);
         continue;
       }
-      const signature = await signReceipt(transaction);
-      if (signature) {
-        await postSignature(transaction.receipts.receiptId, signer, signature);
+      try {
+        const signature = await signReceipt(transaction);
+        if (signature) {
+          await postSignature(transaction.receipts.receiptId, signer, signature);
+        }
+      } catch (error) {
+        console.error(`Error signing transaction ${transaction.receiptsMeta?.transactionHash}:`, error);
+        continue;
       }
     }
     console.log(`Processed ${transactions.length} transactions.`);

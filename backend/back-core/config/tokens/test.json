@@ -49,6 +49,26 @@
         "sol": "usdc3xpQ18NLAumSUvadS62srrkxQWrvQHugk8Nv7MA"
       },
       "nativeAnalog": ""
+    },
+    "wSOL": {
+      "isActive": true,
+      "name": "Wrapped Solana",
+      "symbol": "wSOL",
+      "denomination": 18,
+      "decimals": {
+        "amb": 18,
+        "base": 18,
+        "sol": 6
+      },
+      "logo": "https://en.wikipedia.org/wiki/File:Solana_logo.png#/media/File:Solana_logo.png",
+      "primaryNets": [
+        "sol"
+      ],
+      "addresses": {
+        "amb": "0xC6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
+        "sol": "So11111111111111111111111111111111111111112"
+      },
+      "nativeAnalog": "SOL"
     }
   }
 }

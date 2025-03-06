@@ -7,7 +7,7 @@ import { send } from "./sdk/send";
 import { getBridgeTokenAccounts, getOrCreateUserATA } from "./sdk/utils";
 import { createMint, mintTo } from "@solana/spl-token";
 import { Buffer } from "buffer";
-import { receiveSigners, sendSigner } from "./backend/signs";
+import { backendMock, receiveSigners, sendSigner } from "./backend/signs";
 import { keccak_256 } from "@noble/hashes/sha3";
 import NodeWallet from "@coral-xyz/anchor/dist/esm/nodewallet";
 
@@ -79,7 +79,7 @@ async function makeSendTx(tokenFrom: PublicKey, tokenTo: string) {
   const txSignature = await send(connection,
     tokenFrom, tokenTo,
     admin, "0x1111472FCa4260505EcE4AcD07717CADa41c1111",
-    program, 1488_000000, undefined
+    program, 1488_000000, undefined, backendMock
   );
 
   const txParsed = await connection.getParsedTransaction(txSignature, { commitment: 'confirmed' });

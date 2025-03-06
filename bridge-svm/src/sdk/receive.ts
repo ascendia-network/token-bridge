@@ -2,32 +2,33 @@ import { Buffer } from "buffer";
 import { BN, Program } from "@coral-xyz/anchor";
 import { Connection, PublicKey, sendAndConfirmTransaction, type Signer, Transaction } from "@solana/web3.js";
 import type { AmbSolBridge } from "../idl/idlType";
-import { getReceivePayload } from "../backend/signs";
-import { newEd25519Instruction } from "./ed25519_ix";
+import { verifySignatureInstruction } from "./ed25519_ix";
 import { unwrapWSolInstruction } from "./wsol_ix";
 import { checkFlags, Flags, getBridgeTokenInfo } from "./utils";
 import { NATIVE_MINT } from "@solana/spl-token";
+import { IBackend } from "../backend/types";
 
 export async function receive(
   connection: Connection,
   user: Signer,
   bridgeProgram: Program<AmbSolBridge>,
+  backend: IBackend
 ) {
-  const { value, payload, message, signers, signatures } = await getReceivePayload(user.publicKey);
-  const token = new PublicKey(value.tokenAddressTo)
+  const { payload, signature } = await backend.getReceivePayload(user.publicKey);
+  const token = new PublicKey(payload.tokenAddressTo)
 
-  const { isMintable } = await getBridgeTokenInfo(bridgeProgram, new PublicKey(value.tokenAddressTo));
-  const shouldUnwrap = token == NATIVE_MINT && checkFlags(value.flags, Flags.SHOULD_UNWRAP);
+  const { isMintable } = await getBridgeTokenInfo(bridgeProgram, new PublicKey(payload.tokenAddressTo));
+  const shouldUnwrap = token == NATIVE_MINT && checkFlags(payload.flags, Flags.SHOULD_UNWRAP);
 
-  const verifyInstruction = newEd25519Instruction(message, signers, signatures);
+  const verifyInstruction = verifySignatureInstruction(signature);
   const unwrapInstructions = shouldUnwrap ? [unwrapWSolInstruction(user.publicKey)] : [];
 
   const receiveInstruction = await bridgeProgram.methods
     .receive(
-      new BN(value.amountTo),
-      new BN(value.eventId),
-      [...value.flags],
-      Buffer.from(value.flagData)
+      new BN(payload.amountTo),
+      new BN(payload.eventId),
+      [...payload.flags],
+      Buffer.from(payload.flagData)
     ).accountsPartial({
       receiver: user.publicKey,
       mint: token,

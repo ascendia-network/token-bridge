@@ -2,7 +2,15 @@ import { Keypair, PublicKey, Signer } from "@solana/web3.js";
 import { hexToUint8Array, numberToUint8Array, SOLANA_CHAIN_ID } from "../sdk/utils";
 import { keccak_256 } from "@noble/hashes/sha3";
 import nacl from "tweetnacl";
-import { ReceivePayload, SendPayload, serializeReceivePayload, serializeSendPayload } from "./types";
+import {
+  BackendSignature,
+  IBackend,
+  ReceivePayload,
+  SendPayload,
+  serializeReceivePayload,
+  serializeSendPayload,
+  SignedPayload
+} from "./types";
 
 // random keys
 export const sendSigner = Keypair.fromSecretKey(new Uint8Array([68, 44, 150, 53, 232, 72, 85, 214, 69, 48, 144, 144, 63, 70, 51, 254, 70, 165, 226, 95, 243, 211, 65, 253, 156, 92, 68, 213, 13, 114, 91, 240, 160, 217, 23, 184, 7, 88, 214, 152, 21, 242, 228, 150, 173, 249, 2, 240, 237, 218, 180, 205, 6, 196, 194, 162, 53, 183, 198, 244, 31, 215, 108, 122]));
@@ -16,16 +24,15 @@ export const receiveSigners = [
 ].map(secretKey => Keypair.fromSecretKey(secretKey));
 
 
-
 const receiveSignersBuffer = Buffer.alloc(32 * receiveSigners.length);
 receiveSigners.forEach((signer, i) => receiveSignersBuffer.set(signer.publicKey.toBuffer(), i * 32));
 // hash of all receive_signers public keys concatenated. contract will store only this value to save some storage space
 export const receiveSigner = new PublicKey(keccak_256(receiveSignersBuffer));
 
 
-export async function getReceivePayload(user: PublicKey) {
+export async function getReceivePayload(user: PublicKey): Promise<SignedPayload<ReceivePayload>> {
   // get from db
-  const value: ReceivePayload = {
+  const payload: ReceivePayload = {
     to: user.toBytes(),
     tokenAddressTo: hexToUint8Array("0x999999999988888888888888777777777777776666666666666665555555555"),
     amountTo: 50,
@@ -35,8 +42,9 @@ export async function getReceivePayload(user: PublicKey) {
     flagData: numberToUint8Array(0, 8),  // todo
   };
 
-  const payload = serializeReceivePayload(value);
-  return { value, ...signMessage(payload, receiveSigners) };
+  const serializedPayload = serializeReceivePayload(payload);
+  const signature = signMessage(serializedPayload, receiveSigners);
+  return { payload, serializedPayload, signature };
 }
 
 
@@ -45,11 +53,11 @@ export async function getSendPayload(
   tokenAddressTo: string,
   amountToSend: number,
   flags: any
-) {
+): Promise<SignedPayload<SendPayload>> {
   const feeAmount = 1; // todo
   const timestamp = Math.floor(Date.now() / 1000);
 
-  const value: SendPayload = {
+  const payload: SendPayload = {
     tokenAddressFrom: tokenAddressFrom.toBytes(),
     tokenAddressTo: hexToUint8Array(tokenAddressTo),
     amountToSend: amountToSend,
@@ -60,16 +68,23 @@ export async function getSendPayload(
     flagData: new Uint8Array(0),  // todo
   };
 
-  const payload = serializeSendPayload(value);
-  return signMessage(payload, [sendSigner])
+  const serializedPayload = serializeSendPayload(payload);
+  const signature = signMessage(serializedPayload, receiveSigners);
+  return { payload, serializedPayload, signature }
 }
 
 
-export function signMessage(payload: Buffer, signers: Signer[]) {
-  const message = keccak_256(payload)
+export function signMessage(serializedPayload: Buffer, signers: Signer[]): BackendSignature {
+  const message = keccak_256(serializedPayload)
 
   const signersBytes = signers.map(signer => signer.publicKey.toBytes());
   const signatures = signers.map(signer => nacl.sign.detached(message, signer.secretKey));
 
-  return { payload, message, signers: signersBytes, signatures }
+  return { message, signers: signersBytes, signatures }
+}
+
+
+export const backendMock: IBackend = {
+  getReceivePayload,
+  getSendPayload
 }

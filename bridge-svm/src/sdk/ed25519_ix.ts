@@ -1,6 +1,7 @@
 import * as BufferLayout from "@solana/buffer-layout";
 import { Buffer } from "buffer";
 import { Ed25519Program, TransactionInstruction } from "@solana/web3.js";
+import { BackendSignature } from "../backend/types";
 
 const SIGNATURE_OFFSETS_START = 2;
 const SIGNATURE_OFFSETS_SERIALIZED_SIZE = 14;
@@ -20,12 +21,12 @@ const ED25519_INSTRUCTION_LAYOUT = BufferLayout.struct<any>([
 
 // multuple signatures but only one message!
 // https://docs.rs/solana-sdk/2.1.5/src/solana_sdk/ed25519_instruction.rs.html
-export function newEd25519Instruction(
+function newEd25519Instruction_(
   message: Uint8Array,
   pubkeys: Uint8Array[],
   signatures: Uint8Array[],
-  instructionIndex: number = 0xffff
 ) {
+  const instructionIndex: number = 0xffff;
 
   const numSignatures = signatures.length;
   if (numSignatures !== pubkeys.length) throw new Error(`number of signatures and public keys must match`);
@@ -84,4 +85,8 @@ export function newEd25519Instruction(
     programId: Ed25519Program.programId,
     data: instructionData,
   })
+}
+
+export function verifySignatureInstruction(signature: BackendSignature) {
+  return newEd25519Instruction_(signature.message, signature.signers, signature.signatures);
 }

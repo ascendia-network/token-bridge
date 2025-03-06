@@ -1,11 +1,11 @@
 import { getBridgeTokenInfo, hexToUint8Array } from "./utils";
 import { Connection, PublicKey, sendAndConfirmTransaction, type Signer, Transaction } from "@solana/web3.js";
 import { Program } from "@coral-xyz/anchor";
-import { getSendPayload } from "../backend/signs";
-import { newEd25519Instruction } from "./ed25519_ix";
+import { verifySignatureInstruction } from "./ed25519_ix";
 import type { AmbSolBridge } from "../idl/idlType";
 import { wrapSolInstructions } from "./wsol_ix";
 import { NATIVE_MINT } from "@solana/spl-token";
+import { IBackend } from "../backend/types";
 
 
 export async function send(
@@ -16,10 +16,11 @@ export async function send(
   userTo: string,
   bridgeProgram: Program<AmbSolBridge>,
   amountToSend: number,
-  flags: any  // todo
+  flags: any,  // todo
+  backend: IBackend
 ) {
-  const { payload, message, signers, signatures } = await getSendPayload(tokenFrom, tokenTo, amountToSend, flags);
-  const verifyInstruction = newEd25519Instruction(message, signers, signatures);
+  const { serializedPayload, signature } = await backend.getSendPayload(tokenFrom, tokenTo, amountToSend, flags);
+  const verifyInstruction = verifySignatureInstruction(signature);
 
   const { isMintable } = await getBridgeTokenInfo(bridgeProgram, tokenFrom);
 
@@ -27,7 +28,7 @@ export async function send(
     await wrapSolInstructions(connection, userFrom, amountToSend) : [];
 
   const sendInstruction = await bridgeProgram.methods
-    .send(payload, [...hexToUint8Array(userTo)])
+    .send(serializedPayload, [...hexToUint8Array(userTo)])
     .accountsPartial({
       sender: userFrom.publicKey,
       mint: tokenFrom,

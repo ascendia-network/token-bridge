@@ -1,5 +1,25 @@
 import { Buffer } from "buffer";
 import * as borsh from "borsh";
+import { PublicKey } from "@solana/web3.js";
+
+
+export interface BackendSignature {
+  message: Uint8Array;
+  signers: Uint8Array[];
+  signatures: Uint8Array[]
+}
+
+export type SignedPayload<T> = {
+  payload: T;
+  serializedPayload: Buffer;
+  signature: BackendSignature;
+}
+
+export interface IBackend {
+  getReceivePayload(user: PublicKey): Promise<SignedPayload<ReceivePayload>>
+
+  getSendPayload(tokenAddressFrom: PublicKey, tokenAddressTo: string, amountToSend: number, flags: any): Promise<SignedPayload<SendPayload>>
+}
 
 const _b20 = { array: { type: 'u8', len: 20 } };
 const _b32 = { array: { type: 'u8', len: 32 } };

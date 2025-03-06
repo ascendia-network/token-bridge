@@ -25,7 +25,7 @@ import {
   SOLANA_CHAIN_ID
 } from "../../src/sdk/utils";
 import { ReceivePayload, SendPayload, serializeReceivePayload, serializeSendPayload } from "../../src/backend/types";
-import { newEd25519Instruction } from "../../src/sdk/ed25519_ix";
+import { verifySignatureInstruction } from "../../src/sdk/ed25519_ix";
 
 import { expect, use } from "chai";
 import chaiAsPromised from 'chai-as-promised';
@@ -122,7 +122,6 @@ describe("my-project", () => {
     // initialize token 3 - wrapped native
     await initializeToken(program, admin, NATIVE_MINT, ambTokenAddress3_, 18, false);
 
-    // todo try to initialize mintable with some bridge token account
 
 
     const checkToken = async (pubkey: PublicKey, ambAddress: Uint8Array, isMintable: boolean) => {
@@ -163,7 +162,6 @@ describe("my-project", () => {
 
 
     // mint some tokens to user
-    // todo try send when user don't have tokens
     const userATA = await getOrCreateUserATA(connection, userFrom, tokenFrom);
     await mintTo(connection, userFrom, tokenFrom, userATA, admin, 10 * 10 ** 6);
     expect((await connection.getTokenAccountBalance(userATA)).value.amount).to.eq('10000000');
@@ -182,7 +180,6 @@ describe("my-project", () => {
 
 
   it('receive non mintable token', async () => {
-    // todo try receive when bridge doesn't have tokens
 
     const tokenTo = tokenMint1.publicKey;
     const userTo = user;
@@ -310,6 +307,28 @@ describe("my-project", () => {
   });
 
 
+  it('todo', async () => {
+    // todo pause
+    // todo call admin methods with non-admin account
+
+    // todo initialize mintable token with non-null bridge token account
+    // todo initialize mintable token with mint authority != bridge token pda
+
+    // todo send/receive with non registered token
+    // todo send when user don't have tokens
+    // todo receive when bridge doesn't have tokens
+    // todo receive to non-existing native ata
+    // todo send when not enough sol for fees
+    // todo send/receive with pause
+
+    // todo send/receive without signature
+    // todo send/receive with wrong signature
+    // todo wrong chainid / user / tokenFrom / tokenTo / amount / fee / receiveNonce / sendTimestamp  in signature
+  });
+
+
+  // helpers
+
   async function commonSend(
     userFrom: Keypair, tokenFrom: PublicKey, userTo: Uint8Array, tokenTo: Uint8Array,
     amountToSend: number,
@@ -330,9 +349,9 @@ describe("my-project", () => {
 
 
     const payload = serializeSendPayload(value);
-    const { message, signers, signatures } = signMessage(payload, [sendSigner]);
+    const signature = signMessage(payload, [sendSigner]);
 
-    const verifyInstruction = newEd25519Instruction(message, signers, signatures);
+    const verifyInstruction = verifySignatureInstruction(signature);
     // send tokens
     const sendInstruction = await bridgeProgram.methods.send(payload, [...userTo]).accountsPartial({
       sender: userFrom.publicKey,
@@ -365,9 +384,9 @@ describe("my-project", () => {
     };
 
     const payload = serializeReceivePayload(value);
-    const { message, signers, signatures } = signMessage(payload, receiveSigners);
+    const signature = signMessage(payload, receiveSigners);
 
-    const verifyInstruction = newEd25519Instruction(message, signers, signatures);
+    const verifyInstruction = verifySignatureInstruction(signature);
     const unwrapInstructions = shouldUnwrap ? [unwrapWSolInstruction(user.publicKey)] : [];
 
     const receiveInstruction = await bridgeProgram.methods.receive(
@@ -430,7 +449,6 @@ describe("my-project", () => {
 
 
 })
-;
 
 
 

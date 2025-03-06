@@ -45,7 +45,6 @@ export async function validateExistingTransactionEVM(
       `Event log for transaction hash ${receiptMeta.transactionHash} not found.`
     );
   }
-  console.log(logFound);
   const ReceiptAbi = {
     name: "receipt",
     type: "tuple",
@@ -109,7 +108,6 @@ export async function validateExistingTransactionEVM(
       },
     ],
   };
-  console.log(logFound.data);
   const parsedLog = decodeAbiParameters(
     [ReceiptAbi],
     logFound.data
@@ -128,7 +126,6 @@ export async function validateExistingTransactionEVM(
       data: `0x${string}` | "" | null;
     }
   ];
-  console.log(parsedLog);
   if (
     parsedLog[0].to !== receiptWithMeta.receipts.to ||
     parsedLog[0].tokenAddressTo !== receiptWithMeta.receipts.tokenAddressTo ||

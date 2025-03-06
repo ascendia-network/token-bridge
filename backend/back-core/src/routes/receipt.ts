@@ -316,7 +316,7 @@ receiptRoutes.post(
         .transform((val) => {
           const processed = String(val);
           if (processed.startsWith("0X") || processed.startsWith("0x")) {
-            return processed.slice(2);
+            return `0x${processed.slice(2)}` as `0x${string}`;
           }
           return `0x${processed}` as `0x${string}`;
         })

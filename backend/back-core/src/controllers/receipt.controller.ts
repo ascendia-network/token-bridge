@@ -4,7 +4,7 @@ import { receiptsMetaInIndexerEvm } from "../db/schema/evm.schema";
 import { receiptsMetaInIndexerSolana } from "../db/schema/solana.schema";
 import { eq, or, asc, desc, ne, and, notInArray } from "drizzle-orm";
 import {
-  stringToBytes,
+  toBytes,
   encodeAbiParameters,
   keccak256,
   hashMessage,
@@ -247,17 +247,18 @@ export class ReceiptController {
   ): Promise<string> {
     consoleLogger("Solana signature verification not implemented, skipping");
     const value: ReceivePayload = {
-      to: stringToBytes(receiptToSign.to),
-      tokenAddressTo: stringToBytes(receiptToSign.tokenAddressTo),
+      to: toBytes(receiptToSign.to, { size: 32 }),
+      tokenAddressTo: toBytes(receiptToSign.tokenAddressTo, { size: 32 }),
       amountTo: Number(receiptToSign.amountTo),
       chainTo: BigInt(receiptToSign.chainTo),
-      flags: stringToBytes(receiptToSign.flags),
-      flagData: stringToBytes(receiptToSign.data),
+      flags: toBytes(BigInt(receiptToSign.flags), { size: 32 }),
+      flagData: toBytes(receiptToSign.data),
     };
     const payload = serializeReceivePayload(value);
+    const signatureBytes = toBytes(signature);
     const isValid = nacl.sign.detached.verify(
       payload,
-      Buffer.from(signature.slice(2), "hex"),
+      signatureBytes,
       new PublicKey(signer).toBytes()
     );
     if (!isValid) {

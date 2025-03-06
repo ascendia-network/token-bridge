@@ -9,7 +9,7 @@ import { SOLANA_DEV_CHAIN_ID } from "../utils/solana";
 
 export const EvmAddressRegex = /^0x[a-fA-F0-9]{40}$/;
 export const SvmAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
-export const signatureRegex = /^(0x|0X)?[a-fA-F0-9]{130}$/;
+export const signatureRegex = /^(0x|0X)?[a-fA-F0-9]{128}$/;
 export const receiptIdRegex = /^[0-9]+_[0-9]+_[0-9]+$/;
 
 export const evmAddressBytes32Hex = z

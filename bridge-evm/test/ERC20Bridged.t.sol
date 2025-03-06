@@ -3,8 +3,11 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 
+import {IAccessManaged} from
+    "@openzeppelin/contracts/access/manager/IAccessManaged.sol";
 import {IERC20Errors} from
     "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {
     UnsafeUpgrades,
     Upgrades
@@ -52,7 +55,7 @@ contract ERC20BridgedTest is Test {
         }
         bytes memory initData = abi.encodeWithSignature(
             "initialize(address,string,string,uint8,address)",
-            address(this),
+            authority,
             name,
             symbol,
             decimals,
@@ -135,4 +138,58 @@ contract ERC20BridgedTest is Test {
         assertEq(token.totalSupply(), initialBalance);
     }
 
+    function test_blacklist() public {
+        uint256 initialBalance = 1000;
+        uint256 amount = 100;
+        
+        vm.startPrank(fakeBridge);
+        token.transfer(alice, initialBalance);
+        vm.stopPrank();
+
+        vm.startPrank(address(this));
+        token.addBlacklist(alice);
+        vm.stopPrank();
+
+        vm.startPrank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(ERC20Bridged.Blacklisted.selector, alice)
+        );
+        token.transfer(bob, amount);
+        vm.stopPrank();
+
+        vm.startPrank(address(this));
+        token.removeBlacklist(alice);
+        vm.stopPrank();
+
+        vm.startPrank(alice);
+        vm.expectEmit(address(token));
+        emit IERC20.Transfer(alice, bob, amount);
+        token.transfer(bob, amount);
+        vm.stopPrank();
+        
+    }
+
+    function test_fail_blacklist_unauthorized() public {
+        vm.startPrank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessManaged.AccessManagedUnauthorized.selector, alice
+            )
+        );
+        token.addBlacklist(alice);
+        vm.stopPrank();
+        
+        vm.startPrank(address(this));
+        token.addBlacklist(alice);
+        vm.stopPrank();
+
+        vm.startPrank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessManaged.AccessManagedUnauthorized.selector, alice
+            )
+        );
+        token.removeBlacklist(alice);
+        vm.stopPrank();
+    }
 }

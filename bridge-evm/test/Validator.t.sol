@@ -237,6 +237,36 @@ contract ValidatorTest is Test {
         });
     }
 
+    function test_revertWhen_contract_is_not_readyToValidate() public {
+        setUpZeroFeeValidityWindow();
+        vm.expectRevert(IValidatorV1.NoFeeValidityWindow.selector);
+        validatorInstance.validate(receiptCommon, bytes("GARBAGE"));
+        vm.expectRevert(IValidatorV1.NoFeeValidityWindow.selector);
+        validatorInstance.validate(receiptCommon.asMini(), bytes("GARBAGE"));
+        vm.expectRevert(IValidatorV1.NoFeeValidityWindow.selector);
+        validatorInstance.validatePayload(payloadCommon, bytes("GARBAGE"));
+
+        validatorInstance.setFeeValidityWindow(100);
+
+        clearPayloadSigner();
+        vm.expectRevert(IValidatorV1.NoPayloadSigner.selector);
+        validatorInstance.validate(receiptCommon, bytes("GARBAGE"));
+        vm.expectRevert(IValidatorV1.NoPayloadSigner.selector);
+        validatorInstance.validate(receiptCommon.asMini(), bytes("GARBAGE"));
+        vm.expectRevert(IValidatorV1.NoPayloadSigner.selector);
+        validatorInstance.validatePayload(payloadCommon, bytes("GARBAGE"));
+
+        validatorInstance.setPayloadSigner(alice);
+
+        clearPredefinedValidators();
+        vm.expectRevert(IValidatorV1.NoValidators.selector);
+        validatorInstance.validate(receiptCommon, bytes("GARBAGE"));
+        vm.expectRevert(IValidatorV1.NoValidators.selector);
+        validatorInstance.validate(receiptCommon.asMini(), bytes("GARBAGE"));
+        vm.expectRevert(IValidatorV1.NoValidators.selector);
+        validatorInstance.validatePayload(payloadCommon, bytes("GARBAGE"));
+    }
+
     function test_addValidator() public {
         address newValidator = address(0xD0D0);
         vm.expectEmit(address(validatorInstance));

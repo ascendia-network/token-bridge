@@ -29,7 +29,7 @@ import { newEd25519Instruction } from "../../src/sdk/ed25519_ix";
 
 import { expect, use } from "chai";
 import chaiAsPromised from 'chai-as-promised';
-import { wrapSolInstructions } from "../../src/sdk/wsol_ix";
+import { unwrapWSolInstruction, wrapSolInstructions } from "../../src/sdk/wsol_ix";
 
 use(chaiAsPromised);
 
@@ -256,7 +256,7 @@ describe("my-project", () => {
 
     const before = await getStateSnapshot(tokenFrom, userFrom.publicKey);
 
-    const transferNativeInstructions = await wrapSolInstructions(connection, userFrom, tokenFrom, 5_000);
+    const transferNativeInstructions = await wrapSolInstructions(connection, userFrom, 5_000);
     await commonSend(userFrom, tokenFrom, userTo, tokenTo, 5_000, false, transferNativeInstructions);
 
     const after = await getStateSnapshot(tokenFrom, userFrom.publicKey);
@@ -287,6 +287,24 @@ describe("my-project", () => {
     expect(after.token.user).to.eq(before.token.user + 50);
     expect(after.token.bridge).to.eq(before.token.bridge - 50);
     expect(after.native.user).to.be.eq(before.native.user);
+    expect(after.native.bridge).to.eq(before.native.bridge);
+    expect(after.receiverNonce).to.eq(before.receiverNonce + 1);
+  });
+
+  it('receive native and unwrap', async () => {
+
+    const tokenTo = NATIVE_MINT;
+    const userTo = user;
+
+    const before = await getStateSnapshot(tokenTo, userTo.publicKey);
+
+    await commonReceive(userTo, tokenTo, 50, before.receiverNonce, false, true);
+
+    const after = await getStateSnapshot(tokenTo, userTo.publicKey);
+
+    expect(after.token.user).to.eq(before.token.user);
+    expect(after.token.bridge).to.eq(before.token.bridge - 50);
+    expect(after.native.user).to.be.eq(before.native.user + 50);
     expect(after.native.bridge).to.eq(before.native.bridge);
     expect(after.receiverNonce).to.eq(before.receiverNonce + 1);
   });
@@ -333,7 +351,7 @@ describe("my-project", () => {
 
   async function commonReceive(
     userTo: Keypair, token: PublicKey, amountToReceive: number,
-    receiveNonce: number, isMintable = false,
+    receiveNonce: number, isMintable = false, shouldUnwrap=false
   ) {
 
     const value: ReceivePayload = {
@@ -350,6 +368,7 @@ describe("my-project", () => {
     const { message, signers, signatures } = signMessage(payload, receiveSigners);
 
     const verifyInstruction = newEd25519Instruction(message, signers, signatures);
+    const unwrapInstructions = shouldUnwrap ? [unwrapWSolInstruction(user.publicKey)] : [];
 
     const receiveInstruction = await bridgeProgram.methods.receive(
       new BN(value.amountTo),
@@ -362,7 +381,7 @@ describe("my-project", () => {
       bridgeTokenAccount: isMintable ? null : undefined,  // pass null to not use bridge token account
     }).signers([user]).instruction()
 
-    const tx = new Transaction().add(verifyInstruction, receiveInstruction);
+    const tx = new Transaction().add(...unwrapInstructions, verifyInstruction, receiveInstruction);
     tx.feePayer = user.publicKey;
     const txSignature = await sendAndConfirmTransaction(connection, tx, [user], { commitment: 'confirmed' }); // wait for transaction to be confirmed
     const txParsed = await connection.getParsedTransaction(txSignature, { commitment: 'confirmed' });

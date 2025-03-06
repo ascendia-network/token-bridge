@@ -63,10 +63,25 @@ export function getBridgeTokenAccounts(token: PublicKey, bridgeProgramId: Public
 
 
 export async function initializeToken(bridgeProgram: Program<AmbSolBridge>, admin: Keypair, tokenPublicKey: PublicKey, ambAddress: string, ambDecimals = 18, isSynthetic = false) {
-  // initialize token
   await bridgeProgram.methods.initializeToken([...hexToUint8Array(ambAddress)], ambDecimals, isSynthetic).accountsPartial({
     admin: admin.publicKey,
     mint: tokenPublicKey,
     bridgeTokenAccount: isSynthetic ? null : undefined  // empty value (null) for synthetic, auto-resoluted for non-synthetic
   }).signers([admin]).rpc();
+}
+
+
+
+export enum Flags {
+  SHOULD_UNWRAP = 1
+}
+
+export function checkFlags(flags: Uint8Array, flag: Flags) {
+  return getBit(flags, flag) === 1;
+}
+
+function getBit(arr: Uint8Array, bitIndex: number): number {
+  const byteIndex = Math.floor(bitIndex / 8);
+  const bitPosition = bitIndex % 8;
+  return (arr[byteIndex] >> bitPosition) & 1;
 }

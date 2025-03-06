@@ -4,6 +4,8 @@ import { Program } from "@coral-xyz/anchor";
 import { getSendPayload } from "../backend/signs";
 import { newEd25519Instruction } from "./ed25519_ix";
 import type { AmbSolBridge } from "../idl/idlType";
+import { wrapSolInstructions } from "./wsol_ix";
+import { NATIVE_MINT } from "@solana/spl-token";
 
 
 export async function send(
@@ -21,7 +23,8 @@ export async function send(
 
   const { isMintable } = await getBridgeTokenInfo(bridgeProgram, tokenFrom);
 
-  // todo wrap instruction for WSOL
+  const wrapInstructions = (tokenFrom == NATIVE_MINT) ?
+    await wrapSolInstructions(connection, userFrom, amountToSend) : [];
 
   const sendInstruction = await bridgeProgram.methods
     .send(payload, [...hexToUint8Array(userTo)])
@@ -32,7 +35,7 @@ export async function send(
     }).signers([userFrom]).instruction();
 
 
-  const tx = new Transaction().add(verifyInstruction, sendInstruction);
+  const tx = new Transaction().add(...wrapInstructions, verifyInstruction, sendInstruction);
   tx.feePayer = userFrom.publicKey;
   return await sendAndConfirmTransaction(connection, tx, [userFrom], { commitment: 'confirmed' }); // wait for transaction to be confirmed
 }

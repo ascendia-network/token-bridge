@@ -15,6 +15,7 @@
       "symbol": "SAMB",
       "denomination": 18,
       "decimals": {
+        "amb-test": 18,
         "amb": 18,
         "base": 18,
         "sol": 6
@@ -24,7 +25,7 @@
         "amb"
       ],
       "addresses": {
-        "amb": "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b",
+        "amb-test": "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b",
         "sol": "samb9vCFCTEvoi3eWDErSCb5GvTq8Kgv6VKSqvt7pgi"
       },
       "nativeAnalog": "AMB"
@@ -35,6 +36,7 @@
       "symbol": "USDC",
       "denomination": 6,
       "decimals": {
+        "amb-test": 18,
         "amb": 18,
         "bsc": 18,
         "eth": 6
@@ -45,7 +47,7 @@
         "sol"
       ],
       "addresses": {
-        "amb": "0x8132928B8F4c0d278cc849b9b98Dffb28aE0B685",
+        "amb-test": "0x8132928B8F4c0d278cc849b9b98Dffb28aE0B685",
         "sol": "usdc3xpQ18NLAumSUvadS62srrkxQWrvQHugk8Nv7MA"
       },
       "nativeAnalog": ""
@@ -56,6 +58,7 @@
       "symbol": "wSOL",
       "denomination": 18,
       "decimals": {
+        "amb-test": 18,
         "amb": 18,
         "base": 18,
         "sol": 6
@@ -66,7 +69,8 @@
       ],
       "addresses": {
         "amb-test": "0xC6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
-        "sol": "So11111111111111111111111111111111111111112"
+        "sol": "So11111111111111111111111111111111111111112",
+        "sol-dev": "So11111111111111111111111111111111111111112"
       },
       "nativeAnalog": "SOL"
     }

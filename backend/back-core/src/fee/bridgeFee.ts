@@ -2,7 +2,7 @@ import { Decimal } from "decimal.js";
 import { coin2Usd, usd2Coin } from "./utils";
 
 const percentFromAmount: { [key: number]: number } = {
-  0: 0.0 * 100 // 0.. ...$ => 0%
+  0: 0.1 * 100 // 0.. ...$ => 0%
 };
 
 

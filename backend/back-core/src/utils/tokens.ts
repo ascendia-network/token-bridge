@@ -12,6 +12,7 @@ const tokens: { [addr: string]: Token } = {
   "eth-0x0000000000000000000000000000000000000000": { name: "ETH", denomination: 18, isNative: true },
   "amb-0x0000000000000000000000000000000000000000": { name: "AMB", denomination: 18, isNative: true },
   "amb-test-0x0000000000000000000000000000000000000000": { name: "AMB", denomination: 18, isNative: true },
+  "sol-11111111111111111111111111111111111111111": { name: "SOL", denomination: 9, isNative: true }
 };
 
 if (stage === "prod") {

@@ -4,12 +4,19 @@ import { getToken } from "../utils/tokens";
 export const symbolMapping: { [symbol: string]: string } = {
   "SAMB": "AMB",
   "WBNB": "BNB",
-  "WETH": "ETH"
+  "WETH": "ETH",
+  "wSOL": "SOL"
 };
 
 
 export async function getNativeTokenUSDPrice(networkName: string) {
-  return await getTokenUSDPriceByAddress(networkName, "0x0000000000000000000000000000000000000000");
+  switch (networkName) {
+    case "sol":
+    case "sol-dev":
+      return await getTokenUSDPriceByAddress(networkName, "So11111111111111111111111111111111111111112");
+    default:
+      return await getTokenUSDPriceByAddress(networkName, "0x0000000000000000000000000000000000000000");
+  }
 }
 
 export async function getTokenUSDPriceByAddress(networkName: string, tokenAddr: string) {
@@ -20,9 +27,10 @@ export async function getTokenUSDPriceByAddress(networkName: string, tokenAddr: 
 }
 
 export async function getTokenUSDPrice(tokenSymbol: string) {
-  if (symbolMapping[tokenSymbol])
+  if (symbolMapping[tokenSymbol]) {
     tokenSymbol = symbolMapping[tokenSymbol];
-  const price = await cachedPrice.get(tokenSymbol);
+  }
+  const price = await cachedPrice.get(`${tokenSymbol}USDT`);
   return new Decimal(price);
 }
 
@@ -50,7 +58,12 @@ async function _fetchPrices() {
   const resp = await fetch("https://api.binance.com/api/v1/ticker/price");
   const data = await resp.json();
 
+  //fetch amb price
+  const ambResp = await fetch("https://token.ambrosus.io/");
+  const { data: { price_usd: ambPrice } } = await ambResp.json();
+
   const prices: { [symbol: string]: Decimal } = {};
   data.forEach((item: any) => prices[item.symbol] = new Decimal(item.price));
+  prices["AMBUSDT"] = new Decimal(ambPrice);
   return prices;
 }

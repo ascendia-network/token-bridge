@@ -1,6 +1,9 @@
 import { Buffer } from "buffer";
 import * as borsh from "borsh";
+import * as bip39 from "bip39";
+import { Keypair } from "@solana/web3.js";
 import { bytesToBigInt, stringToBytes } from "viem";
+import { HDKey } from "micro-key-producer/slip10.js";
 
 export const SOLANA_CHAIN_ID = bytesToBigInt(stringToBytes("SOLANA", { size: 8 }));
 export const SOLANA_DEV_CHAIN_ID = bytesToBigInt(
@@ -31,7 +34,7 @@ const sendSchema = {
   chainFrom: "u64",
   timestamp: "u64",
   flags: _b32,
-  flagData: { array: { type: "u8" } },
+  flagData: { array: { type: "u8" } }
 };
 
 export interface ReceivePayload {
@@ -49,10 +52,18 @@ const receiveSchema = {
   amountTo: "u64",
   chainTo: "u64",
   flags: _b32,
-  flagData: { array: { type: "u8" } },
+  flagData: { array: { type: "u8" } }
 };
 
 export const serializeSendPayload = (value: SendPayload) =>
   serialize(value, sendSchema);
 export const serializeReceivePayload = (value: ReceivePayload) =>
   serialize(value, receiveSchema);
+
+export function getSolanaAccount(mnemonic: string) {
+  const path = "m/44'/501'/1'/0'";
+  const seed = bip39.mnemonicToSeedSync(mnemonic, "");
+  const hd = HDKey.fromMasterSeed(seed.toString("hex"));
+  const keypair = Keypair.fromSeed(hd.derive(path).privateKey);
+  return keypair;
+}

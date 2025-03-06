@@ -8,7 +8,9 @@
  */
 
 import { env } from "process";
-import path from "path";
+import * as dotenv from "dotenv";
+
+dotenv.config();
 
 export interface Config {
   networks: { [net: string]: string };
@@ -25,7 +27,7 @@ export interface Config {
 
 export const stage = env.STAGE || "test";
 
-export const sendSignerPK = env.SEND_SIGNER_PK!;
+export const sendSignerMnemonic = env.SEND_SIGNER_MNEMONIC!;
 export const stageConfig: Config = await import(`../config/${stage}.json`, { assert: { type: "json" } }).then(m => m.default);
 
 

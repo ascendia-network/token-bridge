@@ -10,6 +10,21 @@
     "networks": {
       "amb": {
         "minBridgeFeeUSD": 0.01
+      },
+      "amb-test": {
+        "minBridgeFeeUSD": 0.01
+      },
+      "sol": {
+        "minBridgeFeeUSD": 0.01
+      },
+      "sol-dev": {
+        "minBridgeFeeUSD": 0.01
+      },
+      "base": {
+        "minBridgeFeeUSD": 0.01
+      },
+      "base-test": {
+        "minBridgeFeeUSD": 0.01
       }
     }
   }

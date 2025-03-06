@@ -12,7 +12,7 @@ import { Hono } from "hono";
 import { SendSignatureController } from "../controllers/send-signature.controller";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator as zValidator } from "hono-openapi/zod";
-import { evmAddressValidatorSchema, sendPayloadResponseSchema, sendSignatureQuerySchema } from "./utils";
+import { sendPayloadResponseSchema, sendSignatureQuerySchema } from "./utils";
 
 const sendSignatureControllerDep = new Dependency(
   (c) => {
@@ -32,9 +32,9 @@ sendSignatureRoutes.get(
         description: "Returns signed send payload",
         content: {
           "application/json": {
-            schema: resolver(sendPayloadResponseSchema),
-          },
-        },
+            schema: resolver(sendPayloadResponseSchema)
+          }
+        }
       },
       400: {
         description: "Returns error message",
@@ -44,14 +44,14 @@ sendSignatureRoutes.get(
               type: "object",
               properties: {
                 message: {
-                  type: "string",
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+                  type: "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }),
   zValidator("query", sendSignatureQuerySchema),
   sendSignatureControllerDep.middleware("sendSignatureController"),
@@ -81,7 +81,7 @@ sendSignatureRoutes.get(
       return c.json(data, 200);
     } catch (error) {
       console.log(error);
-      return c.json(error as Error, 400);
+      return c.json({ message: (error as Error).message }, 400);
     }
   }
 );

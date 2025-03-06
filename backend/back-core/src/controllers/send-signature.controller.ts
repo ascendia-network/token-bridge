@@ -6,36 +6,32 @@
  *
  *  This Source Code Form is “Incompatible With Secondary Licenses”, as defined by the Mozilla Public License, v. 2.0.
  */
-import { getFees } from "../fee";
-import { sendSignerPK } from "../../config";
-import { Keypair } from "@solana/web3.js";
 import bs58 from "bs58";
 import nacl from "tweetnacl";
-import { bigIntToBuffer } from "../utils/buffer";
+import { Keypair } from "@solana/web3.js";
 import { encodeAbiParameters, hashMessage, keccak256 } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
-import { SendPayload } from "../routes/utils";
-import { SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID } from "../utils/solana";
+import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts";
 
-const EVM_NETWORKS = [
-  "16718", // amb
-  "8453", // base
-  "1", // eth
-  "56", // bsc
-  "22040", // amb-test
-  "84532" // base-test
-];
+import { getFees } from "../fee";
+import { SendPayload } from "../routes/utils";
+import { bigIntToBuffer } from "../utils/buffer";
+import { sendSignerMnemonic } from "../../config";
+import { getSolanaAccount, SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID } from "../utils/solana";
+
 const CHAIN_ID_TO_CHAIN_NAME: Record<string, string> = {
   "1": "eth",
   "56": "bsc",
   "8453": "base",
   "16718": "amb",
-  "6003100671677628416": "solana",
+  "6003100671677628416": "sol",
   // testnets
   "22040": "amb-test",
   "84532": "base-test",
-  "6003100671677645902": "solana-dev",
+  "6003100671677645902": "sol-dev"
 };
+
+const { secretKey: solanaPK } = getSolanaAccount(sendSignerMnemonic);
+const emvPK = mnemonicToAccount(sendSignerMnemonic, { addressIndex: 1 }).getHdKey().privateKey?.toString()!;
 
 interface SendSignatureArgs {
   networkFrom: bigint;
@@ -49,18 +45,19 @@ interface SendSignatureArgs {
 }
 
 export class SendSignatureController {
-  constructor() {}
+  constructor() {
+  }
 
   async getSendSignature({
-    networkFrom,
-    networkTo,
-    tokenAddress,
-    amount,
-    isMaxAmount,
-    externalTokenAddress,
-    flags,
-    flagData,
-  }: SendSignatureArgs) {
+                           networkFrom,
+                           networkTo,
+                           tokenAddress,
+                           amount,
+                           isMaxAmount,
+                           externalTokenAddress,
+                           flags,
+                           flagData
+                         }: SendSignatureArgs) {
     if (
       !CHAIN_ID_TO_CHAIN_NAME[networkFrom.toString()] ||
       !CHAIN_ID_TO_CHAIN_NAME[networkTo.toString()]
@@ -74,7 +71,7 @@ export class SendSignatureController {
       amount,
       isMaxAmount
     );
-    const timestamp = Date.now() / 1000;
+    const timestamp = Math.floor(Date.now() / 1000);
 
     const sendPayload: SendPayload = {
       destChainId: networkTo,
@@ -84,19 +81,19 @@ export class SendSignatureController {
       feeAmount,
       timestamp,
       flags,
-      flagData,
+      flagData
     };
     let signature;
 
     switch (networkFrom) {
       case SOLANA_CHAIN_ID:
       case SOLANA_DEV_CHAIN_ID:
-        signature = await this.signSvmSendPayload(sendPayload, sendSignerPK);
+        signature = await this.signSvmSendPayload(sendPayload, solanaPK);
         break;
       default:
         signature = await this.signEvmSendPayload(
           sendPayload,
-          sendSignerPK as `0x${string}`
+          emvPK as `0x${string}`
         );
         break;
     }
@@ -115,44 +112,44 @@ export class SendSignatureController {
         {
           name: "destChainId",
           type: "uint256",
-          internalType: "uint256",
+          internalType: "uint256"
         },
         {
           name: "tokenAddress",
           type: "bytes32",
-          internalType: "bytes32",
+          internalType: "bytes32"
         },
         {
           name: "externalTokenAddress",
           type: "bytes32",
-          internalType: "bytes32",
+          internalType: "bytes32"
         },
         {
           name: "amountToSend",
           type: "uint256",
-          internalType: "uint256",
+          internalType: "uint256"
         },
         {
           name: "feeAmount",
           type: "uint256",
-          internalType: "uint256",
+          internalType: "uint256"
         },
         {
           name: "timestamp",
           type: "uint256",
-          internalType: "uint256",
+          internalType: "uint256"
         },
         {
           name: "flags",
           type: "uint256",
-          internalType: "uint256",
+          internalType: "uint256"
         },
         {
           name: "flagData",
           type: "bytes",
-          internalType: "bytes",
-        },
-      ],
+          internalType: "bytes"
+        }
+      ]
     };
     const payload = encodeAbiParameters<[typeof PayloadAbi]>(
       [PayloadAbi],
@@ -165,8 +162,8 @@ export class SendSignatureController {
           feeAmount: sendPayload.feeAmount,
           timestamp: sendPayload.timestamp,
           flags: sendPayload.flags,
-          flagData: sendPayload.flagData,
-        },
+          flagData: sendPayload.flagData
+        }
       ]
     );
     const payloadHash = keccak256(payload);
@@ -175,8 +172,8 @@ export class SendSignatureController {
     return await signer.signMessage({ message: digest });
   }
 
-  async signSvmSendPayload(sendPayload: SendPayload, sendSignerPK: string) {
-    const signer = Keypair.fromSecretKey(bs58.decode(sendSignerPK));
+  async signSvmSendPayload(sendPayload: SendPayload, sendSignerPK: Uint8Array) {
+    const signer = Keypair.fromSecretKey(sendSignerPK);
 
     const payload = Buffer.concat([
       bigIntToBuffer(BigInt(sendPayload.destChainId), 32),
@@ -186,7 +183,7 @@ export class SendSignatureController {
       bigIntToBuffer(BigInt(sendPayload.feeAmount), 32),
       bigIntToBuffer(BigInt(sendPayload.timestamp), 32),
       bigIntToBuffer(BigInt(sendPayload.flags), 32),
-      Buffer.from(sendPayload.flagData, "hex"),
+      Buffer.from(sendPayload.flagData, "hex")
     ]);
 
     const signature = nacl.sign.detached(payload, signer.secretKey);

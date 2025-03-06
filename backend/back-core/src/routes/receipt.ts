@@ -11,7 +11,7 @@ import {
   evmAddressBytes32Hex,
   unsignedReceiptsResponseSchema,
   receiptResponseSchema,
-  signatureRegex,
+  signatureRegex
 } from "./utils";
 import { Hono } from "hono";
 import { env } from "hono/adapter";
@@ -37,9 +37,9 @@ receiptRoutes.get(
         description: "Returns unsigned EVM receipts with receipt metadata",
         content: {
           "application/json": {
-            schema: resolver(unsignedReceiptsResponseSchema),
-          },
-        },
+            schema: resolver(unsignedReceiptsResponseSchema)
+          }
+        }
       },
       400: {
         description: "Returns error message",
@@ -49,14 +49,14 @@ receiptRoutes.get(
               type: "object",
               properties: {
                 message: {
-                  type: "string",
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+                  type: "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }),
   zValidator("param", evmAddressValidatorSchema),
   receiptControllerDep.middleware("receiptController"),
@@ -68,7 +68,7 @@ receiptRoutes.get(
       return c.json(data, 200);
     } catch (error) {
       console.log(error);
-      return c.json(error as Error, 400);
+      return c.json({ message: (error as Error).message }, 400);
     }
   }
 );
@@ -83,9 +83,9 @@ receiptRoutes.get(
         description: "Returns unsigned Solana receipts with receipt metadata",
         content: {
           "application/json": {
-            schema: resolver(unsignedReceiptsResponseSchema),
-          },
-        },
+            schema: resolver(unsignedReceiptsResponseSchema)
+          }
+        }
       },
       400: {
         description: "Returns error message",
@@ -95,14 +95,14 @@ receiptRoutes.get(
               type: "object",
               properties: {
                 message: {
-                  type: "string",
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+                  type: "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }),
   zValidator("param", svmAddressValidatorSchema),
   receiptControllerDep.middleware("receiptController"),
@@ -114,7 +114,7 @@ receiptRoutes.get(
       return c.json(unsignedReceiptsResponseSchema.parse(data), 200);
     } catch (error) {
       console.error(error);
-      return c.json(error as Error, 400);
+      return c.json({ message: (error as Error).message }, 400);
     }
   }
 );
@@ -144,9 +144,9 @@ receiptRoutes.get(
         description: "Returns receipts",
         content: {
           "application/json": {
-            schema: resolver(z.array(receiptResponseSchema)),
-          },
-        },
+            schema: resolver(z.array(receiptResponseSchema))
+          }
+        }
       },
       400: {
         // 400 Bad Request
@@ -157,21 +157,21 @@ receiptRoutes.get(
               type: "object",
               properties: {
                 message: {
-                  type: "string",
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+                  type: "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }),
   zValidator(
     "query",
     z.object({
       limit: z.coerce.number().optional().default(50),
       offset: z.coerce.number().optional().default(0),
-      ordering: z.enum(["asc", "desc"]).optional().default("desc"),
+      ordering: z.enum(["asc", "desc"]).optional().default("desc")
     })
   ),
   receiptControllerDep.middleware("receiptController"),
@@ -188,7 +188,7 @@ receiptRoutes.get(
       return c.json(data, 200);
     } catch (error) {
       console.error(error);
-      return c.json(error as Error, 400);
+      return c.json({ message: (error as Error).message }, 400);
     }
   }
 );
@@ -202,9 +202,9 @@ receiptRoutes.get(
         description: "Returns receipts",
         content: {
           "application/json": {
-            schema: resolver(z.array(receiptResponseSchema)),
-          },
-        },
+            schema: resolver(z.array(receiptResponseSchema))
+          }
+        }
       },
       400: {
         description: "Returns error message",
@@ -214,21 +214,21 @@ receiptRoutes.get(
               type: "object",
               properties: {
                 message: {
-                  type: "string",
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+                  type: "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }),
   zValidator(
     "param",
     z.object({
       userAddress: z
         .union([evmAddressBytes32Hex, svmAddressBytes32Hex])
-        .optional(),
+        .optional()
     })
   ),
   zValidator(
@@ -236,7 +236,7 @@ receiptRoutes.get(
     z.object({
       limit: z.coerce.number().optional().default(50),
       offset: z.coerce.number().optional().default(0),
-      ordering: z.enum(["asc", "desc"]).optional().default("desc"),
+      ordering: z.enum(["asc", "desc"]).optional().default("desc")
     })
   ),
   receiptControllerDep.middleware("receiptController"),
@@ -255,7 +255,7 @@ receiptRoutes.get(
       return c.json(data, 200);
     } catch (error) {
       console.error(error);
-      return c.json(error as Error, 400);
+      return c.json({ message: (error as Error).message }, 400);
     }
   }
 );
@@ -273,14 +273,14 @@ receiptRoutes.post(
               type: "object",
               properties: {
                 signed: {
-                  type: "boolean",
-                },
+                  type: "boolean"
+                }
               },
               example: { signed: true },
-              description: "If receipt has been signed",
-            },
-          },
-        },
+              description: "If receipt has been signed"
+            }
+          }
+        }
       },
       400: {
         description: "Returns error message",
@@ -290,14 +290,14 @@ receiptRoutes.post(
               type: "object",
               properties: {
                 message: {
-                  type: "string",
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+                  type: "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }),
   zValidator("param", receiptIdValidatorSchema),
   zValidator(
@@ -306,9 +306,9 @@ receiptRoutes.post(
       signer: z.string().openapi({
         examples: [
           "0xe0b52EC5cE3e124ab5306ea42463bE85aeb5eDDd",
-          "FMYR5BFh3JapZS1cfwYViiBMYJxFGwKdchnghBnBtxkk",
+          "FMYR5BFh3JapZS1cfwYViiBMYJxFGwKdchnghBnBtxkk"
         ],
-        description: "Signer address",
+        description: "Signer address"
       }),
       signature: z
         .string()
@@ -319,7 +319,7 @@ receiptRoutes.post(
             return processed.slice(2);
           }
           return `0x${processed}` as `0x${string}`;
-        }),
+        })
     })
   ),
   receiptControllerDep.middleware("receiptController"),
@@ -337,7 +337,7 @@ receiptRoutes.post(
       return c.json({ signed: data }, 201);
     } catch (error) {
       console.log(error);
-      return c.json(error as Error, 400);
+      return c.json({ message: (error as Error).message }, 400);
     }
   }
 );
@@ -351,9 +351,9 @@ receiptRoutes.get(
         description: "Returns receipt",
         content: {
           "application/json": {
-            schema: resolver(receiptResponseSchema),
-          },
-        },
+            schema: resolver(receiptResponseSchema)
+          }
+        }
       },
       400: {
         description: "Returns error message",
@@ -363,14 +363,14 @@ receiptRoutes.get(
               type: "object",
               properties: {
                 message: {
-                  type: "string",
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+                  type: "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }),
   zValidator("param", receiptIdValidatorSchema),
   receiptControllerDep.middleware("receiptController"),
@@ -382,7 +382,7 @@ receiptRoutes.get(
       return c.json(receiptResponseSchema.parse(data), 200);
     } catch (error) {
       console.log(error);
-      return c.json(error as Error, 400);
+      return c.json({ message: (error as Error).message }, 400);
     }
   }
 );

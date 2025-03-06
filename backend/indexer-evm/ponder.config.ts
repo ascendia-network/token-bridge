@@ -4,26 +4,26 @@ import { bridgeAbi } from "./abis/bridgeAbi";
 import { loadBalance } from "@ponder/utils";
 
 const baseTransports = [
-  http("https://base.llamarpc.com"),
-  http("https://base-rpc.publicnode.com"),
-  webSocket("wss://base-rpc.publicnode.com"),
-  http("https://0xrpc.io/base"),
-  http("https://mainnet.base.org"),
-  http("https://1rpc.io/base"),
-  http("https://base.drpc.org"),
-  webSocket("wss://base.callstaticrpc.com"),
+  "https://base.llamarpc.com",
+  "https://base-rpc.publicnode.com",
+  "wss://base-rpc.publicnode.com",
+  "https://0xrpc.io/base",
+  "https://mainnet.base.org",
+  "https://1rpc.io/base",
+  "https://base.drpc.org",
+  "wss://base.callstaticrpc.com",
 ];
 
 const baseSepoliaTransports = [
-  http("https://sepolia.base.org"),
-  http("https://base-sepolia-rpc.publicnode.com"),
-  webSocket("wss://base-sepolia-rpc.publicnode.com"),
-  http("https://base-sepolia.gateway.tenderly.co"),
+  "https://sepolia.base.org",
+  "https://base-sepolia-rpc.publicnode.com",
+  "wss://base-sepolia-rpc.publicnode.com",
+  "https://base-sepolia.gateway.tenderly.co",
 ];
 
-const ambTransports = [http("https://network-archive.ambrosus.io/")];
+const ambTransports = ["https://network-archive.ambrosus.io/"];
 
-const ambTestTransports = [http("https://network-archive.ambrosus-test.io/")];
+const ambTestTransports = ["https://network-archive.ambrosus-test.io/"];
 
 const amb = {
   chainId: 16718,
@@ -69,8 +69,8 @@ export default createConfig({
         // },
         amb_test: {
           address: [
-            "0x6D10438D535b9d8d279ea6be187366c42026d37b", // bridgeAmbSolana
-            // "0xFILL_ME", // bridgeAmbBase
+            "0x81c448672fc9167aa5c00B2eD773e8d2ff3F19BE", // bridgeAmbSolana
+            "0xAe91d2F64BDDC37a9E3dd39507E5Bb58955d1813", // bridgeAmbBase
           ],
           startBlock: Number(3531799),
         },
@@ -84,29 +84,39 @@ export default createConfig({
   },
 });
 
-(BigInt.prototype as any).toJSON = function() { return this.toString() }
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
 
 function getTransports(chainId: number) {
-  let transports;
+  let transports: Set<string>;
   switch (chainId) {
     case 8453:
-      transports = baseTransports;
+      transports = new Set(baseTransports);
       break;
     case 84532:
-      transports = baseSepoliaTransports;
+      transports = new Set(baseSepoliaTransports);
       break;
     case 16718:
-      transports = ambTransports;
+      transports = new Set(ambTransports);
       break;
     case 22040:
-      transports = ambTestTransports;
+      transports = new Set(ambTestTransports);
       break;
     default:
       throw new Error(`Unknown chainId: ${chainId}`);
   }
   const envChain = process.env[`PONDER_RPC_URL_${chainId}`];
   if (envChain) {
-    transports.push(http(envChain));
+    transports.add(envChain);
   }
-  return transports;
+  return new Array(...transports).map((url) => {
+    if(url.startsWith("wss://") || url.startsWith("ws://")) {
+      return webSocket(url);
+    } else if (url.startsWith("http://") || url.startsWith("https://")) {
+      return http(url);
+    } else {
+      throw new Error(`Unknown transport: ${url}`);
+    }
+  });
 }

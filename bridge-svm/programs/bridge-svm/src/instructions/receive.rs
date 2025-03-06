@@ -5,6 +5,7 @@ use anchor_lang::solana_program::{
     keccak::hash,
     sysvar::instructions::{get_instruction_relative, ID as SYSVAR_INSTRUCTIONS_ID},
 };
+use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::Token;
 use anchor_spl::token_interface::{Mint, TokenAccount};
 
@@ -20,9 +21,11 @@ pub struct Receive<'info> {
     pub receiver: Signer<'info>,
 
     #[account(
-        mut,
+        init_if_needed,
+        payer = receiver,
         associated_token::mint = mint,
         associated_token::authority = receiver,
+        associated_token::token_program = token_program,
     )]
     pub receiver_token_account: InterfaceAccount<'info, TokenAccount>,
 
@@ -57,14 +60,29 @@ pub struct Receive<'info> {
     pub ix_sysvar: AccountInfo<'info>,
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
 }
 
-pub fn receive(ctx: Context<Receive>, serialized_args: Vec<u8>) -> Result<()> {
+pub fn receive(
+    ctx: Context<Receive>,
+    amount_to: u64,
+    event_id: u64,
+    flags: [u8; 32],
+    flag_data: Vec<u8>,
+) -> Result<()> {
     let nonce = &mut ctx.accounts.receiver_nonce_account;
     let bridge_token = &ctx.accounts.bridge_token;
 
-    let args = ReceivePayload::try_from_slice(&serialized_args)
-        .map_err(|_| error!(CustomError::InvalidSerialization))?;
+    let args = ReceivePayload{
+        to: *ctx.accounts.receiver.key,
+        token_address_to: ctx.accounts.mint.key(),
+        amount_to,
+        chain_to: SOLANA_CHAIN_ID,
+        event_id,
+        flags,
+        flag_data,
+    };
+    let serialized_args = args.try_to_vec().map_err(|_| CustomError::InvalidSerialization)?;
     let args_hash = hash(&serialized_args);
 
     // check signature
@@ -82,12 +100,6 @@ pub fn receive(ctx: Context<Receive>, serialized_args: Vec<u8>) -> Result<()> {
     require!(
         signer_pubkey.to_bytes() == ctx.accounts.state.receive_signer.to_bytes(),
         CustomError::InvalidSignature
-    );
-
-
-    require!(
-        args.chain_to == SOLANA_CHAIN_ID,
-        CustomError::InvalidArgs
     );
 
     require!(
@@ -110,7 +122,11 @@ pub fn receive(ctx: Context<Receive>, serialized_args: Vec<u8>) -> Result<()> {
     } else {
         transfer_spl_to_user(
             ctx.accounts.bridge_token.to_account_info(),
-            ctx.accounts.bridge_token_account.clone().expect("no bridge ata").to_account_info(),
+            ctx.accounts
+                .bridge_token_account
+                .clone()
+                .expect("no bridge ata")
+                .to_account_info(),
             ctx.accounts.receiver_token_account.to_account_info(),
             args.amount_to,
             ctx.accounts.token_program.to_account_info(),

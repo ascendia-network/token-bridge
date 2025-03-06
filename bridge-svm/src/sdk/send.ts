@@ -1,4 +1,4 @@
-import { hexToUint8Array } from "./utils";
+import { getBridgeTokenInfo, hexToUint8Array } from "./utils";
 import { Connection, PublicKey, sendAndConfirmTransaction, type Signer, Transaction } from "@solana/web3.js";
 import { Program } from "@coral-xyz/anchor";
 import { getSendPayload } from "../backend/signs";
@@ -16,16 +16,20 @@ export async function send(
   amountToSend: number,
   flags: any  // todo
 ) {
-  // const user_token_ata = await getOrCreateUserATA(connection, userFrom, tokenFrom);
-
   const { payload, message, signers, signatures } = await getSendPayload(tokenFrom, tokenTo, amountToSend, flags);
   const verifyInstruction = newEd25519Instruction(message, signers, signatures);
 
-  // Lock tokens
-  const sendInstruction = await bridgeProgram.methods.send(payload, [...hexToUint8Array(userTo)]).accounts({
-    sender: userFrom.publicKey,
-    mint: tokenFrom,
-  }).signers([userFrom]).instruction();
+  const { isMintable } = await getBridgeTokenInfo(bridgeProgram, tokenFrom);
+
+  // todo wrap instruction for WSOL
+
+  const sendInstruction = await bridgeProgram.methods
+    .send(payload, [...hexToUint8Array(userTo)])
+    .accountsPartial({
+      sender: userFrom.publicKey,
+      mint: tokenFrom,
+      bridgeTokenAccount: isMintable ? null : undefined,  // pass null to not use bridge token account
+    }).signers([userFrom]).instruction();
 
 
   const tx = new Transaction().add(verifyInstruction, sendInstruction);

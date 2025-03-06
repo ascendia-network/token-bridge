@@ -1,27 +1,37 @@
-import { AnchorProvider, BorshCoder, EventParser, Program, setProvider, workspace } from "@coral-xyz/anchor";
-import { Connection, Keypair, PublicKey, sendAndConfirmTransaction, SystemProgram, Transaction } from '@solana/web3.js';
+import { Buffer } from "buffer";
+
+import { AnchorProvider, BN, BorshCoder, EventParser, Program, setProvider, workspace } from "@coral-xyz/anchor";
+import {
+  Keypair,
+  ParsedAccountData,
+  PublicKey,
+  sendAndConfirmTransaction,
+  Transaction,
+  TransactionSignature
+} from '@solana/web3.js';
+
+import { createMint, getAssociatedTokenAddressSync, mintTo, NATIVE_MINT } from "@solana/spl-token";
 
 import { AmbSolBridge } from "../../target/types/amb_sol_bridge";
-import {
-  createAssociatedTokenAccountInstruction,
-  createMint,
-  createSyncNativeInstruction,
-  getAssociatedTokenAddressSync,
-  mintTo,
-  NATIVE_MINT
-} from "@solana/spl-token";
-
-import assert from "assert";
 import { receiveSigner, receiveSigners, sendSigner, signMessage } from "../../src/backend/signs";
 import {
   getBridgeStateAccount,
   getBridgeTokenAccounts,
   getOrCreateUserATA,
   getUserNoncePda,
-  hexToUint8Array, numberToUint8Array, SOLANA_CHAIN_ID
+  hexToUint8Array,
+  initializeToken,
+  numberToUint8Array,
+  SOLANA_CHAIN_ID
 } from "../../src/sdk/utils";
 import { ReceivePayload, SendPayload, serializeReceivePayload, serializeSendPayload } from "../../src/backend/types";
 import { newEd25519Instruction } from "../../src/sdk/ed25519_ix";
+
+import { expect, use } from "chai";
+import chaiAsPromised from 'chai-as-promised';
+import { wrapSolInstructions } from "../../src/sdk/wsol_ix";
+
+use(chaiAsPromised);
 
 
 describe("my-project", () => {
@@ -40,14 +50,19 @@ describe("my-project", () => {
   // mint - a.k.a. token
 
 
-  let tokenMint1;         // some token (bridge CAN'T mint)
+  let tokenMint1;        // some token (bridge CAN'T mint)
   let tokenMint2;        // some token (bridge CAN mint)
 
 
-  const ambTokenAddress1 = hexToUint8Array("0x0000000000000000000000000000000000001111");
-  const ambTokenAddress2 = hexToUint8Array("0x0000000000000000000000000000000000002222");
-  const ambTokenAddress3 = hexToUint8Array("0x0000000000000000000000000000000000003333");
-  const ambUserAddress = hexToUint8Array("0x000000000000000000000000000000000000aaaa");
+  const ambTokenAddress1_ = "0x0000000000000000000000000000000000001111";
+  const ambTokenAddress2_ = "0x0000000000000000000000000000000000002222";
+  const ambTokenAddress3_ = "0x0000000000000000000000000000000000003333";
+  const ambUserAddress_ = "0x000000000000000000000000000000000000aaaa";
+
+  const ambTokenAddress1 = hexToUint8Array(ambTokenAddress1_);
+  const ambTokenAddress2 = hexToUint8Array(ambTokenAddress2_);
+  const ambTokenAddress3 = hexToUint8Array(ambTokenAddress3_);
+  const ambUserAddress = hexToUint8Array(ambUserAddress_);
 
 
   it("airdropping sol", async () => {
@@ -63,254 +78,231 @@ describe("my-project", () => {
   it("initializing global state", async () => {
     await program.methods.initialize(sendSigner.publicKey, receiveSigner).accounts({ admin: admin.publicKey, }).signers([admin]).rpc();
 
-    const state_pda = getBridgeStateAccount(program.programId);
-    const globalState = await program.account.globalState.fetch(state_pda);
-    console.log("globalState", globalState)
-    assert.ok(globalState.admin.equals(admin.publicKey));
-    assert.ok(!globalState.pause);
+    const globalState = await program.account.globalState.fetch(getBridgeStateAccount(program.programId));
+    expect(+globalState.nonce).to.eq(0);
+    expect(globalState.admin.equals(admin.publicKey));
+    expect(globalState.sendSigner.equals(sendSigner.publicKey));
+    expect(globalState.receiveSigner.equals(receiveSigner));
+    expect(globalState.pause).to.eq(false);
+
+  });
+
+
+  it("initializing global state second time - should fail", async () => {
+    await expect(
+      program.methods.initialize(sendSigner.publicKey, receiveSigner)
+        .accounts({ admin: admin.publicKey, }).signers([admin]).rpc()
+    ).to.be.rejectedWith("already in use");
+
+    // also try with another state account - should fail
+    const someAccount = Keypair.generate();
+    await expect(
+      program.methods.initialize(sendSigner.publicKey, receiveSigner)
+        .accountsPartial({ admin: admin.publicKey, state: someAccount.publicKey }).signers([admin]).rpc()
+    ).to.be.rejectedWith("A seeds constraint was violated.");
+
 
   });
 
 
   it("initializing tokens", async () => {
     [tokenMint1, tokenMint2] = [Keypair.generate(), Keypair.generate()];
-    console.log("tokenMint1", tokenMint1.publicKey.toBase58())
-    console.log("tokenMint2", tokenMint2.publicKey.toBase58())
 
-    console.log("create tokens")
+
     await createMint(connection, admin, admin.publicKey, null, 6, tokenMint1);
+
     const [bridgeToken2PDA] = getBridgeTokenAccounts(tokenMint2.publicKey, program.programId);
     await createMint(connection, admin, bridgeToken2PDA, null, 6, tokenMint2);  // mint authority is token PDA
 
-    console.log("bridgeToken2PDA", bridgeToken2PDA.toBase58())
-
-    console.log("create user pdas")
-    const user_token1_ata = await getOrCreateUserATA(connection, user, tokenMint1.publicKey);
-    const user_token2_ata = await getOrCreateUserATA(connection, user, tokenMint2.publicKey);
-
-    console.log("mint token1 to user pda")
-    await mintTo(connection, user, tokenMint1.publicKey, user_token1_ata, admin, 10 * 10 ** 6);
-
 
     // initialize token 1 - primary (non-mintable)
-    await program.methods.initializeToken([...ambTokenAddress1], 18, false).accounts({
-      // @ts-ignore
-      admin: admin.publicKey,
-      mint: tokenMint1.publicKey,
-    }).signers([admin]).rpc();
+    await initializeToken(program, admin, tokenMint1.publicKey, ambTokenAddress1_, 18, false);
     // initialize token 2 - synthetic (mintable)
-    await program.methods.initializeToken([...ambTokenAddress2], 18, true).accounts({
-      // @ts-ignore
-      admin: admin.publicKey,
-      mint: tokenMint2.publicKey,
-      bridgeTokenAccount: null  // pass null to not create bridge token account
-    }).signers([admin]).rpc();
+    await initializeToken(program, admin, tokenMint2.publicKey, ambTokenAddress2_, 18, true);
     // initialize token 3 - wrapped native
-    await program.methods.initializeToken([...ambTokenAddress3], 18, false).accounts({
-      // @ts-ignore
-      admin: admin.publicKey,
-      mint: NATIVE_MINT,
-    }).signers([admin]).rpc();
+    await initializeToken(program, admin, NATIVE_MINT, ambTokenAddress3_, 18, false);
+
+    // todo try to initialize mintable with some bridge token account
 
 
-    const [bridge_token1_pda, bridge_token1_ata] = getBridgeTokenAccounts(tokenMint1.publicKey, program.programId);
-    const tokenConfigState = await program.account.tokenConfig.fetch(bridge_token1_pda);
-    const tokenBalanceB = await connection.getTokenAccountBalance(bridge_token1_ata);
-    const bridgeAta = await connection.getAccountInfo(bridge_token1_ata);
+    const checkToken = async (pubkey: PublicKey, ambAddress: Uint8Array, isMintable: boolean) => {
+      const [bridge_token_pda, bridgeATA] = getBridgeTokenAccounts(pubkey, program.programId);
+      const tokenConfigState = await program.account.tokenConfig.fetch(bridge_token_pda);
+      const bridgeAtaParsed = await connection.getParsedAccountInfo(bridgeATA);
 
-    console.log("tokenConfigState", tokenConfigState)
-    console.log("tokenBalanceB", tokenBalanceB)
-    console.log("bridgeAta", bridgeAta)
+      expect(tokenConfigState.token.equals(pubkey));
+      expect(tokenConfigState.ambToken).to.deep.eq([...ambAddress]);
+      expect(tokenConfigState.isMintable).to.eq(isMintable);
+
+      if (isMintable) {
+        // ATA not created for mintable tokens
+        expect(bridgeAtaParsed.value).to.eq(null);
+      } else {
+        const bridgeAtaParsedInfo = (bridgeAtaParsed.value.data as ParsedAccountData).parsed.info;
+        expect(bridgeAtaParsedInfo.state).to.eq("initialized");
+        expect(bridgeAtaParsedInfo.owner).to.eq(bridge_token_pda.toBase58());
+
+        expect(bridgeAtaParsedInfo.mint).to.eq(pubkey.toBase58());
+        const tokenBalanceB = await connection.getTokenAccountBalance(bridgeATA);
+        expect(tokenBalanceB.value.amount).to.eq('0');
+      }
+
+    }
+    await checkToken(tokenMint1.publicKey, ambTokenAddress1, false);
+    await checkToken(tokenMint2.publicKey, ambTokenAddress2, true);
+    await checkToken(NATIVE_MINT, ambTokenAddress3, false);
 
   });
 
 
   it('send non mintable token', async () => {
-
-
     const userFrom = user;
     const tokenFrom = tokenMint1.publicKey;
     const userTo = ambUserAddress;
     const tokenTo = ambTokenAddress1;
 
 
-    const user_token_ata = await getOrCreateUserATA(connection, userFrom, tokenFrom);
-    const [_, bridge_token_ata] = getBridgeTokenAccounts(tokenFrom, program.programId);
+    // mint some tokens to user
+    // todo try send when user don't have tokens
+    const userATA = await getOrCreateUserATA(connection, userFrom, tokenFrom);
+    await mintTo(connection, userFrom, tokenFrom, userATA, admin, 10 * 10 ** 6);
+    expect((await connection.getTokenAccountBalance(userATA)).value.amount).to.eq('10000000');
 
-    const tokenBalanceUser = await connection.getTokenAccountBalance(user_token_ata);
-    const tokenBalanceBridge = await connection.getTokenAccountBalance(bridge_token_ata);
-    console.log("tokenBalanceUser", tokenBalanceUser)
-    console.log("tokenBalanceBridge", tokenBalanceBridge)
+    const before = await getStateSnapshot(tokenFrom, userFrom.publicKey);
 
+    await commonSend(user, tokenFrom, userTo, tokenTo, 50);
+    const after = await getStateSnapshot(tokenFrom, userFrom.publicKey);
 
-    const value: SendPayload = {
-      tokenAddressFrom: tokenFrom.toBytes(),
-      tokenAddressTo: tokenTo,
-      amountToSend: 50,
-      feeAmount: 20,
-      chainFrom: SOLANA_CHAIN_ID,
-      timestamp: Date.now(),
-      flags: new Uint8Array(32),
-      flagData: new Uint8Array(0),
-    };
-
-
-    const payload = serializeSendPayload(value);
-    const { message, signers, signatures } = signMessage(payload, [sendSigner]);
-
-    const verifyInstruction = newEd25519Instruction(message, signers, signatures);
-    // send tokens
-    const sendInstruction = await bridgeProgram.methods.send(payload, [...userTo]).accounts({
-      sender: userFrom.publicKey,
-      mint: tokenFrom,
-    }).signers([userFrom]).instruction();
-
-    const tx = new Transaction().add(verifyInstruction, sendInstruction);
-    tx.feePayer = userFrom.publicKey;
-    const txSignature = await sendAndConfirmTransaction(connection, tx, [user], { commitment: 'confirmed' }); // wait for transaction to be confirmed
-
-
-    const txParsed = await connection.getParsedTransaction(txSignature, { commitment: 'confirmed' });
-    console.log(txParsed)
-
-    const eventParser = new EventParser(program.programId, new BorshCoder(program.idl));
-    const events = eventParser.parseLogs(txParsed.meta.logMessages);
-    for (let event of events) {
-      console.log(event);
-    }
-
-
-    const state_pda = getBridgeStateAccount(program.programId);
-    const accountState = await program.account.globalState.fetch(state_pda);
-    assert.ok(+accountState.nonce === 1);
-
-    const tokenBalance2 = await connection.getTokenAccountBalance(user_token_ata);
-    console.log(tokenBalance2)
-
+    expect(after.token.user).to.eq(before.token.user - 50);
+    expect(after.token.bridge).to.eq(before.token.bridge + 50);
+    expect(after.native.user).to.eq(before.native.user - 20);
+    expect(after.native.bridge).to.eq(before.native.bridge + 20);
+    expect(after.sendNonce).to.eq(before.sendNonce + 1);
   });
 
 
   it('receive non mintable token', async () => {
+    // todo try receive when bridge doesn't have tokens
 
-    const token = tokenMint1.publicKey;
+    const tokenTo = tokenMint1.publicKey;
+    const userTo = user;
 
+    const before = await getStateSnapshot(tokenTo, userTo.publicKey);
 
-    const [bridge_token1_pda, bridge_token_ata] = getBridgeTokenAccounts(token, program.programId);
-    const user_token_ata = await getOrCreateUserATA(connection, user, token);
+    await commonReceive(userTo, tokenTo, 50, before.receiverNonce ?? 0);
 
-    const tokenBalanceUser = await connection.getTokenAccountBalance(user_token_ata);
-    const tokenBalanceBridge = await connection.getTokenAccountBalance(bridge_token_ata);
-    console.log("tokenBalanceUser", tokenBalanceUser)
-    console.log("tokenBalanceBridge", tokenBalanceBridge)
+    const after = await getStateSnapshot(tokenTo, userTo.publicKey);
 
-
-    const value: ReceivePayload = {
-      to: user.publicKey.toBytes(),
-      tokenAddressTo: token.toBytes(),
-      amountTo: 50,
-      chainTo: SOLANA_CHAIN_ID,
-      eventId: 1,
-      flags: new Uint8Array(32),
-      flagData: numberToUint8Array(0, 8)
-    };
-
-
-    const nonceAccount = getUserNoncePda(user.publicKey, bridgeProgram.programId);
-
-
-    const payload = serializeReceivePayload(value);
-    const { message, signers, signatures } = signMessage(payload, receiveSigners);
-    const verifyInstruction = newEd25519Instruction(message, signers, signatures);
-
-    const receiveInstruction = await bridgeProgram.methods.receive(payload).accounts({
-      receiver: user.publicKey,
-      mint: token,
-    }).signers([user]).instruction()
-
-    const tx = new Transaction().add(verifyInstruction, receiveInstruction);
-    tx.feePayer = user.publicKey;
-    const txSignature = await sendAndConfirmTransaction(connection, tx, [user], { commitment: 'confirmed' }); // wait for transaction to be confirmed
-
-
-    const receiverNonce = await program.account.nonceAccount.fetch(nonceAccount);
-    assert.ok(+receiverNonce.nonceCounter === 1);
+    expect(after.token.user).to.eq(before.token.user + 50);
+    expect(after.token.bridge).to.eq(before.token.bridge - 50);
+    expect(after.native.user).to.be.lessThan(before.native.user);  // rent for nonce account
+    expect(after.native.bridge).to.eq(before.native.bridge);
+    expect(before.receiverNonce).to.eq(undefined);     // nonce account is not created yet; bridge will create nonce account for user on first receive
+    expect(after.receiverNonce).to.eq(1);
   });
 
 
   it('receive mintable token', async () => {
 
-    const token = tokenMint2.publicKey;
+    const tokenTo = tokenMint2.publicKey;
+    const userTo = user;
 
+    const before = await getStateSnapshot(tokenTo, userTo.publicKey);
 
-    const [bridge_token1_pda, bridge_token_ata] = getBridgeTokenAccounts(token, program.programId);
-    const user_token_ata = await getOrCreateUserATA(connection, user, token);
+    await commonReceive(userTo, tokenTo, 50, before.receiverNonce, true);
 
-    const tokenBalanceUser = await connection.getTokenAccountBalance(user_token_ata);
-    // const tokenBalanceBridge = await connection.getTokenAccountBalance(bridge_token_ata);
-    console.log("tokenBalanceUser", tokenBalanceUser)
-    // console.log("tokenBalanceBridge", tokenBalanceBridge)
+    const after = await getStateSnapshot(tokenTo, userTo.publicKey);
 
-
-    const value: ReceivePayload = {
-      to: user.publicKey.toBytes(),
-      tokenAddressTo: token.toBytes(),
-      amountTo: 500,
-      chainTo: SOLANA_CHAIN_ID,
-      eventId: 1,
-      flags: new Uint8Array(32),
-      flagData: numberToUint8Array(1, 8)
-    };
-
-
-    const nonceAccount = getUserNoncePda(user.publicKey, bridgeProgram.programId);
-
-
-    const payload = serializeReceivePayload(value);
-    const { message, signers, signatures } = signMessage(payload, receiveSigners);
-    const verifyInstruction = newEd25519Instruction(message, signers, signatures);
-
-    const receiveInstruction = await bridgeProgram.methods.receive(payload).accounts({
-      receiver: user.publicKey,
-      mint: token,
-      bridgeTokenAccount: null, // pass null to not use bridge token account
-    }).signers([user]).instruction()
-
-    const tx = new Transaction().add(verifyInstruction, receiveInstruction);
-    tx.feePayer = user.publicKey;
-    const txSignature = await sendAndConfirmTransaction(connection, tx, [user], { commitment: 'confirmed' }); // wait for transaction to be confirmed
-
-
-    const receiverNonce = await program.account.nonceAccount.fetch(nonceAccount);
-    assert.ok(+receiverNonce.nonceCounter === 2);
-
-    const userBalance = await connection.getTokenAccountBalance(user_token_ata);
-    console.log(userBalance)
+    expect(before.token.user).to.eq(undefined);  // expecting that bridge will create ATA for user
+    expect(after.token.user).to.eq(50);
+    expect(before.token.bridge).to.eq(undefined);  // bridge ATA for mintable tokens doesn't exist
+    expect(after.token.bridge).to.eq(undefined);
+    expect(after.native.user).to.be.lessThan(before.native.user);  // rent for ATA
+    expect(after.native.bridge).to.eq(before.native.bridge);
+    expect(after.receiverNonce).to.eq(before.receiverNonce + 1);
 
   });
 
 
   it('send mintable token', async () => {
 
-
     const userFrom = user;
-    const userTo = ambUserAddress;
     const tokenFrom = tokenMint2.publicKey;
+    const userTo = ambUserAddress;
     const tokenTo = ambTokenAddress2;
 
+    const before = await getStateSnapshot(tokenFrom, userFrom.publicKey);
 
-    const user_token_ata = await getOrCreateUserATA(connection, userFrom, tokenFrom);
-    const [_, bridge_token_ata] = getBridgeTokenAccounts(tokenFrom, program.programId);
+    await commonSend(userFrom, tokenFrom, userTo, tokenTo, 50, true);
 
-    const tokenBalanceUser = await connection.getTokenAccountBalance(user_token_ata);
-    // const tokenBalanceBridge = await connection.getTokenAccountBalance(bridge_token_ata);
-    console.log("tokenBalanceUser", tokenBalanceUser)
-    // console.log("tokenBalanceBridge", tokenBalanceBridge)
+    const after = await getStateSnapshot(tokenFrom, userFrom.publicKey);
+
+    expect(after.token.user).to.eq(before.token.user - 50);
+    expect(before.token.bridge).to.eq(undefined);  // bridge ATA for mintable tokens doesn't exist
+    expect(after.token.bridge).to.eq(undefined);
+    expect(after.native.user).to.eq(before.native.user - 20);
+    expect(after.native.bridge).to.eq(before.native.bridge + 20);
+
+
+    expect(after.sendNonce).to.eq(before.sendNonce + 1);
+  });
+
+
+  it('send native', async () => {
+    const userFrom = user;
+    const tokenFrom = NATIVE_MINT;
+    const userTo = ambUserAddress;
+    const tokenTo = ambTokenAddress3;
+
+    const before = await getStateSnapshot(tokenFrom, userFrom.publicKey);
+
+    const transferNativeInstructions = await wrapSolInstructions(connection, userFrom, tokenFrom, 5_000);
+    await commonSend(userFrom, tokenFrom, userTo, tokenTo, 5_000, false, transferNativeInstructions);
+
+    const after = await getStateSnapshot(tokenFrom, userFrom.publicKey);
+
+    expect(before.token.user).to.eq(undefined);
+    expect(after.token.user).to.eq(0);
+    expect(after.token.bridge).to.eq(before.token.bridge + 5000);
+    expect(after.native.user).to.be.lessThan(before.native.user - 5000 - 20);  // rent for wsol ATA
+    expect(after.native.bridge).to.eq(before.native.bridge + 20);
+
+
+    expect(after.sendNonce).to.eq(before.sendNonce + 1);
+
+  });
+
+
+  it('receive native', async () => {
+
+    const tokenTo = NATIVE_MINT;
+    const userTo = user;
+
+    const before = await getStateSnapshot(tokenTo, userTo.publicKey);
+
+    await commonReceive(userTo, tokenTo, 50, before.receiverNonce);
+
+    const after = await getStateSnapshot(tokenTo, userTo.publicKey);
+
+    expect(after.token.user).to.eq(before.token.user + 50);
+    expect(after.token.bridge).to.eq(before.token.bridge - 50);
+    expect(after.native.user).to.be.eq(before.native.user);
+    expect(after.native.bridge).to.eq(before.native.bridge);
+    expect(after.receiverNonce).to.eq(before.receiverNonce + 1);
+  });
+
+
+  async function commonSend(
+    userFrom: Keypair, tokenFrom: PublicKey, userTo: Uint8Array, tokenTo: Uint8Array,
+    amountToSend: number,
+    isMintable = false, additionalInstructions = []
+  ) {
 
 
     const value: SendPayload = {
       tokenAddressFrom: tokenFrom.toBytes(),
       tokenAddressTo: tokenTo,
-      amountToSend: 50,
+      amountToSend,
       feeAmount: 20,
       chainFrom: SOLANA_CHAIN_ID,
       timestamp: Date.now(),
@@ -327,183 +319,113 @@ describe("my-project", () => {
     const sendInstruction = await bridgeProgram.methods.send(payload, [...userTo]).accountsPartial({
       sender: userFrom.publicKey,
       mint: tokenFrom,
-      bridgeTokenAccount: null,  // pass null to not use bridge token account
+      bridgeTokenAccount: isMintable ? null : undefined,  // pass null to not use bridge token account
     }).signers([userFrom]).instruction();
 
-    const tx = new Transaction().add(verifyInstruction, sendInstruction);
+    const tx = new Transaction().add(...additionalInstructions, verifyInstruction, sendInstruction);
     tx.feePayer = userFrom.publicKey;
     const txSignature = await sendAndConfirmTransaction(connection, tx, [user], { commitment: 'confirmed' }); // wait for transaction to be confirmed
-
-
     const txParsed = await connection.getParsedTransaction(txSignature, { commitment: 'confirmed' });
-    console.log(txParsed)
 
-    const eventParser = new EventParser(program.programId, new BorshCoder(program.idl));
-    const events = eventParser.parseLogs(txParsed.meta.logMessages);
-    for (let event of events) {
-      console.log(event);
-    }
+    return txParsed;
+  }
 
 
-    const state_pda = getBridgeStateAccount(program.programId);
-    const accountState = await program.account.globalState.fetch(state_pda);
-    assert.ok(+accountState.nonce === 2);
-
-    const tokenBalance2 = await connection.getTokenAccountBalance(user_token_ata);
-    console.log(tokenBalance2)
-
-  });
-
-
-  it('send native', async () => {
-
-
-    const userFrom = user;
-    const tokenFrom = NATIVE_MINT;
-    const userTo = ambUserAddress;
-    const tokenTo = ambTokenAddress3;
-
-
-    const user_token_ata = getAssociatedTokenAddressSync(tokenFrom, userFrom.publicKey);
-    const [_, bridge_token_ata] = getBridgeTokenAccounts(tokenFrom, program.programId);
-
-
-    // const tokenBalanceBridge = await connection.getTokenAccountBalance(bridge_token_ata);
-    // console.log("tokenBalanceBridge", tokenBalanceBridge)
-
-
-    const value: SendPayload = {
-      tokenAddressFrom: tokenFrom.toBytes(),
-      tokenAddressTo: tokenTo,
-      amountToSend: 5_000,
-      feeAmount: 20,
-      chainFrom: SOLANA_CHAIN_ID,
-      timestamp: Date.now(),
-      flags: new Uint8Array(32),
-      flagData: new Uint8Array(0),
-    };
-
-
-    const payload = serializeSendPayload(value);
-    const { message, signers, signatures } = signMessage(payload, [sendSigner]);
-
-    const transferNativeInstructions = await wrapSolInstructions(connection, user_token_ata, userFrom, tokenFrom, value);
-    const verifyInstruction = newEd25519Instruction(message, signers, signatures);
-    // send tokens
-    const sendInstruction = await bridgeProgram.methods.send(payload, [...userTo]).accounts({
-      sender: user.publicKey,
-      mint: tokenFrom,
-    }).signers([userFrom]).instruction();
-
-
-    const tx = new Transaction().add(
-      ...transferNativeInstructions,
-      verifyInstruction, // must be just before send instruction
-      sendInstruction
-    );
-    tx.feePayer = userFrom.publicKey;
-    const txSignature = await sendAndConfirmTransaction(connection, tx, [user], { commitment: 'confirmed' }); // wait for transaction to be confirmed
-
-
-    const txParsed = await connection.getParsedTransaction(txSignature, { commitment: 'confirmed' });
-    console.log(txParsed)
-
-    const eventParser = new EventParser(program.programId, new BorshCoder(program.idl));
-    const events = eventParser.parseLogs(txParsed.meta.logMessages);
-    for (let event of events) {
-      console.log(event);
-    }
-
-
-    const state_pda = getBridgeStateAccount(program.programId);
-    const accountState = await program.account.globalState.fetch(state_pda);
-    assert.ok(+accountState.nonce === 3);
-
-    const tokenBalance2 = await connection.getTokenAccountBalance(user_token_ata);
-    console.log(tokenBalance2)
-
-  });
-
-
-  it('receive native', async () => {
-
-    const token = NATIVE_MINT;
-
-
-    const [bridge_token1_pda, bridge_token_ata] = getBridgeTokenAccounts(token, program.programId);
-    const user_token_ata = await getOrCreateUserATA(connection, user, token);
-
-    const tokenBalanceUser = await connection.getTokenAccountBalance(user_token_ata);
-    const tokenBalanceBridge = await connection.getTokenAccountBalance(bridge_token_ata);
-    console.log("tokenBalanceUser", tokenBalanceUser)
-    console.log("tokenBalanceBridge", tokenBalanceBridge)
-
+  async function commonReceive(
+    userTo: Keypair, token: PublicKey, amountToReceive: number,
+    receiveNonce: number, isMintable = false,
+  ) {
 
     const value: ReceivePayload = {
-      to: user.publicKey.toBytes(),
+      to: userTo.publicKey.toBytes(),
       tokenAddressTo: token.toBytes(),
-      amountTo: 50,
+      amountTo: amountToReceive,
       chainTo: SOLANA_CHAIN_ID,
       eventId: 1,
       flags: new Uint8Array(32),
-      flagData: numberToUint8Array(2, 8)
+      flagData: numberToUint8Array(receiveNonce, 8)
     };
-
-
-    const nonceAccount = getUserNoncePda(user.publicKey, bridgeProgram.programId);
-
 
     const payload = serializeReceivePayload(value);
     const { message, signers, signatures } = signMessage(payload, receiveSigners);
+
     const verifyInstruction = newEd25519Instruction(message, signers, signatures);
 
-    const receiveInstruction = await bridgeProgram.methods.receive(payload).accounts({
+    const receiveInstruction = await bridgeProgram.methods.receive(
+      new BN(value.amountTo),
+      new BN(value.eventId),
+      [...value.flags],
+      Buffer.from(value.flagData)
+    ).accountsPartial({
       receiver: user.publicKey,
       mint: token,
+      bridgeTokenAccount: isMintable ? null : undefined,  // pass null to not use bridge token account
     }).signers([user]).instruction()
 
     const tx = new Transaction().add(verifyInstruction, receiveInstruction);
     tx.feePayer = user.publicKey;
     const txSignature = await sendAndConfirmTransaction(connection, tx, [user], { commitment: 'confirmed' }); // wait for transaction to be confirmed
+    const txParsed = await connection.getParsedTransaction(txSignature, { commitment: 'confirmed' });
 
-    const receiverNonce = await program.account.nonceAccount.fetch(nonceAccount);
-    assert.ok(+receiverNonce.nonceCounter === 3);
-  });
-
-
-});
-
-
-async function wrapSolInstructions(connection: Connection, user_token_ata: PublicKey, userFrom: Keypair, tokenFrom: PublicKey, value: SendPayload) {
-  const transferNativeInstructions = [];
-
-  let balance = 0;
-  try {
-    const tokenBalanceUser = await connection.getTokenAccountBalance(user_token_ata);
-    balance = +tokenBalanceUser.value.amount;
-  } catch (e) {
-    console.log("need to create user WSOL account")
-    transferNativeInstructions.push(
-      createAssociatedTokenAccountInstruction(userFrom.publicKey, user_token_ata, userFrom.publicKey, tokenFrom)
-    );
+    return txParsed;
   }
 
-  transferNativeInstructions.push(
-    SystemProgram.transfer({
-      fromPubkey: userFrom.publicKey,
-      toPubkey: user_token_ata,
-      lamports: value.amountToSend - balance,
-    }),
-    createSyncNativeInstruction(user_token_ata)  // update ata balance
-  );
 
-  return transferNativeInstructions;
-}
+  async function getStateSnapshot(token: PublicKey, userPubkey: PublicKey) {
+    const [_, bridgeATA] = getBridgeTokenAccounts(token, program.programId);
+    const bridgeStatePDA = getBridgeStateAccount(program.programId);
+
+    const getTokenBalance_ = (pubkey: PublicKey) =>
+      okOrUndefined(async () =>
+        +(await connection.getTokenAccountBalance(pubkey)).value.amount
+      );
+
+    const tokenBalanceUser = await getTokenBalance_(getAssociatedTokenAddressSync(token, userPubkey));
+    const tokenBalanceBridge = await getTokenBalance_(bridgeATA);
+
+    const nativeBalanceUser = await connection.getBalance(userPubkey);
+    const nativeBalanceBridge = await connection.getBalance(bridgeStatePDA);
+
+
+    const sendNonce = +(await program.account.globalState.fetch(bridgeStatePDA)).nonce;
+    const receiverNonce = await okOrUndefined(async () =>
+      +(await program.account.nonceAccount.fetch(getUserNoncePda(userPubkey, bridgeProgram.programId))).nonceCounter
+    );
+
+
+    return {
+      native: { user: nativeBalanceUser, bridge: nativeBalanceBridge },
+      token: { user: tokenBalanceUser, bridge: tokenBalanceBridge },
+      sendNonce,
+      receiverNonce,
+    }
+
+  }
+
+  async function getEvents(txSignature: TransactionSignature) {
+    const txParsed = await connection.getParsedTransaction(txSignature, { commitment: 'confirmed' });
+    const eventParser = new EventParser(program.programId, new BorshCoder(program.idl));
+    const events = eventParser.parseLogs(txParsed.meta.logMessages);
+    return [...events];
+  }
+
+
+})
+;
+
+
+
 
 async function requestSol(account, connection, amount = 500) {
-  console.log(`Requesting airdrop for SOL : ${account.publicKey.toBase58()}`)
   const signature = await connection.requestAirdrop(account.publicKey, amount * 10 ** 9);
   const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
   await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature }, 'confirmed');
-  console.log("account wallet balance : ", account.publicKey.toBase58(), (await connection.getBalance(account.publicKey)) / 10 ** 9, "SOL")
+}
+
+async function okOrUndefined(promise: () => Promise<any>) {
+  try {
+    return await promise();
+  } catch (e) {
+    return undefined
+  }
 }

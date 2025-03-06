@@ -1,6 +1,8 @@
 import { Buffer } from "buffer";
 import { Connection, Keypair, PublicKey, type Signer } from "@solana/web3.js";
-import { getAssociatedTokenAddressSync, getOrCreateAssociatedTokenAccount } from "@solana/spl-token";
+import { getAssociatedTokenAddressSync, getOrCreateAssociatedTokenAccount, } from "@solana/spl-token";
+import { Program } from "@coral-xyz/anchor";
+import type { AmbSolBridge } from "../idl/idlType";
 
 
 export const SOLANA_CHAIN_ID = 0x534f4c414e41444en;  // "SOLANADN"
@@ -8,8 +10,7 @@ export const AMB_CHAIN_ID = 22040;
 
 
 export function hexToUint8Array(hexString: string) {
-  if (hexString.startsWith("0x"))
-    hexString = hexString.slice(2); // Remove "0x" prefix if present
+  hexString = hexString.replace("0x", "");
   const bytes = new Uint8Array(hexString.length / 2);
   for (let i = 0; i < bytes.length; i++)
     bytes[i] = parseInt(hexString.substr(i * 2, 2), 16);
@@ -17,7 +18,7 @@ export function hexToUint8Array(hexString: string) {
 }
 
 
-export function numberToUint8Array(num: number, length=8) {
+export function numberToUint8Array(num: number, length = 8) {
   if (num < 0 || length <= 0)
     throw new Error("Number must be non-negative and length must be positive");
 
@@ -32,17 +33,16 @@ export function numberToUint8Array(num: number, length=8) {
   return bytes;
 }
 
-export function hexToKeypair(hexString: string) {
-  return Keypair.fromSecretKey(hexToUint8Array(hexString));
-}
 
-export function keypairToHex(keypair: Keypair) {
-  return Buffer.from(keypair.secretKey).toString('hex');
-}
 
+export async function getBridgeTokenInfo(bridgeProgram: Program<AmbSolBridge>, token: PublicKey) {
+  const [bridge_token_pda, _] = getBridgeTokenAccounts(token, bridgeProgram.programId);
+  return await bridgeProgram.account.tokenConfig.fetch(bridge_token_pda);
+}
 
 export async function getOrCreateUserATA(connection: Connection, user: Signer, token: PublicKey) {
-  return (await getOrCreateAssociatedTokenAccount(connection, user, token, user.publicKey, undefined, undefined, {commitment: 'confirmed'})).address;
+  const account = await getOrCreateAssociatedTokenAccount(connection, user, token, user.publicKey, undefined, undefined, {commitment: 'confirmed'});
+  return account.address;
 }
 
 export function getUserNoncePda(user: PublicKey, bridgeProgramId: PublicKey) {
@@ -61,3 +61,12 @@ export function getBridgeTokenAccounts(token: PublicKey, bridgeProgramId: Public
   return [pda, ata]
 }
 
+
+export async function initializeToken(bridgeProgram: Program<AmbSolBridge>, admin: Keypair, tokenPublicKey: PublicKey, ambAddress: string, ambDecimals = 18, isSynthetic = false) {
+  // initialize token
+  await bridgeProgram.methods.initializeToken([...hexToUint8Array(ambAddress)], ambDecimals, isSynthetic).accountsPartial({
+    admin: admin.publicKey,
+    mint: tokenPublicKey,
+    bridgeTokenAccount: isSynthetic ? null : undefined  // empty value (null) for synthetic, auto-resoluted for non-synthetic
+  }).signers([admin]).rpc();
+}

@@ -235,6 +235,8 @@ abstract contract BridgeTestBase is Test {
     function setFeeReceiver(
         address payable receiver
     ) public {
+        vm.expectEmit();
+        emit IBridge.FeeReceiverChanged(address(this), receiver);
         bridgeInstance.setFeeReceiver(receiver);
     }
 

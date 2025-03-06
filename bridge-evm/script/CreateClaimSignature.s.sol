@@ -63,6 +63,7 @@ contract CreateClaimSignature is Script {
         BridgeTypes.FullReceipt memory receipt = getReceipt(path);
         bytes32 digest = receipt.toHash();
         uint256[] memory signers = vm.envUint("SIGNERS", ",");
+        require(signers.length > 0, "CreateClaimSignature: no signers");
         bytes memory signatures;
         for (uint256 i = 0; i < signers.length; i++) {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(signers[i], digest);

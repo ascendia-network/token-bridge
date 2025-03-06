@@ -44,8 +44,7 @@ contract SendTokens is DeployerBase {
             });
             return payload;
         } catch (bytes memory) {
-            console.log("Error reading payload");
-            revert();
+            revert("Payload file read or parse error. Check file path or JSON formatting.");
         }
     }
 

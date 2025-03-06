@@ -17,9 +17,15 @@ import { bridgeAbi } from "../../abis/bridgeAbi";
 import { getContext } from "hono/context-storage";
 import { validatorAbi } from "../../abis/validatorAbi";
 import { consoleLogger } from "../utils";
-import { serializeReceivePayload, SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID, type ReceivePayload } from "../utils/solana";
+import {
+  serializeReceivePayload,
+  SOLANA_CHAIN_ID,
+  SOLANA_DEV_CHAIN_ID,
+  type ReceivePayload,
+} from "../utils/solana";
 import nacl from "tweetnacl";
 import { PublicKey } from "@solana/web3.js";
+import type { Env } from "../index";
 
 export class ReceiptController {
   db: NodePgDatabase;
@@ -63,7 +69,7 @@ export class ReceiptController {
         "Error selecting receipts",
         (error as unknown as Error).toString()
       );
-      consoleLogger(error.stack);
+      consoleLogger((error as Error).stack as string);
       return error as Error;
     }
   }
@@ -97,7 +103,7 @@ export class ReceiptController {
           | null;
       }>
     | Error
-    > {
+  > {
     consoleLogger("Refreshing materialized view...");
     await this.db.refreshMaterializedView(receipt);
     consoleLogger("Materialized view refreshed");
@@ -206,31 +212,31 @@ export class ReceiptController {
     const digest = hashMessage({ raw: messageHash });
     const signer = await recoverMessageAddress({ message: digest, signature });
     if (
-      Object.hasOwn(getContext().env as object, `RPC_NODE_${receipt.chainTo}`)
+      BigInt(receiptToSign.chainTo) === SOLANA_CHAIN_ID ||
+      BigInt(receiptToSign.chainTo) === SOLANA_DEV_CHAIN_ID
     ) {
-      const nodeURL = getContext().env[`RPC_NODE_${receipt.chainTo}`] as string;
-      const client = createPublicClient({
-        transport: nodeURL.startsWith("ws")
-          ? webSocket(nodeURL)
-          : http(nodeURL),
-      });
-      const validatorAddress = await client.readContract({
-        abi: bridgeAbi,
-        address: receiptToSign.bridgeAddress as `0x${string}`,
-        functionName: "validator",
-        args: [],
-      });
-      const isValidator = await client.readContract({
-        abi: validatorAbi,
-        address: validatorAddress,
-        functionName: "isValidator",
-        args: [signer],
-      });
-      if (!isValidator) {
-        throw Error("Signer is not a validator");
-      }
-    } else {
-      throw Error("ChainId is not EVM chain");
+      throw new Error("Invalid chain ID");
+    }
+    const nodeURL =
+      getContext<Env>().env[`RPC_NODE_${Number(receiptToSign.chainTo)}`];
+    if (!nodeURL) throw new Error("RPC node not found");
+    const client = createPublicClient({
+      transport: nodeURL.startsWith("ws") ? webSocket(nodeURL) : http(nodeURL),
+    });
+    const validatorAddress = await client.readContract({
+      abi: bridgeAbi,
+      address: receiptToSign.bridgeAddress as `0x${string}`,
+      functionName: "validator",
+      args: [],
+    });
+    const isValidator = await client.readContract({
+      abi: validatorAbi,
+      address: validatorAddress,
+      functionName: "isValidator",
+      args: [signer],
+    });
+    if (!isValidator) {
+      throw Error("Signer is not a validator");
     }
     return signer;
   }
@@ -253,7 +259,7 @@ export class ReceiptController {
     const isValid = nacl.sign.detached.verify(
       payload,
       Buffer.from(signature.slice(2), "hex"),
-      new PublicKey(signer).toBytes(),
+      new PublicKey(signer).toBytes()
     );
     if (!isValid) {
       throw new Error("Invalid signature");
@@ -284,8 +290,14 @@ export class ReceiptController {
       case SOLANA_CHAIN_ID:
       case SOLANA_DEV_CHAIN_ID:
         // TODO: Implement Solana signature verification
-        consoleLogger("Solana signature verification not implemented, skipping");
-        const signedBy = await this.checkSignerSolana(receiptToSign, signer, signature);
+        consoleLogger(
+          "Solana signature verification not implemented, skipping"
+        );
+        const signedBy = await this.checkSignerSolana(
+          receiptToSign,
+          signer,
+          signature
+        );
         await this.db.insert(signatures).values({
           receiptId,
           signedBy,

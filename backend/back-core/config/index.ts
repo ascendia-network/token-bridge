@@ -28,7 +28,7 @@ export interface Config {
 export const stage = env.STAGE || "test";
 
 export const sendSignerMnemonic = env.SEND_SIGNER_MNEMONIC!;
-export const stageConfig: Config = await import(`../config/${stage}.json`, { assert: { type: "json" } }).then(m => m.default);
+export const stageConfig: Config = require(`../config/${stage}.json`);
 
 
 

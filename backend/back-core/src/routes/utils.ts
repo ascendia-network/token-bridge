@@ -164,51 +164,29 @@ export const sendSignatureQuerySchema = z.object({
 
 // @ts-ignore
 const ReceiptSchema = createSelectSchema(receipt, {
-  receiptId: (schema) =>
+  receiptId: (schema: z.ZodString) =>
     schema.regex(receiptIdRegex).openapi({
       example: "6003100671677646000_22040_3",
-      description: "Receipt ID as 'chainFrom_chainTo_eventId'"
+      description: "Receipt ID as 'chainFrom_chainTo_eventId'",
     }),
-  timestamp: (schema) =>
+  timestamp: (schema: z.ZodSchema) =>
     schema.openapi({
       example: "1633632000",
-      description: "Timestamp of the transaction"
+      description: "Timestamp of the transaction",
     }),
   bridgeAddress: z
     .union([
       z.string().regex(EvmAddressRegex),
-      z.string().regex(SvmAddressRegex)
+      z.string().regex(SvmAddressRegex),
     ])
     .openapi({
       examples: [
         "0xe0b52EC5cE3e124ab5306ea42463bE85aeb5eDDd",
-        "FMYR5BFh3JapZS1cfwYViiBMYJxFGwKdchnghBnBtxkk"
+        "FMYR5BFh3JapZS1cfwYViiBMYJxFGwKdchnghBnBtxkk",
       ],
-      description: "Bridge address"
+      description: "Bridge address",
     }),
-  from: (schema) =>
-    schema
-      .regex(/^0x[a-fA-F0-9]{64}$/)
-      .min(66)
-      .max(66)
-      .openapi({
-        examples: [
-          "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001"
-        ],
-        description: "Sender address"
-      }),
-  to: (schema) =>
-    schema
-      .regex(/^0x[a-fA-F0-9]{64}$/)
-      .min(66)
-      .max(66)
-      .openapi({
-        examples: [
-          "0x000000000000000000000000C6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7"
-        ],
-        description: "Receiver address"
-      }),
-  tokenAddressFrom: (schema) =>
+  from: (schema: z.ZodString) =>
     schema
       .regex(/^0x[a-fA-F0-9]{64}$/)
       .min(66)
@@ -216,11 +194,10 @@ const ReceiptSchema = createSelectSchema(receipt, {
       .openapi({
         examples: [
           "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
-          "0x000000000000000000000000C6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7"
         ],
-        description: "Token address on the sender chain"
+        description: "Sender address",
       }),
-  tokenAddressTo: (schema) =>
+  to: (schema: z.ZodString) =>
     schema
       .regex(/^0x[a-fA-F0-9]{64}$/)
       .min(66)
@@ -228,83 +205,106 @@ const ReceiptSchema = createSelectSchema(receipt, {
       .openapi({
         examples: [
           "0x000000000000000000000000C6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
-          "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001"
         ],
-        description: "Token address on the receiver chain"
+        description: "Receiver address",
       }),
-  amountFrom: (schema) =>
+  tokenAddressFrom: (schema: z.ZodString) =>
+    schema
+      .regex(/^0x[a-fA-F0-9]{64}$/)
+      .min(66)
+      .max(66)
+      .openapi({
+        examples: [
+          "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
+          "0x000000000000000000000000C6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
+        ],
+        description: "Token address on the sender chain",
+      }),
+  tokenAddressTo: (schema: z.ZodString) =>
+    schema
+      .regex(/^0x[a-fA-F0-9]{64}$/)
+      .min(66)
+      .max(66)
+      .openapi({
+        examples: [
+          "0x000000000000000000000000C6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
+          "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
+        ],
+        description: "Token address on the receiver chain",
+      }),
+  amountFrom: (schema: z.ZodSchema) =>
     schema.openapi({
       example: "1000000000000000000",
-      description: "Amount of tokens on the sender chain"
+      description: "Amount of tokens on the sender chain",
     }),
-  amountTo: (schema) =>
+  amountTo: (schema: z.ZodSchema) =>
     schema.openapi({
       example: "1000000000000000000",
-      description: "Amount of tokens on the receiver chain"
+      description: "Amount of tokens on the receiver chain",
     }),
-  chainFrom: (schema) =>
+  chainFrom: (schema: z.ZodSchema) =>
     schema.openapi({
       example: SOLANA_DEV_CHAIN_ID.toString(),
-      description: "Chain ID of the sender"
+      description: "Chain ID of the sender",
     }),
-  chainTo: (schema) =>
+  chainTo: (schema: z.ZodSchema) =>
     schema.openapi({
       example: "22040",
-      description: "Chain ID of the receiver"
+      description: "Chain ID of the receiver",
     }),
-  eventId: (schema) =>
+  eventId: (schema: z.ZodSchema) =>
     schema.openapi({
       example: "3",
-      description: "Event ID"
+      description: "Event ID",
     }),
-  flags: (schema) =>
+  flags: (schema: z.ZodSchema) =>
     schema.openapi({
       example: "0",
-      description: "Flags for the transaction"
+      description: "Flags for the transaction",
     }),
-  data: (schema) =>
+  data: (schema: z.ZodSchema) =>
     schema.openapi({
       example: "",
-      description: "Data for the flags"
+      description: "Data for the flags",
     }),
-  claimed: (schema: { openapi: (arg0: { example: boolean; description: string; }) => z.ZodTypeAny; }) =>
+  claimed: (schema: z.ZodSchema) =>
     schema.openapi({
       example: false,
-      description: "If receipt has been claimed"
-    })
+      description: "If receipt has been claimed",
+    }),
 });
 
 export const receiptMetaEvmSchema = createSelectSchema(
   receiptsMetaInIndexerEvm,
   {
-    receiptId: (schema) =>
+    receiptId: (schema: z.ZodString) =>
       schema.regex(receiptIdRegex).openapi({
         example: "6003100671677646000_22040_3",
         description: "Receipt ID as 'chainFrom_chainTo_eventId'"
       }),
-    blockHash: (schema) =>
+    blockHash: (schema: z.ZodSchema) =>
       schema.openapi({
         example:
           "0x1c5d488013f993bc30b0fdd2a378fe157c634cb00fa2c47ee4f8a8d332450e30",
         description: "Block hash"
       }),
-    blockNumber: (schema) =>
+    blockNumber: (schema: z.ZodSchema) =>
       schema.openapi({
         example: "12345678",
         description: "Block number"
       }),
-    timestamp: (schema) =>
+    timestamp: (schema: z.ZodSchema) =>
       schema.openapi({
         example: "1633632000",
         description: "Timestamp of the transaction"
       }),
-    transactionHash: (schema) =>
+    transactionHash: (schema: z.ZodSchema) =>
       schema.openapi({
         example:
           "0x48abbe56ad2eec690800f8cd79fa24908f430269a1931d30647b1c9daec19b1b",
         description: "Transaction hash"
       }),
-    transactionIndex: (schema) =>
+    transactionIndex: (schema: z.ZodSchema) =>
       schema.openapi({
         example: 1,
         description: "Transaction index in the block"
@@ -315,33 +315,33 @@ export const receiptMetaEvmSchema = createSelectSchema(
 export const receiptMetaSolanaSchema = createSelectSchema(
   receiptsMetaInIndexerSolana,
   {
-    receiptId: (schema) =>
+    receiptId: (schema: z.ZodString) =>
       schema.regex(receiptIdRegex).openapi({
         example: "6003100671677646000_22040_3",
         description: "Receipt ID as 'chainFrom_chainTo_eventId'"
       }),
-    blockHash: (schema) =>
+    blockHash: (schema: z.ZodSchema) =>
       schema.nullable().openapi({
         example: null,
         description: "Not appliable to solana"
       }),
-    blockNumber: (schema) =>
+    blockNumber: (schema: z.ZodSchema) =>
       schema.openapi({
         example: "12345678",
         description: "Block number (slot)"
       }),
-    timestamp: (schema) =>
+    timestamp: (schema: z.ZodSchema) =>
       schema.openapi({
         example: "1633632000",
         description: "Timestamp of the transaction"
       }),
-    transactionHash: (schema) =>
+    transactionHash: (schema: z.ZodSchema) =>
       schema.openapi({
         example:
           "4HkfnhW93nGRiT3s9YnVnN4fS6masj5FJ99bsTb1AX13NNdaE1BkfVidQ4hTB41MUVcPShft4fRDnZgBBDwWzED5",
         description: "Transaction signature"
       }),
-    transactionIndex: (schema) =>
+    transactionIndex: (schema: z.ZodNumber) =>
       schema.openapi({
         example: 1,
         description: "Transaction index in the block"

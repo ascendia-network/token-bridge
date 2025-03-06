@@ -11,14 +11,15 @@ import { openAPISpecs } from "hono-openapi";
 import { Hono } from "hono";
 config();
 export type Env = {
-  DATABASE_URL: string;
-  EVM_INDEXER_URL: string;
-  SVM_INDEXER_URL: string;
-  [key: `RPC_NODE_${number}`]: string;
+  Bindings: {
+    DATABASE_URL: string;
+    EVM_INDEXER_URL: string;
+    SVM_INDEXER_URL: string;
+    [key: `RPC_NODE_${number}`]: string;
+  };
 };
 
-
-const app = new Hono<{ Bindings: Env }>({ strict: false });
+const app = new Hono<Env>({ strict: false });
 app.use(logger(consoleLogger));
 app.use(contextStorage());
 app.use("*", prettyJSON());
@@ -41,7 +42,7 @@ app.route("/api", routes);
 
 serve({
   fetch: app.fetch,
-  port: 3000
+  port: 3000,
 });
 console.log("Server running on port 3000");
 

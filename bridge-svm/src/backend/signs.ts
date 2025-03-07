@@ -30,16 +30,16 @@ receiveSigners.forEach((signer, i) => receiveSignersBuffer.set(signer.publicKey.
 export const receiveSigner = new PublicKey(keccak_256(receiveSignersBuffer));
 
 
-export async function getReceivePayload(user: PublicKey): Promise<SignedPayload<ReceivePayload>> {
+export async function getReceivePayload(user: PublicKey, token: PublicKey, amountTo: number, nonce: number, eventId: number): Promise<SignedPayload<ReceivePayload>> {
   // get from db
   const payload: ReceivePayload = {
     to: user.toBytes(),
-    tokenAddressTo: hexToUint8Array("0x999999999988888888888888777777777777776666666666666665555555555"),
-    amountTo: 50,
+    tokenAddressTo: token.toBytes(),
+    amountTo,
     chainTo: SOLANA_CHAIN_ID,
-    eventId: 1,
+    eventId,
     flags: new Uint8Array(32),  // todo
-    flagData: numberToUint8Array(0, 8),  // todo
+    flagData: numberToUint8Array(nonce, 8),  // todo
   };
 
   const serializedPayload = serializeReceivePayload(payload);

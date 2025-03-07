@@ -4,12 +4,13 @@ import type { AmbSolBridge } from "./idl/idlType";
 import idl from "./idl/idl.json";
 import { send } from "./sdk/send";
 
-import { getBridgeTokenAccounts, getOrCreateUserATA } from "./sdk/utils";
+import { getBridgeStateAccount, getBridgeTokenAccounts, getOrCreateUserATA } from "./sdk/utils";
 import { createMint, mintTo } from "@solana/spl-token";
 import { Buffer } from "buffer";
 import { backendMock, receiveSigners, sendSigner } from "./backend/signs";
 import { keccak_256 } from "@noble/hashes/sha3";
 import NodeWallet from "@coral-xyz/anchor/dist/esm/nodewallet";
+import { receive } from "./sdk/receive";
 
 
 const admin = Keypair.fromSecretKey(new Uint8Array([93, 100, 61, 206, 194, 5, 195, 44, 222, 206, 54, 232, 189, 1, 134, 23, 97, 115, 83, 87, 171, 97, 24, 120, 92, 189, 23, 202, 79, 34, 30, 108, 185, 197, 23, 58, 249, 159, 143, 27, 91, 197, 237, 223, 124, 202, 93, 202, 191, 45, 30, 9, 158, 122, 165, 83, 207, 59, 124, 168, 31, 247, 248, 1]))
@@ -34,17 +35,20 @@ export async function main() {
   // await createToken(usdcKeypair);
 
 
-  // const sambAmb = "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b";
-  // const wsolAmb = "0xC6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7";
-  // const usdcAmb = "0x8132928B8F4c0d278cc849b9b98Dffb28aE0B685";
+  const sambAmb = "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b";
+  const wsolAmb = "0xC6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7";
+  const usdcAmb = "0x8132928B8F4c0d278cc849b9b98Dffb28aE0B685";
 
   // await initializeToken(program, admin, sambKeypair.publicKey, sambAmb, 18, true);
   // await initializeToken(program, admin, NATIVE_MINT, wsolAmb, 18, false);
   // await initializeToken(program, admin, usdcKeypair.publicKey, usdcAmb, 18, false);
   //
   //
+  // const globalState = await program.account.globalState.fetch(getBridgeStateAccount(program.programId));
+  // console.log(globalState);
+  // console.log(sendSigner.publicKey.toBase58());
   // await makeSendTx(usdcKeypair.publicKey, usdcAmb);
-
+  await makeReceiveTx();
 }
 
 async function createToken(tokenKeypair: Keypair, isSynthetic = false) {
@@ -81,6 +85,21 @@ async function makeSendTx(tokenFrom: PublicKey, tokenTo: string) {
     admin, "0x1111472FCa4260505EcE4AcD07717CADa41c1111",
     program, 1488_000000, undefined, backendMock
   );
+
+  const txParsed = await connection.getParsedTransaction(txSignature, { commitment: 'confirmed' });
+  console.log(txParsed)
+
+  const eventParser = new EventParser(program.programId, new BorshCoder(program.idl));
+  const events = eventParser.parseLogs(txParsed.meta.logMessages);
+  for (let event of events) {
+    console.log(event);
+  }
+
+}
+
+async function makeReceiveTx() {
+  const { payload, signature } = await backendMock.getReceivePayload(admin.publicKey, usdcKeypair.publicKey, 228_000000, 0, 1);
+  const txSignature = await receive(connection, admin, program, payload, signature);
 
   const txParsed = await connection.getParsedTransaction(txSignature, { commitment: 'confirmed' });
   console.log(txParsed)

@@ -6,15 +6,15 @@ import { verifySignatureInstruction } from "./ed25519_ix";
 import { unwrapWSolInstruction } from "./wsol_ix";
 import { checkFlags, Flags, getBridgeTokenInfo } from "./utils";
 import { NATIVE_MINT } from "@solana/spl-token";
-import { IBackend } from "../backend/types";
+import { BackendSignature, IBackend, ReceivePayload } from "../backend/types";
 
 export async function receive(
   connection: Connection,
   user: Signer,
   bridgeProgram: Program<AmbSolBridge>,
-  backend: IBackend
+  payload: ReceivePayload,
+  signature: BackendSignature,
 ) {
-  const { payload, signature } = await backend.getReceivePayload(user.publicKey);
   const token = new PublicKey(payload.tokenAddressTo)
 
   const { isMintable } = await getBridgeTokenInfo(bridgeProgram, new PublicKey(payload.tokenAddressTo));

@@ -25,6 +25,13 @@ export function safeHexToNumber(byteArray: Uint8Array): number {
   return parseInt(Buffer.from(byteArray).toString("hex"), 16) || 0;
 }
 
+export function safeHexToString(byteArray: Uint8Array): string {
+  if (!byteArray || byteArray.length === 0) {
+    return "";
+  }
+  return "0x" + Buffer.from(byteArray).toString("hex");
+}
+
 export function padTo32Bytes(byteArray: Uint8Array): Uint8Array {
   if (byteArray.length > 32) {
     throw new Error(`Size cannot exceed 32 bytes. Given size: ${byteArray.length} bytes.`);

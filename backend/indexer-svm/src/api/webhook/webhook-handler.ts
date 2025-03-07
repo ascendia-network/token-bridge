@@ -4,22 +4,21 @@ import idl from "../../idl/idl";
 import { receiptsClaimed, receiptsMeta, receiptsSent } from "../../db/schema";
 import { SolanaTransaction } from "./types";
 import db from "../../db/db";
-import { safeBigInt, safeHexToNumber, safeNumber, toHex, toHexFromBytes } from "./utils";
+import { safeBigInt, safeHexToNumber, safeHexToString, safeNumber, toHex, toHexFromBytes } from "./utils";
 
 const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 export const program = new Program(idl, { connection });
 
 export async function webhookHandler(request, reply) {
+  console.log("GOT YOBANYI REQUEST");
   const events = request.body as SolanaTransaction[];
   const eventParser = new EventParser(new PublicKey(idl.address), new BorshCoder(idl as Idl));
 
   for (const event of events) {
     const logs = eventParser.parseLogs(event.meta.logMessages);
-    console.log("EVENTS", logs);
-    console.log("event.meta.logMessages", event.meta.logMessages);
-    console.log("[...EVENTS]", [...logs]);
 
     for (const log of logs) {
+      console.log("LOG NAME", log);
       let insertValues: any = null;
       let model: any = null;
 
@@ -65,6 +64,10 @@ export async function webhookHandler(request, reply) {
 }
 
 function processSendEvent(log: any, event: SolanaTransaction) {
+  console.log("!!!", {
+    flags: log.data.flags,
+    flagData: log.data.flag_data
+  });
   return {
     model: receiptsSent,
     values: {
@@ -80,7 +83,7 @@ function processSendEvent(log: any, event: SolanaTransaction) {
       chainTo: safeNumber(log.data.chain_to),
       eventId: safeNumber(log.data.event_id),
       flags: safeHexToNumber(log.data.flags),
-      data: safeHexToNumber(log.data.flag_data)
+      data: safeHexToString(log.data.flag_data)
     }
   };
 }

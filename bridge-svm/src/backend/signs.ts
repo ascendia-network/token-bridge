@@ -108,7 +108,7 @@ export async function getSendPayload(
   };
 
   const serializedPayload = serializeSendPayload(payload);
-  const signature = signMessage(serializedPayload, receiveSigners);
+  const signature = signMessage(serializedPayload, [sendSigner]);
   return { payload, serializedPayload, signature };
 }
 

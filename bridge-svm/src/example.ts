@@ -58,29 +58,29 @@ setProvider(provider);
 export const program = new Program(idl as AmbSolBridge, provider);
 
 export async function main() {
-  await initialize();
-  await createToken(sambKeypair, true);
-  await createToken(usdcKeypair);
-  const sambAmb = "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b";
-  const wsolAmb = "0xC6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7";
+  // await initialize();
+  // await createToken(sambKeypair, true);
+  // await createToken(usdcKeypair);
+  // const sambAmb = "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b";
+  // const wsolAmb = "0xC6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7";
   const usdcAmb = "0x8132928B8F4c0d278cc849b9b98Dffb28aE0B685";
-  await initializeToken(
-    program,
-    admin,
-    sambKeypair.publicKey,
-    sambAmb,
-    18,
-    true
-  );
-  await initializeToken(program, admin, NATIVE_MINT, wsolAmb, 18, false);
-  await initializeToken(
-    program,
-    admin,
-    usdcKeypair.publicKey,
-    usdcAmb,
-    18,
-    false
-  );
+  // await initializeToken(
+  //   program,
+  //   admin,
+  //   sambKeypair.publicKey,
+  //   sambAmb,
+  //   18,
+  //   true
+  // );
+  // await initializeToken(program, admin, NATIVE_MINT, wsolAmb, 18, false);
+  // await initializeToken(
+  //   program,
+  //   admin,
+  //   usdcKeypair.publicKey,
+  //   usdcAmb,
+  //   18,
+  //   false
+  // );
 
   await makeSendTx(usdcKeypair.publicKey, usdcAmb);
 }

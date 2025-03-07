@@ -20,11 +20,33 @@ import { getUnsignedTransactionsSolana } from "./solana/getUnsigned";
 import validateExistingTransactionEVM from "./evm/txValidator";
 import validateExistingTransactionSolana from "./solana/txValidator";
 
-async function getUnsignedTransactions(): Promise<ReceiptsToSignResponse> {
+async function getUnsignedReceipts(): Promise<ReceiptsToSignResponse> {
   // maybe needs just to merge both responses
   const evmTransactions = await getUnsignedTransactionsEVM();
   const solanaTransactions = await getUnsignedTransactionsSolana();
   return [...evmTransactions, ...solanaTransactions];
+}
+
+async function validateReceipt(
+  receiptWithMeta: ReceiptWithMeta
+): Promise<void | Error> {
+  switch (receiptWithMeta.receipts.chainFrom) {
+    case bytesToBigInt(stringToBytes("SOLANA", { size: 8 })):
+    case bytesToBigInt(stringToBytes("SOLANADN", { size: 8 })):
+      return await validateExistingTransactionSolana(receiptWithMeta);
+    default:
+      return await validateExistingTransactionEVM(receiptWithMeta);
+  }
+}
+
+function getSignerAddress(receiptWithMeta: ReceiptWithMeta): string {
+  switch (receiptWithMeta.receipts.chainTo) {
+    case bytesToBigInt(stringToBytes("SOLANA", { size: 8 })):
+    case bytesToBigInt(stringToBytes("SOLANADN", { size: 8 })):
+      return config.accountSolana.publicKey.toBase58();
+    default:
+      return config.accountEVM.address;
+  }
 }
 
 async function signReceipt(
@@ -52,8 +74,8 @@ async function postSignature(
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           signer,
-          signature
-         }),
+          signature,
+        }),
       }
     );
     if (response.ok) {
@@ -71,41 +93,31 @@ async function postSignature(
 
 async function processTransactions() {
   try {
-    const transactions = await getUnsignedTransactions();
+    const transactions = await getUnsignedReceipts();
     for (const transaction of transactions) {
-      let signer = null;
-      switch (transaction.receipts.chainTo) {
-        case bytesToBigInt(stringToBytes("SOLANA", { size: 8 })): 
-        case bytesToBigInt(stringToBytes("SOLANADN", { size: 8 })):
-          signer = config.accountSolana.publicKey.toBase58();
-          break;
-        default:
-          signer = config.accountEVM.address;
-          break;
-      }
-      let txValidator: CallableFunction;
-      switch (transaction.receipts.chainFrom) {
-        case bytesToBigInt(stringToBytes("SOLANA", { size: 8 })): 
-        case bytesToBigInt(stringToBytes("SOLANADN", { size: 8 })):
-          txValidator = validateExistingTransactionSolana;
-          break;
-        default:
-          txValidator = validateExistingTransactionEVM;
-          break;
-      }
       try {
-          await txValidator(transaction);
+        await validateReceipt(transaction);
       } catch (error) {
-        console.error(`Error validating transaction ${transaction.receiptsMeta?.transactionHash}:`, error);
+        console.error(
+          `Error validating transaction ${transaction.receiptsMeta?.transactionHash}:`,
+          error
+        );
         continue;
       }
       try {
         const signature = await signReceipt(transaction);
         if (signature) {
-          await postSignature(transaction.receipts.receiptId, signer, signature);
+          await postSignature(
+            transaction.receipts.receiptId,
+            getSignerAddress(transaction),
+            signature
+          );
         }
       } catch (error) {
-        console.error(`Error signing transaction ${transaction.receiptsMeta?.transactionHash}:`, error);
+        console.error(
+          `Error signing transaction ${transaction.receiptsMeta?.transactionHash}:`,
+          error
+        );
         continue;
       }
     }

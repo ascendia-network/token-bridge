@@ -31,6 +31,5 @@ COPY --from=builder --chown=relay:nodejs /app/package.json /app/package.json
 USER relay
 
 ENV NODE_ENV=production
-EXPOSE 3000
 
 CMD ["npm", "start"]

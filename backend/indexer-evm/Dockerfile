@@ -19,6 +19,8 @@ RUN npm ci && npm prune --production
 #-------------------------------------------------------------------------------
 FROM base AS runner
 
+RUN apk --no-cache add curl
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 ponder
 

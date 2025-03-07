@@ -23,6 +23,8 @@ RUN --mount=type=secret,id=DATABASE_URL,env=DATABASE_URL \
 #-------------------------------------------------------------------------------
 FROM base AS runner
 
+RUN apk --no-cache add curl
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 hono
 
@@ -38,5 +40,8 @@ USER hono
 
 ENV NODE_ENV=production
 EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+  CMD curl --fail http://localhost:3000/health || exit 1
 
 CMD ["npm", "start"]

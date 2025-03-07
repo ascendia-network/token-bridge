@@ -39,6 +39,9 @@ app.get(
 app.get("/ui", swaggerUI({ url: "/openapi" }));
 app.use("/api/*", cors());
 app.route("/api", routes);
+app.get("/health", (c) => {
+  return c.json({ status: "ok" }, 200);
+});
 
 serve({
   fetch: app.fetch,

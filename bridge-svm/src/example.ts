@@ -1,86 +1,129 @@
 import { clusterApiUrl, Connection, Keypair, PublicKey } from "@solana/web3.js";
-import { BorshCoder, EventParser, Program } from "@coral-xyz/anchor";
+import {
+  AnchorProvider,
+  BorshCoder,
+  EventParser,
+  Program,
+  setProvider,
+} from "@coral-xyz/anchor";
 import type { AmbSolBridge } from "./idl/idlType";
 import idl from "./idl/idl.json";
-import {
-  getBridgeAccounts,
-  getOrCreateUserATA,
-  hexToUint8Array,
-} from "./sdk/utils";
-import { createMint, mintTo } from "@solana/spl-token";
-import { Buffer } from "buffer";
-import { receiveSigners, sendSigner } from "./backend/signs";
-import { keccak_256 } from "@noble/hashes/sha3";
 import { send } from "./sdk/send";
 
-const adminKeypair = hexToUint8Array(
-  "5d643dcec205c32cdece36e8bd01861761735357ab6118785cbd17ca4f221e6cb9c5173af99f8f1b5bc5eddf7cca5dcabf2d1e099e7aa553cf3b7ca81ff7f801"
-);
-// keypair need only for deploying, not for using
-const tokenKeypair = hexToUint8Array(
-  "d6fd15319478d970ed7254f2075bd04f7b1a70d689e2b29982d9c7545cbc3a170ecf7e3de1d95308e73d44fa93dc125a747465033e19ec2694b05c2e56f74493"
+import {
+  getBridgeTokenAccounts,
+  getOrCreateUserATA,
+  initializeToken,
+} from "./sdk/utils";
+import { createMint, mintTo, NATIVE_MINT } from "@solana/spl-token";
+import { Buffer } from "buffer";
+import { backendMock, receiveSigners, sendSigner } from "./backend/signs";
+import { keccak_256 } from "@noble/hashes/sha3";
+import NodeWallet from "@coral-xyz/anchor/dist/esm/nodewallet";
+
+const admin = Keypair.fromSecretKey(
+  new Uint8Array([
+    93, 100, 61, 206, 194, 5, 195, 44, 222, 206, 54, 232, 189, 1, 134, 23, 97,
+    115, 83, 87, 171, 97, 24, 120, 92, 189, 23, 202, 79, 34, 30, 108, 185, 197,
+    23, 58, 249, 159, 143, 27, 91, 197, 237, 223, 124, 202, 93, 202, 191, 45,
+    30, 9, 158, 122, 165, 83, 207, 59, 124, 168, 31, 247, 248, 1,
+  ])
 );
 
-const admin = Keypair.fromSecretKey(adminKeypair);
-const token = Keypair.fromSecretKey(tokenKeypair);
+// keypair need only for deploying, not for using
+const sambKeypair = Keypair.fromSecretKey(
+  new Uint8Array([
+    83, 147, 2, 142, 124, 9, 120, 10, 166, 163, 47, 187, 129, 120, 148, 140,
+    133, 192, 196, 205, 147, 206, 101, 158, 241, 3, 54, 166, 58, 158, 128, 101,
+    12, 245, 57, 17, 200, 6, 204, 255, 235, 106, 44, 247, 84, 165, 236, 37, 184,
+    127, 122, 115, 60, 243, 117, 169, 12, 229, 250, 172, 159, 207, 76, 91,
+  ])
+);
+const usdcKeypair = Keypair.fromSecretKey(
+  new Uint8Array([
+    250, 118, 92, 141, 112, 40, 17, 71, 123, 162, 41, 47, 184, 52, 167, 6, 188,
+    213, 63, 125, 17, 105, 73, 40, 14, 238, 177, 151, 115, 174, 250, 186, 13,
+    139, 115, 106, 223, 91, 60, 173, 12, 148, 110, 43, 72, 209, 132, 178, 153,
+    252, 178, 94, 208, 158, 181, 91, 68, 75, 153, 40, 79, 227, 245, 161,
+  ])
+);
 
 const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-// const provider = new AnchorProvider(connection, {connection}, {});
-// setProvider(provider);
-export const program = new Program(idl as AmbSolBridge, { connection });
+const wallet = new NodeWallet(admin);
+const provider = new AnchorProvider(connection, wallet, {
+  commitment: "processed",
+});
+setProvider(provider);
+
+export const program = new Program(idl as AmbSolBridge, provider);
 
 export async function main() {
-  // console.log(admin.publicKey.toBase58())
-  // await createToken();
-  // await initialize();
-
-  const txSignature = await send(
-    connection,
-    token.publicKey,
-    "0x7abd986995753C186a8e22cd7be89Efe9Ade9C0d",
-    admin,
-    "0x1111472FCa4260505EcE4AcD07717CADa41c1111",
+  await initialize();
+  await createToken(sambKeypair, true);
+  await createToken(usdcKeypair);
+  const sambAmb = "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b";
+  const wsolAmb = "0xC6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7";
+  const usdcAmb = "0x8132928B8F4c0d278cc849b9b98Dffb28aE0B685";
+  await initializeToken(
     program,
-    1488,
-    undefined
+    admin,
+    sambKeypair.publicKey,
+    sambAmb,
+    18,
+    true
+  );
+  await initializeToken(program, admin, NATIVE_MINT, wsolAmb, 18, false);
+  await initializeToken(
+    program,
+    admin,
+    usdcKeypair.publicKey,
+    usdcAmb,
+    18,
+    false
   );
 
-  const txParsed = await connection.getParsedTransaction(txSignature, {
-    commitment: "confirmed",
-  });
-  console.log("!!!!! txParsed", txParsed);
-
-  const eventParser = new EventParser(
-    program.programId,
-    new BorshCoder(program.idl)
-  );
-  const events = eventParser.parseLogs(txParsed.meta.logMessages);
-  for (let event of events) {
-    console.log("EVENT", event);
-  }
+  await makeSendTx(usdcKeypair.publicKey, usdcAmb);
 }
 
-async function createToken() {
-  const tokenMint1 = token;
-  await createMint(
-    connection,
-    admin,
-    admin.publicKey,
-    admin.publicKey,
-    6,
-    tokenMint1
-  );
-  const user_token1_ata = (
-    await getOrCreateUserATA(connection, admin, tokenMint1.publicKey)
-  ).address;
-  await mintTo(
-    connection,
-    admin,
-    tokenMint1.publicKey,
-    user_token1_ata,
-    admin,
-    1000 * 10 ** 6
-  );
+async function createToken(tokenKeypair: Keypair, isSynthetic = false) {
+  if (isSynthetic) {
+    // mint authority should be bridge token PDA for synthetic tokens
+    const [bridgeTokenPDA] = getBridgeTokenAccounts(
+      tokenKeypair.publicKey,
+      program.programId
+    );
+    await createMint(
+      connection,
+      admin,
+      bridgeTokenPDA,
+      admin.publicKey,
+      6,
+      tokenKeypair
+    );
+  } else {
+    await createMint(
+      connection,
+      admin,
+      admin.publicKey,
+      admin.publicKey,
+      6,
+      tokenKeypair
+    );
+    // also mint some tokens to user
+    const userATA = await getOrCreateUserATA(
+      connection,
+      admin,
+      tokenKeypair.publicKey
+    );
+    await mintTo(
+      connection,
+      admin,
+      tokenKeypair.publicKey,
+      userATA,
+      admin,
+      1000000 * 10 ** 6
+    );
+  }
 }
 
 async function initialize() {
@@ -98,20 +141,34 @@ async function initialize() {
     })
     .signers([admin])
     .rpc();
+}
 
-  // initialize token
-  const ambTokenAddress = hexToUint8Array(
-    "0x7abd986995753C186a8e22cd7be89Efe9Ade9C0d"
+async function makeSendTx(tokenFrom: PublicKey, tokenTo: string) {
+  const txSignature = await send(
+    connection,
+    tokenFrom,
+    tokenTo,
+    admin,
+    "0x1111472FCa4260505EcE4AcD07717CADa41c1111",
+    program,
+    1488_000000,
+    undefined,
+    backendMock
   );
-  await program.methods
-    .initializeToken([...ambTokenAddress], 18)
-    .accounts({
-      // @ts-ignore
-      admin: admin.publicKey,
-      ...getBridgeAccounts(token.publicKey, program.programId),
-    })
-    .signers([admin])
-    .rpc();
+
+  const txParsed = await connection.getParsedTransaction(txSignature, {
+    commitment: "confirmed",
+  });
+  console.log(txParsed);
+
+  const eventParser = new EventParser(
+    program.programId,
+    new BorshCoder(program.idl)
+  );
+  const events = eventParser.parseLogs(txParsed.meta.logMessages);
+  for (let event of events) {
+    console.log(event);
+  }
 }
 
 main();

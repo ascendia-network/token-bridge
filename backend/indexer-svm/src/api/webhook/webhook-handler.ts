@@ -15,6 +15,9 @@ export async function webhookHandler(request, reply) {
 
   for (const event of events) {
     const logs = eventParser.parseLogs(event.meta.logMessages);
+    console.log("EVENTS", logs);
+    console.log("event.meta.logMessages", event.meta.logMessages);
+    console.log("[...EVENTS]", [...logs]);
 
     for (const log of logs) {
       let insertValues: any = null;
@@ -95,7 +98,7 @@ function processReceiveEvent(log: any, event: SolanaTransaction) {
       chainFrom: safeNumber(log.data.chain_from),
       chainTo: safeNumber(log.data.chain_to),
       eventId: safeNumber(log.data.event_id),
-      flags: safeHexToNumber(log.data.flags),
-    },
+      flags: safeHexToNumber(log.data.flags)
+    }
   };
 }

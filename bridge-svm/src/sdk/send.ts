@@ -1,10 +1,17 @@
-import { getBridgeAccounts, getOrCreateUserATA, hexToUint8Array } from "./utils";
-import { Connection, PublicKey, sendAndConfirmTransaction, type Signer, Transaction } from "@solana/web3.js";
+import { getBridgeTokenInfo, hexToUint8Array } from "./utils";
+import {
+  Connection,
+  PublicKey,
+  sendAndConfirmTransaction,
+  type Signer,
+  Transaction,
+} from "@solana/web3.js";
 import { Program } from "@coral-xyz/anchor";
-import { getSendPayload } from "../backend/signs";
-import { newEd25519Instruction } from "./ed25519_ix";
+import { verifySignatureInstruction } from "./ed25519_ix";
 import type { AmbSolBridge } from "../idl/idlType";
-
+import { wrapSolInstructions } from "./wsol_ix";
+import { NATIVE_MINT } from "@solana/spl-token";
+import { IBackend } from "../backend/types";
 
 export async function send(
   connection: Connection,
@@ -14,21 +21,41 @@ export async function send(
   userTo: string,
   bridgeProgram: Program<AmbSolBridge>,
   amountToSend: number,
-  flags: any  // todo
+  flags: any, // todo
+  backend: IBackend
 ) {
-  const user_token_ata = (await getOrCreateUserATA(connection, userFrom, tokenFrom)).address;
+  const { serializedPayload, signature } = await backend.getSendPayload(
+    tokenFrom,
+    tokenTo,
+    amountToSend,
+    flags
+  );
+  const verifyInstruction = verifySignatureInstruction(signature);
 
-  const { payload, message, signers, signatures } = await getSendPayload(tokenFrom, tokenTo, amountToSend, flags);
-  const verifyInstruction = newEd25519Instruction(message, signers, signatures);
+  const { isMintable } = await getBridgeTokenInfo(bridgeProgram, tokenFrom);
 
-  // Lock tokens
-  const sendInstruction = await bridgeProgram.methods.send(payload, [...hexToUint8Array(userTo)]).accounts({
-    sender: userFrom.publicKey,
-    ...getBridgeAccounts(tokenFrom, bridgeProgram.programId),
-  }).signers([userFrom]).instruction();
+  const wrapInstructions =
+    tokenFrom == NATIVE_MINT
+      ? await wrapSolInstructions(connection, userFrom, amountToSend)
+      : [];
 
+  const sendInstruction = await bridgeProgram.methods
+    .send(serializedPayload, [...hexToUint8Array(userTo)])
+    .accountsPartial({
+      sender: userFrom.publicKey,
+      mint: tokenFrom,
+      bridgeTokenAccount: isMintable ? null : undefined, // pass null to not use bridge token account
+    })
+    .signers([userFrom])
+    .instruction();
 
-  const tx = new Transaction().add(verifyInstruction, sendInstruction);
+  const tx = new Transaction().add(
+    ...wrapInstructions,
+    verifyInstruction,
+    sendInstruction
+  );
   tx.feePayer = userFrom.publicKey;
-  return await sendAndConfirmTransaction(connection, tx, [userFrom], { commitment: 'confirmed' }); // wait for transaction to be confirmed
+  return await sendAndConfirmTransaction(connection, tx, [userFrom], {
+    commitment: "confirmed",
+  }); // wait for transaction to be confirmed
 }

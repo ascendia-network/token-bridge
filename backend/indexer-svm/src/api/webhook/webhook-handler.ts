@@ -1,13 +1,11 @@
 import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
 import { BorshCoder, EventParser, Program, Idl } from "@coral-xyz/anchor";
 import idl from "../../idl/idl";
-import type { AmbSolBridge } from "../../idl/idlType";
 import { receiptsClaimed, receiptsMeta, receiptsSent } from "../../db/schema";
 import { SolanaTransaction } from "./types";
 import db from "../../db/db";
-import { padTo32Bytes, safeBigInt, safeHexToNumber, safeNumber, toHex, toHexFromBytes } from "./utils";
+import { safeBigInt, safeHexToNumber, safeNumber, toHex, toHexFromBytes } from "./utils";
 
-const programId = "ambav8knXhcnxFdp6nMg9HH6K9HjuS6noQNoRvNatCH";
 const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 export const program = new Program(idl, { connection });
 
@@ -68,7 +66,7 @@ function processSendEvent(log: any, event: SolanaTransaction) {
     model: receiptsSent,
     values: {
       timestamp: event.blockTime,
-      bridgeAddress: programId,
+      bridgeAddress: program.programId.toBase58(),
       from: toHex(log.data.from.toBase58()),
       to: toHexFromBytes(log.data.to),
       tokenAddressFrom: toHex(log.data.token_address_from.toBase58()),
@@ -89,7 +87,7 @@ function processReceiveEvent(log: any, event: SolanaTransaction) {
     model: receiptsClaimed,
     values: {
       timestamp: event.blockTime,
-      bridgeAddress: programId,
+      bridgeAddress: program.programId.toBase58(),
       from: toHex(log.data.from.toBase58()),
       to: toHexFromBytes(log.data.to),
       tokenAddressTo: toHexFromBytes(log.data.token_address_to),
@@ -97,7 +95,7 @@ function processReceiveEvent(log: any, event: SolanaTransaction) {
       chainFrom: safeNumber(log.data.chain_from),
       chainTo: safeNumber(log.data.chain_to),
       eventId: safeNumber(log.data.event_id),
-      flags: safeHexToNumber(log.data.flags)
+      flags: safeHexToNumber(log.data.flags),
     },
   };
 }

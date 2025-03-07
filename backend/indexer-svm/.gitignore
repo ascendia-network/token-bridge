@@ -1,5 +1,15 @@
+# dev
+.yarn/
+!.yarn/releases
+.vscode/*
+!.vscode/launch.json
+!.vscode/*.code-snippets
+.idea/workspace.xml
+.idea/usage.statistics.xml
+.idea/shelf
+
 # Dependencies
-/node_modules
+node_modules/
 
 # Debug
 npm-debug.log*
@@ -12,7 +22,8 @@ yarn-error.log*
 
 # Env files
 .env*.local
+.env
+.env.production
 
-# Ponder
-/generated/
-/.ponder/
+# build
+dist/

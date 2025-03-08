@@ -15,20 +15,13 @@ import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts";
 import { getFees } from "../fee";
 import { SendPayload } from "../routes/utils";
 import { bigIntToBuffer } from "../utils/buffer";
-import { sendSignerMnemonic } from "../../config";
-import { getSolanaAccount, SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID } from "../utils/solana";
-
-const CHAIN_ID_TO_CHAIN_NAME: Record<string, string> = {
-  "1": "eth",
-  "56": "bsc",
-  "8453": "base",
-  "16718": "amb",
-  "6003100671677628416": "sol",
-  // testnets
-  "22040": "amb-test",
-  "84532": "base-test",
-  "6003100671677645902": "sol-dev"
-};
+import {
+  sendSignerMnemonic,
+  CHAIN_ID_TO_CHAIN_NAME,
+  SOLANA_CHAIN_ID,
+  SOLANA_DEV_CHAIN_ID,
+} from "../../config";
+import { getSolanaAccount } from "../utils/solana";
 
 const { secretKey: solanaPK } = getSolanaAccount(sendSignerMnemonic);
 const emvPK = mnemonicToAccount(sendSignerMnemonic, { addressIndex: 1 }).getHdKey().privateKey?.toString()!;

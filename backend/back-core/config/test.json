@@ -1,6 +1,9 @@
 {
   "networks": {
-    "amb": "https://network.ambrosus.io/"
+    "amb": "https://network.ambrosus.io",
+    "amb-test": "https://network.ambrosus-test.io",
+    "base-test": "https://sepolia.base.org",
+    "base": "https://mainnet.base.org"
   },
   "contracts": {
     "ambsol": "0xe10eB55f6EeF66218BbE58B749428ec4A51D6659"

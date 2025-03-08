@@ -17,8 +17,13 @@ import { Hono } from "hono";
 import { env } from "hono/adapter";
 
 const receiptControllerDep = new Dependency((c) => {
-  const { DATABASE_URL } = env<{ DATABASE_URL: string }>(c);
-  return new ReceiptController(DATABASE_URL);
+  console.log(env(c))
+  const vars = env<{
+    DATABASE_URL: string
+    [key: `RPC_URL_${number}`]: string
+  }>(c);
+  const RPCs = Object.fromEntries(Object.entries(vars).filter(([key]) => key.startsWith("RPC_URL_")));
+  return new ReceiptController(vars.DATABASE_URL, RPCs);
 });
 
 export const receiptRoutes = new Hono();

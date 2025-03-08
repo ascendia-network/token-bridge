@@ -9,17 +9,19 @@ import { consoleLogger } from "./utils";
 import { config } from "dotenv";
 import { openAPISpecs } from "hono-openapi";
 import { Hono } from "hono";
+import { buildRPCs, stageConfig } from "../config";
 config();
+process.env = { ...process.env, ...buildRPCs(stageConfig) };
 export type Env = {
   Bindings: {
     DATABASE_URL: string;
-    EVM_INDEXER_URL: string;
-    SVM_INDEXER_URL: string;
-    [key: `RPC_NODE_${number}`]: string;
+    [key: `RPC_URL_${number}`]: string;
   };
 };
 
-const app = new Hono<Env>({ strict: false });
+const app = new Hono<Env>({
+  strict: false,
+ });
 app.use(logger(consoleLogger));
 app.use(contextStorage());
 app.use("*", prettyJSON());

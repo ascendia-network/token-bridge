@@ -2,13 +2,7 @@ import { Buffer } from "buffer";
 import * as borsh from "borsh";
 import * as bip39 from "bip39";
 import { Keypair } from "@solana/web3.js";
-import { bytesToBigInt, stringToBytes } from "viem";
 import { HDKey } from "micro-key-producer/slip10.js";
-
-export const SOLANA_CHAIN_ID = bytesToBigInt(stringToBytes("SOLANA", { size: 8 }));
-export const SOLANA_DEV_CHAIN_ID = bytesToBigInt(
-  stringToBytes("SOLANADN", { size: 8 })
-);
 
 const _b20 = { array: { type: "u8", len: 20 } };
 const _b32 = { array: { type: "u8", len: 32 } };

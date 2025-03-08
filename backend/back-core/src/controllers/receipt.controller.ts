@@ -12,26 +12,41 @@ import {
   createPublicClient,
   http,
   webSocket,
+  type WebSocketTransport,
+  type HttpTransport,
 } from "viem";
 import { bridgeAbi } from "../../abis/bridgeAbi";
-import { getContext } from "hono/context-storage";
 import { validatorAbi } from "../../abis/validatorAbi";
 import { consoleLogger } from "../utils";
-import {
-  serializeReceivePayload,
-  SOLANA_CHAIN_ID,
-  SOLANA_DEV_CHAIN_ID,
-  type ReceivePayload,
-} from "../utils/solana";
+import { serializeReceivePayload, type ReceivePayload } from "../utils/solana";
+import { SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID } from "../../config";
 import nacl from "tweetnacl";
-import { PublicKey } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import type { Env } from "../index";
 
 export class ReceiptController {
   db: NodePgDatabase;
+  RPCs: Record<
+    `RPC_URL_${number}`,
+    WebSocketTransport | HttpTransport | Connection
+  >;
 
-  constructor(dbUrl: string) {
+  constructor(dbUrl: string, RPCs: Record<`RPC_URL_${number}`, string>) {
     this.db = drizzle(dbUrl);
+    this.RPCs = Object.fromEntries(
+      Object.entries(RPCs).map(([key, value]) => {
+        switch (key) {
+          case `RPC_URL_${SOLANA_CHAIN_ID}`:
+          case `RPC_URL_${SOLANA_DEV_CHAIN_ID}`:
+            return [[key], new Connection(value, "confirmed")];
+          default:
+            return [
+              [key],
+              value.startsWith("ws") ? webSocket(value) : http(value),
+            ];
+        }
+      })
+    );
   }
 
   async getAllReceipts(
@@ -109,7 +124,7 @@ export class ReceiptController {
         .select({
           receiptId: signatures.receiptId,
           signedBy: signatures.signedBy,
-          signature: signatures.signature
+          signature: signatures.signature,
         })
         .from(signatures)
         .where(
@@ -117,7 +132,8 @@ export class ReceiptController {
             signatures.receiptId,
             result.map((r) => r.receiptId)
           )
-        ).orderBy(asc(signatures.signedBy));
+        )
+        .orderBy(asc(signatures.signedBy));
       consoleLogger("Receipts selected", result.length.toString());
       return result.map((r) => {
         const metaEvm = metasEvm.filter((m) => m.receiptId === r.receiptId);
@@ -256,6 +272,7 @@ export class ReceiptController {
 
   private async checkSignerEVM(
     receiptToSign: typeof receipt.$inferSelect,
+    signer: `0x${string}`,
     signature: `0x${string}`
   ): Promise<`0x${string}`> {
     const MiniReceiptAbi = {
@@ -323,34 +340,37 @@ export class ReceiptController {
     );
     const messageHash = keccak256(message);
     const digest = hashMessage({ raw: messageHash });
-    const signer = await recoverMessageAddress({ message: digest, signature });
-    if (
-      BigInt(receiptToSign.chainTo) === SOLANA_CHAIN_ID ||
-      BigInt(receiptToSign.chainTo) === SOLANA_DEV_CHAIN_ID
-    ) {
-      throw new Error("Invalid chain ID");
+    const signerRecovered = await recoverMessageAddress({ message: digest, signature });
+    if (signerRecovered !== signer) {
+      throw new Error("Invalid signature");
     }
-    const nodeURL =
-      getContext<Env>().env[`RPC_NODE_${Number(receiptToSign.chainTo)}`];
-    if (!nodeURL) throw new Error("RPC node not found");
-    const client = createPublicClient({
-      transport: nodeURL.startsWith("ws") ? webSocket(nodeURL) : http(nodeURL),
-    });
-    const validatorAddress = await client.readContract({
-      abi: bridgeAbi,
-      address: receiptToSign.bridgeAddress as `0x${string}`,
-      functionName: "validator",
-      args: [],
-    });
-    const isValidator = await client.readContract({
-      abi: validatorAbi,
-      address: validatorAddress,
-      functionName: "isValidator",
-      args: [signer],
-    });
-    if (!isValidator) {
-      throw Error("Signer is not a validator");
-    }
+    // TODO: Check if signer is a validator on-chain (needs bridge contract of destination chain)
+    // if (
+    //   BigInt(receiptToSign.chainTo) === SOLANA_CHAIN_ID ||
+    //   BigInt(receiptToSign.chainTo) === SOLANA_DEV_CHAIN_ID
+    // ) {
+    //   throw new Error("Invalid chain ID");
+    // }
+    // const nodeURL = this.RPCs[`RPC_URL_${Number(receiptToSign.chainTo)}`];
+    // if (!nodeURL) throw new Error("RPC node not found");
+    // const client = createPublicClient({
+    //   transport: nodeURL as WebSocketTransport | HttpTransport,
+    // });
+    // const validatorAddress = await client.readContract({
+    //   abi: bridgeAbi,
+    //   address: receiptToSign.bridgeAddress as `0x${string}`,
+    //   functionName: "validator",
+    //   args: [],
+    // });
+    // const isValidator = await client.readContract({
+    //   abi: validatorAbi,
+    //   address: validatorAddress,
+    //   functionName: "isValidator",
+    //   args: [signer],
+    // });
+    // if (!isValidator) {
+    //   throw Error("Signer is not a validator");
+    // }
     return signer;
   }
 
@@ -400,14 +420,12 @@ export class ReceiptController {
     if (receiptToSign.claimed) {
       throw new Error("Receipt already claimed");
     }
+    let signedBy: string;
     switch (BigInt(receiptToSign.chainTo)) {
       case SOLANA_CHAIN_ID:
       case SOLANA_DEV_CHAIN_ID:
         // TODO: Implement Solana signature verification
-        consoleLogger(
-          "Solana signature verification not implemented, skipping"
-        );
-        const signedBy = await this.checkSignerSolana(
+        signedBy = await this.checkSignerSolana(
           receiptToSign,
           signer,
           signature
@@ -419,13 +437,14 @@ export class ReceiptController {
         });
         return true;
       default:
-        const validSigner = await this.checkSignerEVM(receiptToSign, signature);
-        if (!validSigner || validSigner !== signer) {
-          throw new Error("Invalid signer");
-        }
+        signedBy = await this.checkSignerEVM(
+          receiptToSign,
+          signer as `0x${string}`,
+          signature
+        );
         await this.db.insert(signatures).values({
           receiptId,
-          signedBy: validSigner,
+          signedBy,
           signature,
         });
         return true;

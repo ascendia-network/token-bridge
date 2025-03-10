@@ -1,11 +1,7 @@
 name: Create and publish image
 
-on:
-  push:
-    branches: [ main, backend ]
-    paths:
-      - 'backend/indexer-evm/**'
-  workflow_dispatch:
+
+workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -36,7 +32,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
-          file: Dockerfile
+          file: ./backend/indexer-evm/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

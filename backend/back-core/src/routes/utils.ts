@@ -23,7 +23,7 @@ export const evmAddressBytes32Hex = z
     type: "string",
     description: "EVM address in bytes32 hex format",
     example:
-      "0x000000000000000000000000C6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7"
+      "0xC6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7"
   });
 
 export const svmAddressBytes32Hex = z
@@ -35,7 +35,7 @@ export const svmAddressBytes32Hex = z
     if (hexAddress.length !== 64 + 2) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Not a valid Solana address"
+        message: "Not a valid Solana address",
       });
       // This is a special symbol you can use to
       // return early from the transform function.
@@ -47,9 +47,8 @@ export const svmAddressBytes32Hex = z
   })
   .openapi({
     type: "string",
-    description: "Solana base58 address in bytes32 hex format",
-    example:
-      "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001"
+    description: "Solana base58 address",
+    example: "FMYR5BFh3JapZS1cfwYViiBMYJxFGwKdchnghBnBtxkk",
   });
 
 export const signRequestValidatorSchema = z.object({
@@ -386,7 +385,16 @@ const signaturesSchema = createSelectSchema(signatures, {
 export const receiptResponseSchema = z.object({
   receipt: ReceiptSchema,
   receiptMeta: z.array(ReceiptMetaSchema),
-  signatures: z.array(signaturesSchema),
+});
+
+export const signaturesResponseSchema = z.object({
+  receiptId: z.string().regex(receiptIdRegex).openapi({
+    example: "6003100671677646000_22040_3",
+    description: "Receipt ID as 'chainFrom_chainTo_eventId",
+  }),
+  signatures: z.array(signaturesSchema).openapi({
+    description: "Signatures of the transaction",
+  }),
 });
 
 export const SendPayload = z.object({

@@ -61,14 +61,11 @@ export class ReceiptController {
           | typeof receiptsMetaInIndexerEvm.$inferSelect
           | typeof receiptsMetaInIndexerSolana.$inferSelect
         >;
-        signatures: Array<Omit<typeof signatures.$inferSelect, "id">>;
       }>
     | Error
   > {
     try {
-      consoleLogger("Refreshing materialized view...");
       await this.db.refreshMaterializedView(receipt);
-      consoleLogger("Materialized view refreshed");
       let baseQuery;
       if (userAddress) {
         baseQuery = this.db
@@ -80,8 +77,7 @@ export class ReceiptController {
       } else {
         baseQuery = this.db.select().from(receipt);
       }
-      consoleLogger("Selecting receipts...");
-
+      
       const result = await baseQuery
         .orderBy(
           ordering === "asc" ? asc(receipt.timestamp) : desc(receipt.timestamp)
@@ -120,33 +116,14 @@ export class ReceiptController {
             result.map((r) => r.receiptId)
           )
         );
-      const signaturesData = await this.db
-        .select({
-          receiptId: signatures.receiptId,
-          signedBy: signatures.signedBy,
-          signature: signatures.signature,
-        })
-        .from(signatures)
-        .where(
-          inArray(
-            signatures.receiptId,
-            result.map((r) => r.receiptId)
-          )
-        )
-        .orderBy(asc(signatures.signedBy));
-      consoleLogger("Receipts selected", result.length.toString());
       return result.map((r) => {
         const metaEvm = metasEvm.filter((m) => m.receiptId === r.receiptId);
         const metaSolana = metasSolana.filter(
           (m) => m.receiptId === r.receiptId
         );
-        const signature = signaturesData.filter(
-          (s) => s.receiptId === r.receiptId
-        );
         return {
           receipt: r,
           receiptMeta: [...metaEvm, ...metaSolana],
-          signatures: [...signature],
         };
       });
     } catch (error) {
@@ -155,7 +132,7 @@ export class ReceiptController {
         (error as unknown as Error).toString()
       );
       consoleLogger((error as Error).stack as string);
-      return error as Error;
+      throw error as Error;
     }
   }
 
@@ -166,14 +143,11 @@ export class ReceiptController {
           | typeof receiptsMetaInIndexerEvm.$inferSelect
           | typeof receiptsMetaInIndexerSolana.$inferSelect
         >;
-        signatures: Array<Omit<typeof signatures.$inferSelect, "id">>;
       }
     | Error
   > {
     try {
-      consoleLogger("Refreshing materialized view...");
       await this.db.refreshMaterializedView(receipt);
-      consoleLogger("Materialized view refreshed");
       const metaEvm = await this.db
         .select({
           receiptId: receiptsMetaInIndexerEvm.receiptId,
@@ -196,6 +170,33 @@ export class ReceiptController {
         })
         .from(receiptsMetaInIndexerSolana)
         .where(eq(receiptsMetaInIndexerSolana.receiptId, receiptId));
+      const [result] = await this.db
+        .select()
+        .from(receipt)
+        .where(eq(receipt.receiptId, receiptId));
+
+      return {
+        receipt: result,
+        receiptMeta: [...metaEvm, ...metaSolana],
+      };
+    } catch (error) {
+      consoleLogger(
+        "Error selecting receipt",
+        (error as unknown as Error).toString()
+      );
+      consoleLogger((error as Error).stack as string);
+      throw error as Error;
+    }
+  }
+
+  async getReceiptSignatures(
+    receiptId: `${number}_${number}_${number}`
+  ): Promise<
+    | Array<Omit<typeof signatures.$inferSelect, "id">>
+    | Error
+  > {
+    try {
+      await this.db.refreshMaterializedView(receipt);
       const signaturesData = await this.db
         .select({
           receiptId: signatures.receiptId,
@@ -205,19 +206,14 @@ export class ReceiptController {
         .from(signatures)
         .where(eq(signatures.receiptId, receiptId))
         .orderBy(asc(signatures.signedBy));
-      const [result] = await this.db
-        .select()
-        .from(receipt)
-        .where(eq(receipt.receiptId, receiptId));
-
-      console.log("Receipt selected", result);
-      return {
-        receipt: result,
-        receiptMeta: [...metaEvm, ...metaSolana],
-        signatures: signaturesData,
-      };
+      return signaturesData;
     } catch (error) {
-      return error as Error;
+      consoleLogger(
+        "Error selecting receipt signatures",
+        (error as unknown as Error).toString()
+      );
+      consoleLogger((error as Error).stack as string);
+      throw error as Error;
     }
   }
 
@@ -234,13 +230,7 @@ export class ReceiptController {
       }>
     | Error
   > {
-    consoleLogger("Refreshing materialized view...");
     await this.db.refreshMaterializedView(receipt);
-    consoleLogger("Materialized view refreshed");
-    const signedByRelayer = await this.db
-      .select({ receiptId: signatures.receiptId })
-      .from(signatures)
-      .where(eq(signatures.signedBy, pubkey));
     const joinModel =
       chainEnum === "svm"
         ? receiptsMetaInIndexerEvm
@@ -262,7 +252,10 @@ export class ReceiptController {
               ),
           notInArray(
             receipt.receiptId,
-            signedByRelayer.map((r) => r.receiptId)
+            this.db
+              .select({ receiptId: signatures.receiptId })
+              .from(signatures)
+              .where(eq(signatures.signedBy, pubkey))
           )
         )
       )
@@ -379,7 +372,6 @@ export class ReceiptController {
     signer: string,
     signature: `0x${string}`
   ): Promise<string> {
-    consoleLogger("Solana signature verification not implemented, skipping");
     const value: ReceivePayload = {
       to: toBytes(receiptToSign.to, { size: 32 }),
       tokenAddressTo: toBytes(receiptToSign.tokenAddressTo, { size: 32 }),
@@ -407,9 +399,7 @@ export class ReceiptController {
     signer: string,
     signature: `0x${string}`
   ): Promise<boolean> {
-    consoleLogger("Refreshing materialized view...");
     await this.db.refreshMaterializedView(receipt);
-    consoleLogger("Materialized view refreshed");
     const [receiptToSign] = await this.db
       .select()
       .from(receipt)
@@ -424,7 +414,6 @@ export class ReceiptController {
     switch (BigInt(receiptToSign.chainTo)) {
       case SOLANA_CHAIN_ID:
       case SOLANA_DEV_CHAIN_ID:
-        // TODO: Implement Solana signature verification
         signedBy = await this.checkSignerSolana(
           receiptToSign,
           signer,

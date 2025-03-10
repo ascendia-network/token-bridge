@@ -11,13 +11,13 @@ import {
   evmAddressBytes32Hex,
   unsignedReceiptsResponseSchema,
   receiptResponseSchema,
-  signatureRegex
+  signatureRegex,
+  signaturesResponseSchema
 } from "./utils";
 import { Hono } from "hono";
 import { env } from "hono/adapter";
 
 const receiptControllerDep = new Dependency((c) => {
-  console.log(env(c))
   const vars = env<{
     DATABASE_URL: string
     [key: `RPC_URL_${number}`]: string
@@ -386,6 +386,58 @@ receiptRoutes.get(
       const data = await receiptController.getReceipt(receiptId);
       console.log(data);
       return c.json(receiptResponseSchema.parse(data), 200);
+    } catch (error) {
+      console.log(error);
+      return c.json({ message: (error as Error).message }, 400);
+    }
+  }
+);
+
+receiptRoutes.get(
+  "/signatures/:receiptId",
+  describeRoute({
+    description: "Get receipt signatures by id",
+    responses: {
+      200: {
+        description: "Returns receipt",
+        content: {
+          "application/json": {
+            schema: resolver(signaturesResponseSchema),
+          },
+        },
+      },
+      400: {
+        description: "Returns error message",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                message: {
+                  type: "string",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  }),
+  zValidator("param", receiptIdValidatorSchema),
+  receiptControllerDep.middleware("receiptController"),
+  async (c) => {
+    try {
+      const receiptId = c.req.valid("param").receiptId;
+      const { receiptController } = c.var;
+      const data = await receiptController.getReceiptSignatures(receiptId);
+      console.log(data);
+      return c.json(
+        signaturesResponseSchema.parse({
+          receiptId,
+          signatures: data,
+        }),
+        200
+      );
     } catch (error) {
       console.log(error);
       return c.json({ message: (error as Error).message }, 400);

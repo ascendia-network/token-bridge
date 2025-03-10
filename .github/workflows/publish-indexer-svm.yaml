@@ -34,7 +34,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
-          file: ./backend/indexer-svm/Dockerfile
+          context: ./backend/indexer-svm
+          file: Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

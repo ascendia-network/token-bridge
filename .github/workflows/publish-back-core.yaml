@@ -34,7 +34,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
-          file: ./backend/back-core/Dockerfile
+          context: ./backend/back-core
+          file: Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

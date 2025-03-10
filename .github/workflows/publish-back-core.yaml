@@ -1,8 +1,8 @@
 name: Create and publish image
 
 on:
-  pull_request:
-    branches: [ main ]
+  push:
+    branches: [ backend ]
   workflow_dispatch:
 
 env:

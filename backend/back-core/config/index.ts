@@ -9,14 +9,13 @@
 
 import { env } from "process";
 import * as dotenv from "dotenv";
+import { z } from "zod";
 
 // Require trick to import JSON files
 import { createRequire } from "module";
 import { clusterApiUrl } from "@solana/web3.js";
-import {
-  bytesToBigInt,
-  stringToBytes,
-} from "viem";
+import { bytesToBigInt, stringToBytes } from "viem";
+import type { TokenConfig } from "../src/routes/utils";
 const require = createRequire(import.meta.url);
 
 dotenv.config();
@@ -43,7 +42,6 @@ const networkMappping: Record<string, string> = Object.entries(
   {} as Record<string, string>
 );
 
-
 export interface Config {
   networks: { [net: string]: string };
   contracts: { [net: string]: string };
@@ -57,13 +55,9 @@ export interface Config {
   };
 }
 
-
 export const stage = env.STAGE || "test";
 
-export const sendSignerMnemonic = env.SEND_SIGNER_MNEMONIC!;
-
 export const stageConfig: Config = require(`../config/${stage}.json`);
-
 
 export const SOLANA_CHAIN_ID = bytesToBigInt(
   stringToBytes("SOLANA", { size: 8 })

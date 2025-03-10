@@ -11,10 +11,11 @@ import { openAPISpecs } from "hono-openapi";
 import { Hono } from "hono";
 import { buildRPCs, stageConfig } from "../config";
 config();
-process.env = { ...process.env, ...buildRPCs(stageConfig) };
+process.env = { ...process.env, ...buildRPCs(stageConfig)};
 export type Env = {
   Bindings: {
     DATABASE_URL: string;
+    SEND_SIGNER_MNEMONIC: string;
     [key: `RPC_URL_${number}`]: string;
   };
 };

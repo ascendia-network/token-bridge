@@ -13,28 +13,29 @@ import { SendSignatureController } from "../controllers/send-signature.controlle
 import { describeRoute } from "hono-openapi";
 import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { sendPayloadResponseSchema, sendSignatureQuerySchema } from "./utils";
+import { env } from "hono/adapter";
 
-const sendSignatureControllerDep = new Dependency(
-  (c) => {
-    return new SendSignatureController();
-  }
-);
+const sendSignatureControllerDep = new Dependency((c) => {
+  const { SEND_SIGNER_MNEMONIC } = env<{
+    SEND_SIGNER_MNEMONIC: string;
+  }>(c);
+  return new SendSignatureController(SEND_SIGNER_MNEMONIC);
+});
 
 export const sendSignatureRoutes = new Hono();
 
 sendSignatureRoutes.get(
   "/",
   describeRoute({
-    description:
-      "Get signed send payload for cross-chain transfer",
+    description: "Get signed send payload for cross-chain transfer",
     responses: {
       200: {
         description: "Returns signed send payload",
         content: {
           "application/json": {
-            schema: resolver(sendPayloadResponseSchema)
-          }
-        }
+            schema: resolver(sendPayloadResponseSchema),
+          },
+        },
       },
       400: {
         description: "Returns error message",
@@ -44,14 +45,14 @@ sendSignatureRoutes.get(
               type: "object",
               properties: {
                 message: {
-                  type: "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                  type: "string",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   }),
   zValidator("query", sendSignatureQuerySchema),
   sendSignatureControllerDep.middleware("sendSignatureController"),
@@ -65,7 +66,7 @@ sendSignatureRoutes.get(
         isMaxAmount,
         externalTokenAddress,
         flags,
-        flagData
+        flagData,
       } = c.req.valid("query");
       const { sendSignatureController } = c.var;
       const data = await sendSignatureController.getSendSignature({
@@ -76,7 +77,7 @@ sendSignatureRoutes.get(
         amount,
         isMaxAmount: Boolean(isMaxAmount),
         flags,
-        flagData
+        flagData,
       });
       return c.json(data, 200);
     } catch (error) {
@@ -85,6 +86,5 @@ sendSignatureRoutes.get(
     }
   }
 );
-
 
 export default sendSignatureRoutes;

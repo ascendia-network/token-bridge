@@ -9,22 +9,23 @@
 import bs58 from "bs58";
 import nacl from "tweetnacl";
 import { Keypair } from "@solana/web3.js";
-import { encodeAbiParameters, hashMessage, keccak256 } from "viem";
+import {
+  encodeAbiParameters,
+  hashMessage,
+  keccak256,
+  type PrivateKeyAccount,
+} from "viem";
 import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts";
 
 import { getFees } from "../fee";
 import { SendPayload } from "../routes/utils";
 import { bigIntToBuffer } from "../utils/buffer";
 import {
-  sendSignerMnemonic,
   CHAIN_ID_TO_CHAIN_NAME,
   SOLANA_CHAIN_ID,
   SOLANA_DEV_CHAIN_ID,
 } from "../../config";
 import { getSolanaAccount } from "../utils/solana";
-
-const { secretKey: solanaPK } = getSolanaAccount(sendSignerMnemonic);
-const emvPK = mnemonicToAccount(sendSignerMnemonic, { addressIndex: 1 }).getHdKey().privateKey?.toString()!;
 
 interface SendSignatureArgs {
   networkFrom: bigint;
@@ -38,19 +39,27 @@ interface SendSignatureArgs {
 }
 
 export class SendSignatureController {
-  constructor() {
+  solanaSigner: Keypair;
+  evmSigner: PrivateKeyAccount;
+  constructor(mnemonic: string) {
+    const { secretKey: solanaPK } = getSolanaAccount(mnemonic);
+    const emvPK = mnemonicToAccount(mnemonic, { addressIndex: 1 })
+      .getHdKey()
+      .privateKey?.toString()!;
+    this.solanaSigner = Keypair.fromSecretKey(solanaPK);
+    this.evmSigner = privateKeyToAccount(emvPK as `0x${string}`);
   }
 
   async getSendSignature({
-                           networkFrom,
-                           networkTo,
-                           tokenAddress,
-                           amount,
-                           isMaxAmount,
-                           externalTokenAddress,
-                           flags,
-                           flagData
-                         }: SendSignatureArgs) {
+    networkFrom,
+    networkTo,
+    tokenAddress,
+    amount,
+    isMaxAmount,
+    externalTokenAddress,
+    flags,
+    flagData,
+  }: SendSignatureArgs) {
     if (
       !CHAIN_ID_TO_CHAIN_NAME[networkFrom.toString()] ||
       !CHAIN_ID_TO_CHAIN_NAME[networkTo.toString()]
@@ -74,29 +83,23 @@ export class SendSignatureController {
       feeAmount,
       timestamp,
       flags,
-      flagData
+      flagData,
     };
     let signature;
 
     switch (networkFrom) {
       case SOLANA_CHAIN_ID:
       case SOLANA_DEV_CHAIN_ID:
-        signature = await this.signSvmSendPayload(sendPayload, solanaPK);
+        signature = await this.signSvmSendPayload(sendPayload);
         break;
       default:
-        signature = await this.signEvmSendPayload(
-          sendPayload,
-          emvPK as `0x${string}`
-        );
+        signature = await this.signEvmSendPayload(sendPayload);
         break;
     }
     return { sendPayload, signature };
   }
 
-  async signEvmSendPayload(
-    sendPayload: SendPayload,
-    sendSignerPK: `0x${string}`
-  ) {
+  async signEvmSendPayload(sendPayload: SendPayload) {
     const PayloadAbi = {
       name: "payload",
       type: "tuple",
@@ -105,44 +108,44 @@ export class SendSignatureController {
         {
           name: "destChainId",
           type: "uint256",
-          internalType: "uint256"
+          internalType: "uint256",
         },
         {
           name: "tokenAddress",
           type: "bytes32",
-          internalType: "bytes32"
+          internalType: "bytes32",
         },
         {
           name: "externalTokenAddress",
           type: "bytes32",
-          internalType: "bytes32"
+          internalType: "bytes32",
         },
         {
           name: "amountToSend",
           type: "uint256",
-          internalType: "uint256"
+          internalType: "uint256",
         },
         {
           name: "feeAmount",
           type: "uint256",
-          internalType: "uint256"
+          internalType: "uint256",
         },
         {
           name: "timestamp",
           type: "uint256",
-          internalType: "uint256"
+          internalType: "uint256",
         },
         {
           name: "flags",
           type: "uint256",
-          internalType: "uint256"
+          internalType: "uint256",
         },
         {
           name: "flagData",
           type: "bytes",
-          internalType: "bytes"
-        }
-      ]
+          internalType: "bytes",
+        },
+      ],
     };
     const payload = encodeAbiParameters<[typeof PayloadAbi]>(
       [PayloadAbi],
@@ -155,19 +158,16 @@ export class SendSignatureController {
           feeAmount: sendPayload.feeAmount,
           timestamp: sendPayload.timestamp,
           flags: sendPayload.flags,
-          flagData: sendPayload.flagData
-        }
+          flagData: sendPayload.flagData,
+        },
       ]
     );
     const payloadHash = keccak256(payload);
     const digest = hashMessage({ raw: payloadHash });
-    const signer = privateKeyToAccount(sendSignerPK);
-    return await signer.signMessage({ message: digest });
+    return await this.evmSigner.signMessage({ message: digest });
   }
 
-  async signSvmSendPayload(sendPayload: SendPayload, sendSignerPK: Uint8Array) {
-    const signer = Keypair.fromSecretKey(sendSignerPK);
-
+  async signSvmSendPayload(sendPayload: SendPayload) {
     const payload = Buffer.concat([
       bigIntToBuffer(BigInt(sendPayload.destChainId), 32),
       Buffer.from(sendPayload.tokenAddress, "hex"),
@@ -176,10 +176,10 @@ export class SendSignatureController {
       bigIntToBuffer(BigInt(sendPayload.feeAmount), 32),
       bigIntToBuffer(BigInt(sendPayload.timestamp), 32),
       bigIntToBuffer(BigInt(sendPayload.flags), 32),
-      Buffer.from(sendPayload.flagData, "hex")
+      Buffer.from(sendPayload.flagData, "hex"),
     ]);
 
-    const signature = nacl.sign.detached(payload, signer.secretKey);
+    const signature = nacl.sign.detached(payload, this.solanaSigner.secretKey);
 
     return bs58.encode(signature);
   }

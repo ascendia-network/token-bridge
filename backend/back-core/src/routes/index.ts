@@ -1,7 +1,10 @@
 import { Hono } from "hono";
-// import payloadRoutes from "./payload";
 import receiptRoutes from "./receipt";
+import { describeRoute } from "hono-openapi";
+import { resolver, validator as zValidator } from "hono-openapi/zod";
 import sendSignatureRoutes from "./send-signature";
+import { stageConfig } from "../../config";
+import { TokenConfigSchema } from "./utils";
 
 export const routes = new Hono();
 
@@ -13,7 +16,28 @@ routes.get("/", (c) => c.json("Bridge Inventory API", 200));
 // routes.route("/payload", payloadRoutes);
 routes.route("/receipts", receiptRoutes);
 routes.route("/send", sendSignatureRoutes);
+routes.get(
+  "/tokens",
+  describeRoute({
+    description:
+      "Fetches and parses the tokens configuration from a remote URL",
+    responses: {
+      200: {
+        description: "Returns tokens config",
+        content: {
+          "application/json": {
+            schema: resolver(TokenConfigSchema),
+          },
+        },
+      },
+    },
+  }),
+  async (c) => {
+    const data = await fetch(stageConfig.tokensConfigUrl).then((res) =>
+      res.json()
+    );
+    return TokenConfigSchema.parse(data);
+  }
+);
 
 export default routes;
-
-

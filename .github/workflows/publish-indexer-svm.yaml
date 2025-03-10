@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/bridge-core
+  IMAGE_NAME: ${{ github.repository }}/indexer-svm
 
 jobs:
   docker:
@@ -34,7 +34,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
-          file: ./backend/back-core/Dockerfile
+          file: ./backend/indexer-svm/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

@@ -1,7 +1,9 @@
 name: Create and publish image
 
-
-workflow_dispatch:
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io

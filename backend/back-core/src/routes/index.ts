@@ -36,7 +36,7 @@ routes.get(
     const data = await fetch(stageConfig.tokensConfigUrl).then((res) =>
       res.json()
     );
-    return TokenConfigSchema.parse(data);
+    return c.json(TokenConfigSchema.parse(data), 200);
   }
 );
 

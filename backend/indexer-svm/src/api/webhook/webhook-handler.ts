@@ -18,7 +18,7 @@ export async function webhookHandler(request, reply) {
       const logs = eventParser.parseLogs(event.meta.logMessages);
 
       for (const log of logs) {
-        console.log("LOG NAME", log);
+        console.log("LOG NAME", log.name);
         let insertValues: any = null;
         let model: any = null;
 
@@ -65,10 +65,6 @@ export async function webhookHandler(request, reply) {
 }
 
 function processSendEvent(log: any, event: SolanaTransaction) {
-  console.log("!!!", {
-    flags: log.data.flags,
-    flagData: log.data.flag_data
-  });
   return {
     model: receiptsSent,
     values: {
@@ -90,13 +86,15 @@ function processSendEvent(log: any, event: SolanaTransaction) {
 }
 
 function processReceiveEvent(log: any, event: SolanaTransaction) {
+  const toAddress = new PublicKey(log.data.to);
+  const tokenAddressTo = new PublicKey(log.data.token_address_to);
   return {
     model: receiptsClaimed,
     values: {
       timestamp: event.blockTime,
       bridgeAddress: program.programId.toBase58(),
-      to: toHexFromBytes(log.data.to),
-      tokenAddressTo: toHexFromBytes(log.data.token_address_to),
+      to: toHexFromBytes(toAddress.toBytes()),
+      tokenAddressTo: toHexFromBytes(tokenAddressTo.toBytes()),
       amountTo: safeBigInt(log.data.amount_to),
       chainTo: safeNumber(log.data.chain_to),
       eventId: safeNumber(log.data.event_id),

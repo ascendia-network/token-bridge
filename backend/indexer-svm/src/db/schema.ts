@@ -31,7 +31,7 @@ export const receiptsClaimed = indexerSolana.table(
     chainTo: numeric("chain_to", { precision: 78, scale: 0 }).notNull(),
     eventId: numeric("event_id", { precision: 78, scale: 0 }).notNull(),
     flags: numeric({ precision: 78, scale: 0 }).notNull(),
-    flagData: text("flag_data").notNull()
+    data: text().notNull()
   },
   (table) => [
     primaryKey({

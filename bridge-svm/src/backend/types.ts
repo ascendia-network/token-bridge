@@ -15,7 +15,7 @@ export type SignedPayload<T> = {
 };
 
 export interface IBackend {
-  getReceivePayload(user: PublicKey): Promise<SignedPayload<ReceivePayload>>;
+  getReceivePayload(...args: any[]): Promise<SignedPayload<ReceivePayload>>;
 
   getSendPayload(
     tokenAddressFrom: PublicKey,

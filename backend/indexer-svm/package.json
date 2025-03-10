@@ -27,7 +27,7 @@
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",
     "@types/pg": "^8.11.11",
-    "bs58": "^6.0.0",
+    "bs58": "^4.0.1",
     "drizzle-orm": "^0.39.3",
     "fastify": "^5.2.1",
     "pg": "^8.13.2",
@@ -38,8 +38,8 @@
     "@types/node": "^22.13.1",
     "dotenv": "^16.4.7",
     "drizzle-kit": "^0.30.4",
-    "postgres": "^3.4.5",
     "pkgroll": "^2.11.2",
+    "postgres": "^3.4.5",
     "typescript": "^5.7.3"
   }
 }

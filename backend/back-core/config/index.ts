@@ -9,13 +9,11 @@
 
 import { env } from "process";
 import * as dotenv from "dotenv";
-import { z } from "zod";
 
 // Require trick to import JSON files
 import { createRequire } from "module";
 import { clusterApiUrl } from "@solana/web3.js";
 import { bytesToBigInt, stringToBytes } from "viem";
-import type { TokenConfig } from "../src/routes/utils";
 const require = createRequire(import.meta.url);
 
 dotenv.config();

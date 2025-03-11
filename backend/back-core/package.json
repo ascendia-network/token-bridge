@@ -19,9 +19,7 @@
     "pull:evm": "drizzle-kit pull --config ./drizzle.evm.config.ts",
     "prepull:solana": "rm -rf ./src/db/schema/solana",
     "pull:solana": "drizzle-kit pull --config ./drizzle.solana.config.ts",
-    "prebuild": "npm run pull:evm && npm run pull:solana",
     "build": "pkgroll",
-    "predev": "npm run prebuild",
     "dev": "tsx watch src/index.ts",
     "start": "tsx dist/index.cjs"
   },

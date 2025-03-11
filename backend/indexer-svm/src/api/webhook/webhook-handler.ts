@@ -6,7 +6,15 @@ import { SolanaTransaction } from "./types";
 import db from "../../db/db";
 import { safeBigInt, safeHexToNumber, safeHexToString, safeNumber, toHex, toHexFromBytes } from "./utils";
 
-const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+const CHAIN_NAME_TO_CHAIN_ID = {
+  "devnet": "6003100671677645902",
+  "mainnet-beta": "6003100671677628416"
+};
+
+type Cluster = "devnet" | "testnet" | "mainnet-beta"
+
+const connection = new Connection(clusterApiUrl(process.env.SOL_ENVIRONMENT as Cluster), "confirmed");
+const solanaChainId = CHAIN_NAME_TO_CHAIN_ID[process.env.SOL_ENVIRONMENT || "devnet"];
 export const program = new Program(idl, { connection });
 
 export async function webhookHandler(request, reply) {
@@ -18,18 +26,15 @@ export async function webhookHandler(request, reply) {
       const logs = eventParser.parseLogs(event.meta.logMessages);
 
       for (const log of logs) {
-        console.log("LOG NAME", log.name);
         let insertValues: any = null;
         let model: any = null;
 
         if (log.name === "SendEvent") {
-          console.log("SendEvent!", processSendEvent(log, event));
           ({ model, values: insertValues } = processSendEvent(log, event));
           insertValues.receiptId = `${insertValues.chainFrom}_${insertValues.chainTo}_${insertValues.eventId}`;
         } else if (log.name === "ReceivePayload") {
-          console.log("ReceivePayload!", processReceiveEvent(log, event));
           ({ model, values: insertValues } = processReceiveEvent(log, event));
-          insertValues.receiptId = `${insertValues.chainFrom}_${insertValues.chainTo}_${insertValues.eventId}`;
+          insertValues.receiptId = `${solanaChainId}_${insertValues.chainTo}_${insertValues.eventId}`;
         } else {
           continue;
         }

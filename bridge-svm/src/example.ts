@@ -150,8 +150,8 @@ async function makeReceiveTx() {
     admin.publicKey,
     usdcKeypair.publicKey,
     228_000000,
-    32,
-    1
+    37,
+    10000
   );
   const txSignature = await receive(
     connection,

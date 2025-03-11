@@ -10,7 +10,6 @@
 const bs58 = require("bs58");
 
 export function toHexFromBytes(byteArray: Uint8Array): string {
-  console.log("!!!", byteArray);
   return `0x${Buffer.from(padTo32Bytes(byteArray)).toString("hex")}`;
 }
 

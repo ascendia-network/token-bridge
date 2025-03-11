@@ -9,8 +9,9 @@ import { config } from "dotenv";
 import { openAPISpecs } from "hono-openapi";
 import { Hono } from "hono";
 import { buildRPCs, stageConfig } from "../config";
+
 config();
-process.env = { ...process.env, ...buildRPCs(stageConfig)};
+process.env = { ...process.env, ...buildRPCs(stageConfig) };
 export type Env = {
   Bindings: {
     DATABASE_URL: string;
@@ -22,8 +23,8 @@ export type Env = {
 };
 
 const app = new Hono<Env>({
-  strict: false,
- });
+  strict: false
+});
 app.use(logger(consoleLogger));
 app.use(contextStorage());
 app.use("*", prettyJSON());
@@ -34,12 +35,12 @@ app.get(
       info: {
         title: "Bridge API",
         version: "1.0.0",
-        description: "API endpoints for the Bridge service",
-      },
-    },
+        description: "API endpoints for the Bridge service"
+      }
+    }
   })
 );
-app.get("/ui", swaggerUI({ url: "/openapi" }));
+app.get("/ui", swaggerUI({ url: "/back-core/openapi" }));
 app.route("/api", routes);
 app.get("/health", (c) => {
   return c.json({ status: "ok" }, 200);
@@ -47,7 +48,7 @@ app.get("/health", (c) => {
 
 serve({
   fetch: app.fetch,
-  port: 3000,
+  port: 3000
 });
 console.log("Server running on port 3000");
 

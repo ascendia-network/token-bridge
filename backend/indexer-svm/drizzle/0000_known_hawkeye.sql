@@ -7,11 +7,11 @@ CREATE TABLE "indexer_solana"."receiptsClaimed" (
 	"to" text NOT NULL,
 	"token_address_to" text NOT NULL,
 	"amount_to" numeric(78, 0) NOT NULL,
-	"chain_from" numeric(78, 0) NOT NULL,
 	"chain_to" numeric(78, 0) NOT NULL,
 	"event_id" numeric(78, 0) NOT NULL,
 	"flags" numeric(78, 0) NOT NULL,
-	CONSTRAINT "receiptsClaimed_chain_from_chain_to_event_id_pk" PRIMARY KEY("chain_from","chain_to","event_id")
+	"data" text NOT NULL,
+	CONSTRAINT "receiptsClaimed_chain_to_event_id_pk" PRIMARY KEY("chain_to","event_id")
 );
 --> statement-breakpoint
 CREATE TABLE "indexer_solana"."receiptsMeta" (

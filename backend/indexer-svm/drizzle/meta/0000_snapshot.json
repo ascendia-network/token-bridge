@@ -1,5 +1,5 @@
 {
-  "id": "69505fc3-3e7c-4842-be44-1f7777f067b2",
+  "id": "3b99ad07-f5fa-4a79-a85f-8297d9653f93",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -44,12 +44,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "chain_from": {
-          "name": "chain_from",
-          "type": "numeric(78, 0)",
-          "primaryKey": false,
-          "notNull": true
-        },
         "chain_to": {
           "name": "chain_to",
           "type": "numeric(78, 0)",
@@ -67,15 +61,20 @@
           "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "receiptsClaimed_chain_from_chain_to_event_id_pk": {
-          "name": "receiptsClaimed_chain_from_chain_to_event_id_pk",
+        "receiptsClaimed_chain_to_event_id_pk": {
+          "name": "receiptsClaimed_chain_to_event_id_pk",
           "columns": [
-            "chain_from",
             "chain_to",
             "event_id"
           ]

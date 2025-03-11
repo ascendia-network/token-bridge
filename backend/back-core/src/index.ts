@@ -40,7 +40,7 @@ app.get(
     }
   })
 );
-app.get("/ui", swaggerUI({ url: "/back-core/openapi" }));
+app.get("/ui", swaggerUI({ url: "/openapi" }));
 app.route("/api", routes);
 app.get("/health", (c) => {
   return c.json({ status: "ok" }, 200);

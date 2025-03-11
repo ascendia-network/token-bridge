@@ -34,7 +34,7 @@ COPY --chown=ponder:nodejs ponder*.ts /app/
 
 USER ponder
 
-ENV PGSSLMODE=disable
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
 
 ENV NODE_ENV=production
 EXPOSE 42069

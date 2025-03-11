@@ -30,6 +30,8 @@ COPY --from=builder --chown=indexer:nodejs /app/package.json /app/package.json
 
 USER indexer
 
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+
 ENV NODE_ENV=production
 EXPOSE 8080
 

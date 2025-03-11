@@ -37,6 +37,8 @@ COPY --from=builder --chown=hono:nodejs /app/package.json /app/package.json
 
 USER hono
 
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+
 ENV NODE_ENV=production
 EXPOSE 3000
 

@@ -34,6 +34,8 @@ COPY --chown=ponder:nodejs ponder*.ts /app/
 
 USER ponder
 
+ENV PGSSLMODE=disable
+
 ENV NODE_ENV=production
 EXPOSE 42069
 

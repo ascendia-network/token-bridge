@@ -470,6 +470,14 @@ export const TokenConfigSchema = z.object({
           description: "Address of the AMB bridge",
           example: "0x0659f7D44aE52AA209319de9Ea99Da2FebABfD81",
         }),
+        "amb-test": z.string().optional().openapi({
+          description: "Address of the AMB test bridge",
+          example: "0x0659f7D44aE52AA209319de9Ea99Da2FebABfD81",
+        }),
+        "amb-dev": z.string().optional().openapi({
+          description: "Address of the AMB dev bridge",
+          example: "0x0659f7D44aE52AA209319de9Ea99Da2FebABfD81",
+        }),
         side: z.string().optional().openapi({
           description: "Address of the side chain bridge",
           example: "0x0659f7D44aE52AA209319de9Ea99Da2FebABfD81",

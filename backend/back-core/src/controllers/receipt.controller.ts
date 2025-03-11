@@ -19,10 +19,11 @@ import { bridgeAbi } from "../../abis/bridgeAbi";
 import { validatorAbi } from "../../abis/validatorAbi";
 import { consoleLogger } from "../utils";
 import { serializeReceivePayload, type ReceivePayload } from "../utils/solana";
-import { SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID } from "../../config";
+import { CHAIN_ID_TO_CHAIN_NAME, SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID, stageConfig } from "../../config";
 import nacl from "tweetnacl";
 import { Connection, PublicKey } from "@solana/web3.js";
 import type { Env } from "../index";
+import { TokenConfigSchema } from "../routes/utils";
 
 export class ReceiptController {
   db: NodePgDatabase;
@@ -263,6 +264,23 @@ export class ReceiptController {
     return receipts;
   }
 
+  async getBridgeAddress(chainFrom: string, chainTo: string): Promise<string | undefined> {
+    const data = await fetch(stageConfig.tokensConfigUrl).then((res) =>
+          res.json()
+        );
+    const { bridges } = TokenConfigSchema.parse(data);
+    const chainNameFrom = CHAIN_ID_TO_CHAIN_NAME[chainFrom.toString()];
+    const chainNameTo = CHAIN_ID_TO_CHAIN_NAME[chainTo.toString()];
+    switch (chainNameTo) {
+      case "amb":
+      case "amb-test":
+      case "amb-dev":
+        return bridges[chainNameFrom][chainNameTo];
+      default:
+        return bridges[chainNameTo].side;
+    }
+  }
+
   private async checkSignerEVM(
     receiptToSign: typeof receipt.$inferSelect,
     signer: `0x${string}`,
@@ -337,33 +355,37 @@ export class ReceiptController {
     if (signerRecovered !== signer) {
       throw new Error("Invalid signature");
     }
-    // TODO: Check if signer is a validator on-chain (needs bridge contract of destination chain)
-    // if (
-    //   BigInt(receiptToSign.chainTo) === SOLANA_CHAIN_ID ||
-    //   BigInt(receiptToSign.chainTo) === SOLANA_DEV_CHAIN_ID
-    // ) {
-    //   throw new Error("Invalid chain ID");
-    // }
-    // const nodeURL = this.RPCs[`RPC_URL_${Number(receiptToSign.chainTo)}`];
-    // if (!nodeURL) throw new Error("RPC node not found");
-    // const client = createPublicClient({
-    //   transport: nodeURL as WebSocketTransport | HttpTransport,
-    // });
-    // const validatorAddress = await client.readContract({
-    //   abi: bridgeAbi,
-    //   address: receiptToSign.bridgeAddress as `0x${string}`,
-    //   functionName: "validator",
-    //   args: [],
-    // });
-    // const isValidator = await client.readContract({
-    //   abi: validatorAbi,
-    //   address: validatorAddress,
-    //   functionName: "isValidator",
-    //   args: [signer],
-    // });
-    // if (!isValidator) {
-    //   throw Error("Signer is not a validator");
-    // }
+    if (
+      BigInt(receiptToSign.chainTo) === SOLANA_CHAIN_ID ||
+      BigInt(receiptToSign.chainTo) === SOLANA_DEV_CHAIN_ID
+    ) {
+      throw new Error("Invalid chain ID");
+    }
+    const nodeURL = this.RPCs[`RPC_URL_${Number(receiptToSign.chainTo)}`];
+    if (!nodeURL) throw new Error("RPC node not found");
+    const client = createPublicClient({
+      transport: nodeURL as WebSocketTransport | HttpTransport,
+    });
+    const bridgeAddress = await this.getBridgeAddress(
+      receiptToSign.chainFrom,
+      receiptToSign.chainTo
+    );
+    if (!bridgeAddress) throw new Error("Bridge address not found");
+    const validatorAddress = await client.readContract({
+      abi: bridgeAbi,
+      address: bridgeAddress as `0x${string}`,
+      functionName: "validator",
+      args: [],
+    });
+    const isValidator = await client.readContract({
+      abi: validatorAbi,
+      address: validatorAddress,
+      functionName: "isValidator",
+      args: [signer],
+    });
+    if (!isValidator) {
+      throw Error("Signer is not a validator");
+    }
     return signer;
   }
 

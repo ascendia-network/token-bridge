@@ -7,7 +7,7 @@
  *  This Source Code Form is “Incompatible With Secondary Licenses”, as defined by the Mozilla Public License, v. 2.0.
  */
 import { stringToBytes, bytesToBigInt } from "viem";
-import { config } from "./config";
+import { BASE_API_URL, config } from "./config";
 import {
   type ReceiptsToSignResponse,
   type FullReceiptDB,
@@ -67,17 +67,14 @@ async function postSignature(
   signature: string
 ) {
   try {
-    const response = await fetch(
-      `${config.BACKEND_URL}/api/receipts/${receiptId}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          signer,
-          signature,
-        }),
-      }
-    );
+    const response = await fetch(BASE_API_URL + `/${receiptId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        signer,
+        signature,
+      }),
+    });
     if (response.ok) {
       console.log("Signature successfully sent to the backend.");
     } else {

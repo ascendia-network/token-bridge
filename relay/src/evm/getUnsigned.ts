@@ -1,11 +1,12 @@
-import { config } from "../config";
+import { BASE_API_URL, config } from "../config";
 import { validators, type ReceiptsToSignResponse } from "../typeValidators";
+
+const GET_UNSIGNED_TRANSACTIONS_EVM_URL =
+  BASE_API_URL + `/evm/unsigned/${config.accountEVM.address}`;
 
 export async function getUnsignedTransactionsEVM(): Promise<ReceiptsToSignResponse> {
   try {
-    const response = await fetch(
-      `${config.BACKEND_URL}/api/receipts/evm/unsigned/${config.accountEVM.address}`
-    );
+    const response = await fetch(GET_UNSIGNED_TRANSACTIONS_EVM_URL);
     if (response.ok) {
       const data = await response.json();
       const receipts = validators.ReceiptsToSignResponse.parse(data);

@@ -1,10 +1,12 @@
 import { Hono } from "hono";
 import receiptRoutes from "./receipt";
 import { describeRoute } from "hono-openapi";
-import { resolver, validator as zValidator } from "hono-openapi/zod";
+import { resolver } from "hono-openapi/zod";
 import sendSignatureRoutes from "./send-signature";
-import { stageConfig } from "../../config";
+import { CORS_CONFIG, stageConfig } from "../../config";
 import { TokenConfigSchema } from "./utils";
+import relayRoutes from "./relay";
+import { cors } from "hono/cors";
 
 export const routes = new Hono();
 
@@ -15,9 +17,11 @@ the message "Bridge Inventory API" and a status code of 200. */
 routes.get("/", (c) => c.json("Bridge Inventory API", 200));
 // routes.route("/payload", payloadRoutes);
 routes.route("/receipts", receiptRoutes);
+routes.route("/relay", relayRoutes);
 routes.route("/send", sendSignatureRoutes);
 routes.get(
   "/tokens",
+  cors(CORS_CONFIG),
   describeRoute({
     description:
       "Fetches and parses the tokens configuration from a remote URL",

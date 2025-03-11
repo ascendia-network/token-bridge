@@ -1,13 +1,12 @@
-import { accountSolana, config } from "../config";
+import { accountSolana, BASE_API_URL } from "../config";
 import { validators, type ReceiptsToSignResponse } from "../typeValidators";
+
+const GET_UNSIGNED_TRANSACTIONS_SOLANA_URL =
+  BASE_API_URL + `/svm/unsigned/${accountSolana.publicKey.toBase58()}`;
 
 export async function getUnsignedTransactionsSolana(): Promise<ReceiptsToSignResponse> {
   try {
-    const response = await fetch(
-      `${
-        config.BACKEND_URL
-      }/api/receipts/svm/unsigned/${accountSolana.publicKey.toBase58()}`
-    );
+    const response = await fetch(GET_UNSIGNED_TRANSACTIONS_SOLANA_URL);
     if (response.ok) {
       const data = await response.json();
       const receipts = validators.ReceiptsToSignResponse.parse(data);

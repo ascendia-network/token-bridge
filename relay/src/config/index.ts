@@ -41,4 +41,6 @@ export const config: EnvConfig & {
   accountSolana,
 };
 
+export const BASE_API_URL = config.BACKEND_URL + "/api/relay";
+
 export default config;

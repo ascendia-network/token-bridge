@@ -1,6 +1,5 @@
 import { logger } from "hono/logger";
 import { routes } from "./routes";
-import { cors } from "hono/cors";
 import { prettyJSON } from "hono/pretty-json";
 import { contextStorage } from "hono/context-storage";
 import { serve } from "@hono/node-server";
@@ -16,6 +15,8 @@ export type Env = {
   Bindings: {
     DATABASE_URL: string;
     SEND_SIGNER_MNEMONIC: string;
+    RELAY_ALLOWED_ORIGINS: string;
+    ALLOWED_ORIGINS: string;
     [key: `RPC_URL_${number}`]: string;
   };
 };
@@ -31,16 +32,14 @@ app.get(
   openAPISpecs(app, {
     documentation: {
       info: {
-        title: "Hono API",
+        title: "Bridge API",
         version: "1.0.0",
-        description: "Greeting API",
+        description: "API endpoints for the Bridge service",
       },
-      servers: [{ url: "http://localhost:3000", description: "Local Server" }],
     },
   })
 );
 app.get("/ui", swaggerUI({ url: "/openapi" }));
-app.use("/api/*", cors());
 app.route("/api", routes);
 app.get("/health", (c) => {
   return c.json({ status: "ok" }, 200);

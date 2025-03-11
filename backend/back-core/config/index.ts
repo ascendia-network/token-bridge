@@ -14,9 +14,37 @@ import * as dotenv from "dotenv";
 import { createRequire } from "module";
 import { clusterApiUrl } from "@solana/web3.js";
 import { bytesToBigInt, stringToBytes } from "viem";
+import type { Context } from "hono";
 const require = createRequire(import.meta.url);
 
 dotenv.config();
+
+type CORSOptions = {
+  origin:
+    | string
+    | string[]
+    | ((origin: string, c: Context) => string | undefined | null);
+  allowMethods?: string[];
+  allowHeaders?: string[];
+  maxAge?: number;
+  credentials?: boolean;
+  exposeHeaders?: string[];
+};
+
+export const CORS_CONFIG: CORSOptions = {
+  origin: (origin: string, c: Context) => {
+    return c.env.ALLOWED_ORIGINS ? c.env.ALLOWED_ORIGINS.split(",") : "*";
+  },
+  allowMethods: ["GET", "POST"],
+  allowHeaders: ["Content-Type"],
+};
+
+export const RELAY_CORS_CONFIG: CORSOptions = {
+  ...CORS_CONFIG,
+  origin: (origin: string, c: Context) => {
+    return c.env.RELAY_ALLOWED_ORIGINS ? c.env.RELAY_ALLOWED_ORIGINS.split(",") : "*";
+  },
+};
 
 export const CHAIN_ID_TO_CHAIN_NAME: Record<string, string> = {
   "1": "eth",

@@ -18,8 +18,7 @@ COPY --chown=builder:nodejs abis /app/abis
 COPY --chown=builder:nodejs drizzle*config.ts /app/
 
 RUN npm ci
-RUN id=DATABASE_URL,env=DATABASE_URL \
-  npm run build && npm prune --production
+RUN npm run build && npm prune --production
 #-------------------------------------------------------------------------------
 FROM base AS runner
 

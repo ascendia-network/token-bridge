@@ -401,7 +401,7 @@ export const signaturesResponseSchema = z.object({
 });
 
 export const SendPayloadEVM = z.object({
-  destChainId: z.bigint().min(1n, "networkTo is required").openapi({
+  destChainId: z.coerce.bigint().min(1n, "destChainId is required").openapi({
     example: SOLANA_DEV_CHAIN_ID,
     description: "Chain ID of the receiver",
   }),
@@ -421,19 +421,23 @@ export const SendPayloadEVM = z.object({
         "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
       description: "External token address in bytes32 hex format",
     }),
-  amountToSend: z.bigint().positive().min(1n, "amount is required").openapi({
-    example: 1000000000000000000n,
-    description: "Amount of tokens to send",
-  }),
-  feeAmount: z.bigint().positive().openapi({
+  amountToSend: z.coerce
+    .bigint()
+    .positive()
+    .min(1n, "amount is required")
+    .openapi({
+      example: 1000000000000000000n,
+      description: "Amount of tokens to send",
+    }),
+  feeAmount: z.coerce.bigint().positive().openapi({
     example: 10000000n,
     description: "Amount of fee needed to send the transaction",
   }),
-  timestamp: z.number().openapi({
+  timestamp: z.coerce.number().openapi({
     example: 1633632000,
     description: "Timestamp of the transaction",
   }),
-  flags: z.bigint().nonnegative().default(0n).openapi({
+  flags: z.coerce.bigint().nonnegative().default(0n).openapi({
     example: 0n,
     description: "Flags for the transaction",
   }),

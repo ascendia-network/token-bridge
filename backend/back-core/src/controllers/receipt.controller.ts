@@ -18,7 +18,7 @@ import {
 import { bridgeAbi } from "../../abis/bridgeAbi";
 import { validatorAbi } from "../../abis/validatorAbi";
 import { consoleLogger } from "../utils";
-import { serializeReceivePayload, type ReceivePayload } from "../utils/solana";
+import { serializeReceivePayload, ReceivePayload } from "../utils/solana";
 import { CHAIN_ID_TO_CHAIN_NAME, SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID, stageConfig } from "../../config";
 import nacl from "tweetnacl";
 import { Connection, PublicKey } from "@solana/web3.js";
@@ -394,14 +394,14 @@ export class ReceiptController {
     signer: string,
     signature: `0x${string}`
   ): Promise<string> {
-    const value: ReceivePayload = {
+    const value: ReceivePayload = ReceivePayload.parse({
       to: toBytes(receiptToSign.to, { size: 32 }),
       tokenAddressTo: toBytes(receiptToSign.tokenAddressTo, { size: 32 }),
-      amountTo: Number(receiptToSign.amountTo),
+      amountTo: BigInt(receiptToSign.amountTo),
       chainTo: BigInt(receiptToSign.chainTo),
       flags: toBytes(BigInt(receiptToSign.flags), { size: 32 }),
       flagData: toBytes(receiptToSign.data),
-    };
+    });
     const payload = serializeReceivePayload(value);
     const signatureBytes = toBytes(signature);
     const isValid = nacl.sign.detached.verify(

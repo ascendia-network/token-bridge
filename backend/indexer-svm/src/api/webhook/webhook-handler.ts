@@ -5,7 +5,7 @@ import { receiptsClaimed, receiptsMeta, receiptsSent } from "../../db/schema";
 import { SolanaTransaction } from "./types";
 import db from "../../db/db";
 import {
-  safeBigInt,
+  safeBigIntFromBuffer, safeBigIntFromHex,
   safeHexToNumber,
   safeHexToString,
   safeNumberToString,
@@ -79,6 +79,7 @@ export async function webhookHandler(request, reply) {
 }
 
 function processSendEvent(log: any, event: SolanaTransaction) {
+  console.log("processSendEvent", { chain_from: BigInt("0x" + log.data.chain_from.toString("hex")) });
   return {
     model: receiptsSent,
     values: {
@@ -89,13 +90,13 @@ function processSendEvent(log: any, event: SolanaTransaction) {
       tokenAddressFrom: toHex(log.data.token_address_from.toBase58()),
       tokenAddressTo: toHexFromBytes(log.data.token_address_to),
       amountFrom: safeNumberToString(log.data.amount_from), // TODO: should be numeric?
-      amountTo: safeBigInt(log.data.amount_to),
-      chainFrom: safeBigInt(log.data.chain_from),
-      chainTo: safeBigInt(log.data.chain_to),
-      eventId: safeBigInt(log.data.event_id),
+      amountTo: safeBigIntFromBuffer(log.data.amount_to),
+      chainFrom: safeBigIntFromHex(log.data.chain_from),
+      chainTo: safeBigIntFromHex(log.data.chain_to),
+      eventId: safeBigIntFromHex(log.data.event_id),
       flags: safeHexToNumber(log.data.flags),
-      data: safeHexToString(log.data.flag_data),
-    },
+      data: safeHexToString(log.data.flag_data)
+    }
   };
 }
 
@@ -109,11 +110,11 @@ function processReceiveEvent(log: any, event: SolanaTransaction) {
       bridgeAddress: program.programId.toBase58(),
       to: toHexFromBytes(toAddress.toBytes()),
       tokenAddressTo: toHexFromBytes(tokenAddressTo.toBytes()),
-      amountTo: safeBigInt(log.data.amount_to),
-      chainTo: safeBigInt(log.data.chain_to),
-      eventId: safeBigInt(log.data.event_id),
+      amountTo: safeBigIntFromHex(log.data.amount_to),
+      chainTo: safeBigIntFromHex(log.data.chain_to),
+      eventId: safeBigIntFromHex(log.data.event_id),
       flags: safeHexToNumber(log.data.flags),
-      data: safeHexToString(log.data.flag_data),
-    },
+      data: safeHexToString(log.data.flag_data)
+    }
   };
 }

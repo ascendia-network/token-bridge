@@ -21,8 +21,12 @@ export function safeNumber(value: any): number {
   return Number(value?.toString()) || 0;
 }
 
-export function safeBigInt(value: Uint8Array): bigint {
+export function safeBigIntFromBuffer(value: Uint8Array): bigint {
   return BigInt(`0x${Buffer.from(value).toString("hex")}`) || 0n;
+}
+
+export function safeBigIntFromHex(value: any): bigint {
+  return BigInt(`0x${value.toString("hex")}`) || 0n;
 }
 
 export function safeHexToNumber(byteArray: Uint8Array): number {

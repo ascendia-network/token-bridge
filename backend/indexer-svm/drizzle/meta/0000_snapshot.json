@@ -1,5 +1,5 @@
 {
-  "id": "53aa57c0-865b-4daa-9649-a1ae9d7688b0",
+  "id": "175db80a-2491-4384-947c-d23e49428c74",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -40,19 +40,19 @@
         },
         "amount_to": {
           "name": "amount_to",
-          "type": "text",
+          "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
         "chain_to": {
           "name": "chain_to",
-          "type": "text",
+          "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
         "event_id": {
           "name": "event_id",
-          "type": "text",
+          "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
@@ -182,31 +182,31 @@
         },
         "amount_from": {
           "name": "amount_from",
-          "type": "text",
+          "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
         "amount_to": {
           "name": "amount_to",
-          "type": "text",
+          "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
         "chain_from": {
           "name": "chain_from",
-          "type": "text",
+          "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
         "chain_to": {
           "name": "chain_to",
-          "type": "text",
+          "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
         "event_id": {
           "name": "event_id",
-          "type": "text",
+          "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },

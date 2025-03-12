@@ -88,14 +88,14 @@ function processSendEvent(log: any, event: SolanaTransaction) {
       to: toHexFromBytes(log.data.to),
       tokenAddressFrom: toHex(log.data.token_address_from.toBase58()),
       tokenAddressTo: toHexFromBytes(log.data.token_address_to),
-      amountFrom: safeNumberToString(log.data.amount_from),
+      amountFrom: safeNumberToString(log.data.amount_from), // TODO: should be numeric?
       amountTo: safeBigInt(log.data.amount_to),
-      chainFrom: safeNumberToString(log.data.chain_from),
-      chainTo: safeNumberToString(log.data.chain_to),
-      eventId: safeNumberToString(log.data.event_id),
+      chainFrom: safeBigInt(log.data.chain_from),
+      chainTo: safeBigInt(log.data.chain_to),
+      eventId: safeBigInt(log.data.event_id),
       flags: safeHexToNumber(log.data.flags),
-      data: safeHexToString(log.data.flag_data)
-    }
+      data: safeHexToString(log.data.flag_data),
+    },
   };
 }
 
@@ -110,10 +110,10 @@ function processReceiveEvent(log: any, event: SolanaTransaction) {
       to: toHexFromBytes(toAddress.toBytes()),
       tokenAddressTo: toHexFromBytes(tokenAddressTo.toBytes()),
       amountTo: safeBigInt(log.data.amount_to),
-      chainTo: safeNumberToString(log.data.chain_to),
-      eventId: safeNumberToString(log.data.event_id),
+      chainTo: safeBigInt(log.data.chain_to),
+      eventId: safeBigInt(log.data.event_id),
       flags: safeHexToNumber(log.data.flags),
-      data: safeHexToString(log.data.flag_data)
-    }
+      data: safeHexToString(log.data.flag_data),
+    },
   };
 }

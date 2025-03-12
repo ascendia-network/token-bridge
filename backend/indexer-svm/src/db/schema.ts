@@ -26,16 +26,16 @@ export const receiptsClaimed = indexerSolana.table(
     bridgeAddress: text("bridge_address").notNull(),
     to: text().notNull(),
     tokenAddressTo: text("token_address_to").notNull(),
-    amountTo: text("amount_to").notNull(),
-    chainTo: text("chain_to").notNull(),
-    eventId: text("event_id").notNull(),
+    amountTo: numeric("amount_to", { precision: 78, scale: 0 }).notNull(),
+    chainTo: numeric("chain_to", { precision: 78, scale: 0 }).notNull(),
+    eventId: numeric("event_id", { precision: 78, scale: 0 }).notNull(),
     flags: numeric({ precision: 78, scale: 0 }).notNull(),
-    data: text().notNull()
+    data: text().notNull(),
   },
   (table) => [
     primaryKey({
-      columns: [table.chainTo, table.eventId]
-    })
+      columns: [table.chainTo, table.eventId],
+    }),
   ]
 );
 
@@ -49,17 +49,17 @@ export const receiptsSent = indexerSolana.table(
     to: text().notNull(),
     tokenAddressFrom: text("token_address_from").notNull(),
     tokenAddressTo: text("token_address_to").notNull(),
-    amountFrom: text("amount_from").notNull(),
-    amountTo: text("amount_to").notNull(),
-    chainFrom: text("chain_from").notNull(),
-    chainTo: text("chain_to").notNull(),
-    eventId: text("event_id").notNull(),
+    amountFrom: numeric("amount_from", { precision: 78, scale: 0 }).notNull(),
+    amountTo: numeric("amount_to", { precision: 78, scale: 0 }).notNull(),
+    chainFrom: numeric("chain_from", { precision: 78, scale: 0 }).notNull(),
+    chainTo: numeric("chain_to", { precision: 78, scale: 0 }).notNull(),
+    eventId: numeric("event_id", { precision: 78, scale: 0 }).notNull(),
     flags: numeric({ precision: 78, scale: 0 }).notNull(),
-    data: text().notNull()
+    data: text().notNull(),
   },
   (table) => [
     primaryKey({
-      columns: [table.chainFrom, table.chainTo, table.eventId]
-    })
+      columns: [table.chainFrom, table.chainTo, table.eventId],
+    }),
   ]
 );

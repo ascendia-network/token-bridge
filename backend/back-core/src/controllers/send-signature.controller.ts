@@ -93,11 +93,11 @@ export class SendSignatureController {
               size: 20,
             })
           ), // 0x + 20 bytes
-          amountToSend: Number(amountToSend),
-          feeAmount: Number(feeAmount),
+          amountToSend: amountToSend,
+          feeAmount: feeAmount,
           chainFrom: networkFrom,
           timestamp: timestamp,
-          flags: bytesToHex(bigIntToBuffer(flags, 32)),
+          flags: flags,
           flagData: flagData ? bytesToHex(Buffer.from(flagData.slice(2), "hex")) : "",
         };
         signature = await this.signSvmSendPayload(sendPayload);
@@ -195,7 +195,7 @@ export class SendSignatureController {
       feeAmount: Number(sendPayload.feeAmount),
       chainFrom: sendPayload.chainFrom,
       timestamp: sendPayload.timestamp,
-      flags: toBytes(sendPayload.flags),
+      flags: toBytes(sendPayload.flags, { size: 32 }),
       flagData: sendPayload.flagData === "" ? new Uint8Array(0) : toBytes(sendPayload.flagData),
     };
     const serializedPayload = serializeSendPayload(sendPayloadToSerialize);

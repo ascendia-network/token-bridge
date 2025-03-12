@@ -43,9 +43,11 @@ export class SendSignatureController {
   evmSigner: PrivateKeyAccount;
   constructor(mnemonic: string) {
     const { secretKey: solanaPK } = getSolanaAccount(mnemonic);
-    const emvPK = mnemonicToAccount(mnemonic, { addressIndex: 1 })
-      .getHdKey()
-      .privateKey?.toString()!;
+    const emvPK =
+      "0x" +
+      Buffer.from(
+        mnemonicToAccount(mnemonic, { addressIndex: 1 }).getHdKey().privateKey!
+      ).toString("hex");
     this.solanaSigner = Keypair.fromSecretKey(solanaPK);
     this.evmSigner = privateKeyToAccount(emvPK as `0x${string}`);
   }

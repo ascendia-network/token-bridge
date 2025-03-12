@@ -13,12 +13,16 @@ export function toHexFromBytes(byteArray: Uint8Array): string {
   return `0x${Buffer.from(padTo32Bytes(byteArray)).toString("hex")}`;
 }
 
+export function safeNumberToString(value: any): string {
+  return value?.toString() || "0";
+}
+
 export function safeNumber(value: any): number {
   return Number(value?.toString()) || 0;
 }
 
-export function safeBigInt(value: Uint8Array): number {
-  return Number(BigInt(`0x${Buffer.from(value).toString("hex")}`)) || 0;
+export function safeBigInt(value: Uint8Array): bigint {
+  return BigInt(`0x${Buffer.from(value).toString("hex")}`) || 0n;
 }
 
 export function safeHexToNumber(byteArray: Uint8Array): number {

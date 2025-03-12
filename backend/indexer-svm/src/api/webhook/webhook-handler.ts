@@ -4,7 +4,14 @@ import idl from "../../idl/idl";
 import { receiptsClaimed, receiptsMeta, receiptsSent } from "../../db/schema";
 import { SolanaTransaction } from "./types";
 import db from "../../db/db";
-import { safeBigInt, safeHexToNumber, safeHexToString, safeNumber, toHex, toHexFromBytes } from "./utils";
+import {
+  safeBigInt,
+  safeHexToNumber,
+  safeHexToString,
+  safeNumberToString,
+  toHex,
+  toHexFromBytes
+} from "./utils";
 
 const CHAIN_NAME_TO_CHAIN_ID = {
   "devnet": "6003100671677645902",
@@ -81,11 +88,11 @@ function processSendEvent(log: any, event: SolanaTransaction) {
       to: toHexFromBytes(log.data.to),
       tokenAddressFrom: toHex(log.data.token_address_from.toBase58()),
       tokenAddressTo: toHexFromBytes(log.data.token_address_to),
-      amountFrom: safeNumber(log.data.amount_from),
+      amountFrom: safeNumberToString(log.data.amount_from),
       amountTo: safeBigInt(log.data.amount_to),
-      chainFrom: safeNumber(log.data.chain_from),
-      chainTo: safeNumber(log.data.chain_to),
-      eventId: safeNumber(log.data.event_id),
+      chainFrom: safeNumberToString(log.data.chain_from),
+      chainTo: safeNumberToString(log.data.chain_to),
+      eventId: safeNumberToString(log.data.event_id),
       flags: safeHexToNumber(log.data.flags),
       data: safeHexToString(log.data.flag_data)
     }
@@ -103,8 +110,8 @@ function processReceiveEvent(log: any, event: SolanaTransaction) {
       to: toHexFromBytes(toAddress.toBytes()),
       tokenAddressTo: toHexFromBytes(tokenAddressTo.toBytes()),
       amountTo: safeBigInt(log.data.amount_to),
-      chainTo: safeNumber(log.data.chain_to),
-      eventId: safeNumber(log.data.event_id),
+      chainTo: safeNumberToString(log.data.chain_to),
+      eventId: safeNumberToString(log.data.event_id),
       flags: safeHexToNumber(log.data.flags),
       data: safeHexToString(log.data.flag_data)
     }

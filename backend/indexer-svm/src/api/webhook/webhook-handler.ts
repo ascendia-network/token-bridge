@@ -22,6 +22,8 @@ export async function webhookHandler(request, reply) {
     const events = request.body as SolanaTransaction[];
     const eventParser = new EventParser(new PublicKey(idl.address), new BorshCoder(idl as Idl));
 
+    if (!Array.isArray(events)) return "pong";
+
     for (const event of events) {
       const logs = eventParser.parseLogs(event.meta.logMessages);
 

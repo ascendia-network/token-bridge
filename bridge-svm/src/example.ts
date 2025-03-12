@@ -83,8 +83,8 @@ export async function main() {
   //   false
   // );
 
-  // await makeSendTx(usdcKeypair.publicKey, usdcAmb);
-  await makeReceiveTx();
+  await makeSendTx(usdcKeypair.publicKey, usdcAmb);
+  // await makeReceiveTx();
 }
 
 async function createToken(tokenKeypair: Keypair, isSynthetic = false) {
@@ -150,7 +150,7 @@ async function makeReceiveTx() {
     admin.publicKey,
     usdcKeypair.publicKey,
     228_000000,
-    37,
+    39,
     10000
   );
   const txSignature = await receive(

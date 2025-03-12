@@ -3,12 +3,12 @@ import { type HDAccount, mnemonicToAccount } from "viem/accounts";
 import { getSolanaAccount } from "../solana/getAccount";
 import { EnvConfig, RPCConfig } from "./configValidators";
 import { clusterApiUrl, Connection, type Keypair } from "@solana/web3.js";
-import { bytesToBigInt, stringToBytes } from "viem";
+import { Bytes } from "ox";
 dotenvConfig();
 
-export const SOLANA_CHAIN_ID = bytesToBigInt(stringToBytes("SOLANA", { size: 8 }));
-export const SOLANA_DEV_CHAIN_ID = bytesToBigInt(
-  stringToBytes("SOLANADN", { size: 8 })
+export const SOLANA_CHAIN_ID = Bytes.toBigInt(Bytes.fromString("SOLANA", { size: 8 }));
+export const SOLANA_DEV_CHAIN_ID = Bytes.toBigInt(
+  Bytes.fromString("SOLANADN", { size: 8 })
 );
 
 const solanaRPCs = {

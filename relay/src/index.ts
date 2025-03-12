@@ -6,8 +6,7 @@
  *
  *  This Source Code Form is “Incompatible With Secondary Licenses”, as defined by the Mozilla Public License, v. 2.0.
  */
-import { stringToBytes, bytesToBigInt } from "viem";
-import { BASE_API_URL, config } from "./config";
+import { BASE_API_URL, config, SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID } from "./config";
 import {
   type ReceiptsToSignResponse,
   type FullReceiptDB,
@@ -31,8 +30,8 @@ async function validateReceipt(
   receiptWithMeta: ReceiptWithMeta
 ): Promise<void | Error> {
   switch (receiptWithMeta.receipts.chainFrom) {
-    case bytesToBigInt(stringToBytes("SOLANA", { size: 8 })):
-    case bytesToBigInt(stringToBytes("SOLANADN", { size: 8 })):
+    case SOLANA_CHAIN_ID:
+    case SOLANA_DEV_CHAIN_ID:
       return await validateExistingTransactionSolana(receiptWithMeta);
     default:
       return await validateExistingTransactionEVM(receiptWithMeta);
@@ -41,8 +40,8 @@ async function validateReceipt(
 
 function getSignerAddress(receiptWithMeta: ReceiptWithMeta): string {
   switch (receiptWithMeta.receipts.chainTo) {
-    case bytesToBigInt(stringToBytes("SOLANA", { size: 8 })):
-    case bytesToBigInt(stringToBytes("SOLANADN", { size: 8 })):
+    case SOLANA_CHAIN_ID:
+    case SOLANA_DEV_CHAIN_ID:
       return config.accountSolana.publicKey.toBase58();
     default:
       return config.accountEVM.address;
@@ -53,8 +52,8 @@ async function signReceipt(
   receiptWithMeta: ReceiptWithMeta
 ): Promise<`0x${string}` | undefined> {
   switch (receiptWithMeta.receipts.chainTo) {
-    case bytesToBigInt(stringToBytes("SOLANA", { size: 8 })): // Solana signature needed
-    case bytesToBigInt(stringToBytes("SOLANADN", { size: 8 })): // Solana signature needed
+    case SOLANA_CHAIN_ID: // Solana signature needed
+    case SOLANA_DEV_CHAIN_ID: // Solana signature needed
       return await signReceiptForSolana(receiptWithMeta);
     default:
       return await signReceiptForEVM(receiptWithMeta);

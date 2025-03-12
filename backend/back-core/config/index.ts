@@ -11,7 +11,7 @@ import { env } from "process";
 import * as dotenv from "dotenv";
 
 import { clusterApiUrl } from "@solana/web3.js";
-import { bytesToBigInt, stringToBytes } from "viem";
+import { Bytes } from "ox";
 import type { Context } from "hono";
 // Require trick to import JSON files
 import { createRequire } from "module";
@@ -85,11 +85,11 @@ export const stage = env.STAGE || "test";
 
 export const stageConfig: Config = require(`../config/${stage}.json`);
 
-export const SOLANA_CHAIN_ID = bytesToBigInt(
-  stringToBytes("SOLANA", { size: 8 })
+export const SOLANA_CHAIN_ID = Bytes.toBigInt(
+  Bytes.fromString("SOLANA", { size: 8 })
 );
-export const SOLANA_DEV_CHAIN_ID = bytesToBigInt(
-  stringToBytes("SOLANADN", { size: 8 })
+export const SOLANA_DEV_CHAIN_ID = Bytes.toBigInt(
+  Bytes.fromString("SOLANADN", { size: 8 })
 );
 
 const solanaRPCs = {

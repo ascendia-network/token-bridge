@@ -15,20 +15,22 @@ import {
   hashMessage,
   keccak256,
   toBytes,
-  type Hex,
   type PrivateKeyAccount,
 } from "viem";
 import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts";
 
 import { getFees } from "../fee";
 import { SendPayloadEVM, SendPayloadSolana } from "../routes/utils";
-import { bigIntToBuffer } from "../utils/buffer";
 import {
   CHAIN_ID_TO_CHAIN_NAME,
   SOLANA_CHAIN_ID,
   SOLANA_DEV_CHAIN_ID,
 } from "../../config";
-import { getSolanaAccount, serializeSendPayload, type SendPayload as SolanaSendPayloadSerialize } from "../utils/solana";
+import {
+  getSolanaAccount,
+  serializeSendPayload,
+  SendPayload as SolanaSendPayloadSerialize,
+} from "../utils/solana";
 
 interface SendSignatureArgs {
   networkFrom: bigint;
@@ -80,9 +82,8 @@ export class SendSignatureController {
     );
     const timestamp = Math.floor(Date.now() / 1000);
 
-    
     let signature, sendPayload: SendPayloadEVM | SendPayloadSolana;
-    
+
     switch (networkFrom) {
       case SOLANA_CHAIN_ID:
       case SOLANA_DEV_CHAIN_ID:
@@ -98,7 +99,9 @@ export class SendSignatureController {
           chainFrom: networkFrom,
           timestamp: timestamp,
           flags: flags,
-          flagData: flagData ? bytesToHex(Buffer.from(flagData.slice(2), "hex")) : "",
+          flagData: flagData
+            ? bytesToHex(Buffer.from(flagData.slice(2), "hex"))
+            : "",
         };
         signature = await this.signSvmSendPayload(sendPayload);
         break;
@@ -188,16 +191,20 @@ export class SendSignatureController {
   }
 
   async signSvmSendPayload(sendPayload: SendPayloadSolana) {
-    const sendPayloadToSerialize: SolanaSendPayloadSerialize = {
-      tokenAddressFrom: toBytes(sendPayload.tokenAddressFrom),
-      tokenAddressTo: toBytes(sendPayload.tokenAddressTo),
-      amountToSend: Number(sendPayload.amountToSend),
-      feeAmount: Number(sendPayload.feeAmount),
-      chainFrom: sendPayload.chainFrom,
-      timestamp: sendPayload.timestamp,
-      flags: toBytes(sendPayload.flags, { size: 32 }),
-      flagData: sendPayload.flagData === "" ? new Uint8Array(0) : toBytes(sendPayload.flagData),
-    };
+    const sendPayloadToSerialize: SolanaSendPayloadSerialize =
+      SolanaSendPayloadSerialize.parse({
+        tokenAddressFrom: toBytes(sendPayload.tokenAddressFrom),
+        tokenAddressTo: toBytes(sendPayload.tokenAddressTo),
+        amountToSend: sendPayload.amountToSend,
+        feeAmount: sendPayload.feeAmount,
+        chainFrom: sendPayload.chainFrom,
+        timestamp: BigInt(sendPayload.timestamp),
+        flags: toBytes(sendPayload.flags, { size: 32 }),
+        flagData:
+          sendPayload.flagData === ""
+            ? new Uint8Array(0)
+            : toBytes(sendPayload.flagData),
+      });
     const serializedPayload = serializeSendPayload(sendPayloadToSerialize);
     const signature = nacl.sign.detached(
       serializedPayload,

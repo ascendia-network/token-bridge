@@ -1,10 +1,10 @@
 import { z } from "zod";
 import "zod-openapi/extend";
-import { Base58 } from "ox";
 import { receipt, signatures } from "../db/schema/core.schema";
 import { receiptsMetaInIndexerEvm } from "../db/schema/evm.schema";
 import { receiptsMetaInIndexerSolana } from "../db/schema/solana.schema";
 import { createSelectSchema } from "drizzle-zod";
+import { Base58 } from "ox";
 import { SOLANA_DEV_CHAIN_ID } from "../../config";
 
 export const EvmAddressRegex = /^0x[a-fA-F0-9]{40}$/;

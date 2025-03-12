@@ -1,5 +1,5 @@
 import { z } from "zod";
-import bs58 from "bs58";
+import { Base58 } from "ox";
 
 const MiniReceipt = z.object({
   to: z.string().regex(/0x[0-9a-fA-F]{64}/),
@@ -36,7 +36,7 @@ const ReceiptMeta = z.object({
         .string()
         .regex(/[1-9A-HJ-NP-Za-km-z]{87,88}/)
         .refine(
-          (val) => bs58.decode(val).length === 64,
+          (val) => Base58.toBytes(val).length === 64,
           "Invalid base58 encoded transaction hash"
         )
     ),

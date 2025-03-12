@@ -6,7 +6,6 @@
  *
  *  This Source Code Form is “Incompatible With Secondary Licenses”, as defined by the Mozilla Public License, v. 2.0.
  */
-import bs58 from "bs58";
 import nacl from "tweetnacl";
 import { Keypair } from "@solana/web3.js";
 import {

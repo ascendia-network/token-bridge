@@ -2,7 +2,7 @@ import { getNativeTokenUSDPrice, getTokenUSDPriceByAddress } from "./token-price
 import Decimal from "decimal.js";
 import { getBridgeFeeInNative } from "./bridgeFee";
 import { stageConfig } from "../../config";
-import bs58 from "bs58";
+import { Base58 } from "ox";
 
 const EVM_NETWORKS = [
   "amb",
@@ -63,6 +63,6 @@ function transformTokenAddr(networkFrom: string, tokenAddr: string) {
   if (EVM_NETWORKS.includes(networkFrom)) {
     return "0x" + tokenAddr.slice(26);
   }
-  return bs58.encode(Buffer.from(tokenAddr.slice(2), "hex"));
+  return Base58.fromHex(tokenAddr as `0x${string}`);
 }
 

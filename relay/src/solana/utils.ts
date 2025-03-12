@@ -7,7 +7,7 @@
  *  This Source Code Form is “Incompatible With Secondary Licenses”, as defined by the Mozilla Public License, v. 2.0.
  */
 
-const bs58 = require("bs58");
+import { Base58 } from "ox";
 import { Buffer } from "buffer";
 import * as borsh from "borsh";
 
@@ -40,7 +40,7 @@ export function padTo32Bytes(byteArray: Uint8Array): Uint8Array {
 }
 
 export function toHex(bs58String: string): string {
-  return `0x${Buffer.from(bs58.decode(bs58String)).toString("hex")}`;
+  return Base58.toHex(bs58String);
 }
 
 const _b20 = { array: { type: "u8", len: 20 } };

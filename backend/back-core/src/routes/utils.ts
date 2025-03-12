@@ -400,7 +400,7 @@ export const signaturesResponseSchema = z.object({
   }),
 });
 
-export const SendPayload = z.object({
+export const SendPayloadEVM = z.object({
   destChainId: z.bigint().min(1n, "networkTo is required").openapi({
     example: SOLANA_DEV_CHAIN_ID,
     description: "Chain ID of the receiver",
@@ -443,10 +443,58 @@ export const SendPayload = z.object({
   }),
 });
 
-export type SendPayload = z.infer<typeof SendPayload>;
+export type SendPayloadEVM = z.infer<typeof SendPayloadEVM>;
+
+export const SendPayloadSolana = z.object({
+  tokenAddressFrom: z
+    .string()
+    .regex(/^0x[a-fA-F0-9]{64}$/)
+    .openapi({
+      example:
+        "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
+      description: "Solana token address in bytes32 hex format",
+    }),
+  tokenAddressTo: z
+    .string()
+    .regex(/^0x[a-fA-F0-9]{40}$/)
+    .openapi({
+      example: "0xc6542ef81b2ee80f0bac1abef6d920c92a590ec7",
+      description: "EVM token address in bytes20 hex format",
+    }),
+  amountToSend: z.coerce
+    .bigint()
+    .positive()
+    .min(1n, "amount is required")
+    .openapi({
+      example: 1000000000000000000n,
+      description: "Amount of tokens to send",
+    }),
+  feeAmount: z.coerce.bigint().positive().openapi({
+    example: 10000000n,
+    description: "Amount of fee needed to send the transaction",
+  }),
+  chainFrom: z.coerce.bigint().min(1n, "chainFrom is required").openapi({
+    example: SOLANA_DEV_CHAIN_ID,
+    description: "Chain ID of the sender chain",
+  }),
+  timestamp: z.coerce.number().openapi({
+    example: 1633632000,
+    description: "Timestamp of the signed payload",
+  }),
+  flags: z.coerce.bigint().nonnegative().default(0n).openapi({
+    example: 0n,
+    description: "Flags for the transaction",
+  }),
+  flagData: z.string().default("").openapi({
+    example: "",
+    description: "Data for the flags as hex string",
+  }),
+});
+
+export type SendPayloadSolana = z.infer<typeof SendPayloadSolana>;
 
 export const sendPayloadResponseSchema = z.object({
-  sendPayload: SendPayload,
+  sendPayload: SendPayloadEVM.or(SendPayloadSolana),
   signature: z.string().regex(signatureRegex).openapi({
     type: "string",
     description: "Signature of the transaction",

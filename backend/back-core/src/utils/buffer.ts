@@ -13,5 +13,3 @@ export function bigIntToBuffer(value: bigint, byteLength: number): Buffer {
   valueBuffer.copy(buffer, byteLength - valueBuffer.length);
   return buffer;
 }
-
-

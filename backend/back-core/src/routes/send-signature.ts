@@ -82,7 +82,7 @@ sendSignatureRoutes.get(
         flags,
         flagData,
       });
-      return c.json(data, 200);
+      return c.json(sendPayloadResponseSchema.parse(data), 200);
     } catch (error) {
       console.log(error);
       return c.json({ message: (error as Error).message }, 400);

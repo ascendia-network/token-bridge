@@ -10,22 +10,25 @@ import bs58 from "bs58";
 import nacl from "tweetnacl";
 import { Keypair } from "@solana/web3.js";
 import {
+  bytesToHex,
   encodeAbiParameters,
   hashMessage,
   keccak256,
+  toBytes,
+  type Hex,
   type PrivateKeyAccount,
 } from "viem";
 import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts";
 
 import { getFees } from "../fee";
-import { SendPayload } from "../routes/utils";
+import { SendPayloadEVM, SendPayloadSolana } from "../routes/utils";
 import { bigIntToBuffer } from "../utils/buffer";
 import {
   CHAIN_ID_TO_CHAIN_NAME,
   SOLANA_CHAIN_ID,
   SOLANA_DEV_CHAIN_ID,
 } from "../../config";
-import { getSolanaAccount } from "../utils/solana";
+import { getSolanaAccount, serializeSendPayload, type SendPayload as SolanaSendPayloadSerialize } from "../utils/solana";
 
 interface SendSignatureArgs {
   networkFrom: bigint;
@@ -43,9 +46,11 @@ export class SendSignatureController {
   evmSigner: PrivateKeyAccount;
   constructor(mnemonic: string) {
     const { secretKey: solanaPK } = getSolanaAccount(mnemonic);
-    const emvPK = mnemonicToAccount(mnemonic, { addressIndex: 1 })
-      .getHdKey()
-      .privateKey?.toString()!;
+    const emvPK =
+      "0x" +
+      Buffer.from(
+        mnemonicToAccount(mnemonic, { addressIndex: 1 }).getHdKey().privateKey!
+      ).toString("hex");
     this.solanaSigner = Keypair.fromSecretKey(solanaPK);
     this.evmSigner = privateKeyToAccount(emvPK as `0x${string}`);
   }
@@ -75,31 +80,46 @@ export class SendSignatureController {
     );
     const timestamp = Math.floor(Date.now() / 1000);
 
-    const sendPayload: SendPayload = {
-      destChainId: networkTo,
-      tokenAddress,
-      externalTokenAddress,
-      amountToSend,
-      feeAmount,
-      timestamp,
-      flags,
-      flagData,
-    };
-    let signature;
-
+    
+    let signature, sendPayload: SendPayloadEVM | SendPayloadSolana;
+    
     switch (networkFrom) {
       case SOLANA_CHAIN_ID:
       case SOLANA_DEV_CHAIN_ID:
+        sendPayload = {
+          tokenAddressFrom: bytesToHex(toBytes(tokenAddress, { size: 32 })),
+          tokenAddressTo: bytesToHex(
+            toBytes("0x" + externalTokenAddress.slice(-40), {
+              size: 20,
+            })
+          ), // 0x + 20 bytes
+          amountToSend: Number(amountToSend),
+          feeAmount: Number(feeAmount),
+          chainFrom: networkFrom,
+          timestamp: timestamp,
+          flags: bytesToHex(bigIntToBuffer(flags, 32)),
+          flagData: flagData ? bytesToHex(Buffer.from(flagData.slice(2), "hex")) : "",
+        };
         signature = await this.signSvmSendPayload(sendPayload);
         break;
       default:
+        sendPayload = {
+          destChainId: networkTo,
+          tokenAddress,
+          externalTokenAddress,
+          amountToSend,
+          feeAmount,
+          timestamp,
+          flags,
+          flagData,
+        } as SendPayloadEVM;
         signature = await this.signEvmSendPayload(sendPayload);
         break;
     }
     return { sendPayload, signature };
   }
 
-  async signEvmSendPayload(sendPayload: SendPayload) {
+  async signEvmSendPayload(sendPayload: SendPayloadEVM) {
     const PayloadAbi = {
       name: "payload",
       type: "tuple",
@@ -167,20 +187,22 @@ export class SendSignatureController {
     return await this.evmSigner.signMessage({ message: digest });
   }
 
-  async signSvmSendPayload(sendPayload: SendPayload) {
-    const payload = Buffer.concat([
-      bigIntToBuffer(BigInt(sendPayload.destChainId), 32),
-      Buffer.from(sendPayload.tokenAddress, "hex"),
-      Buffer.from(sendPayload.externalTokenAddress, "hex"),
-      bigIntToBuffer(BigInt(sendPayload.amountToSend), 32),
-      bigIntToBuffer(BigInt(sendPayload.feeAmount), 32),
-      bigIntToBuffer(BigInt(sendPayload.timestamp), 32),
-      bigIntToBuffer(BigInt(sendPayload.flags), 32),
-      Buffer.from(sendPayload.flagData, "hex"),
-    ]);
-
-    const signature = nacl.sign.detached(payload, this.solanaSigner.secretKey);
-
-    return bs58.encode(signature);
+  async signSvmSendPayload(sendPayload: SendPayloadSolana) {
+    const sendPayloadToSerialize: SolanaSendPayloadSerialize = {
+      tokenAddressFrom: toBytes(sendPayload.tokenAddressFrom),
+      tokenAddressTo: toBytes(sendPayload.tokenAddressTo),
+      amountToSend: Number(sendPayload.amountToSend),
+      feeAmount: Number(sendPayload.feeAmount),
+      chainFrom: sendPayload.chainFrom,
+      timestamp: sendPayload.timestamp,
+      flags: toBytes(sendPayload.flags),
+      flagData: sendPayload.flagData === "" ? new Uint8Array(0) : toBytes(sendPayload.flagData),
+    };
+    const serializedPayload = serializeSendPayload(sendPayloadToSerialize);
+    const signature = nacl.sign.detached(
+      serializedPayload,
+      this.solanaSigner.secretKey
+    );
+    return bytesToHex(signature);
   }
 }

@@ -7,7 +7,7 @@
  *  This Source Code Form is “Incompatible With Secondary Licenses”, as defined by the Mozilla Public License, v. 2.0.
  */
 
-import bs58 from "bs58";
+const bs58 = require("bs58");
 import { Buffer } from "buffer";
 import * as borsh from "borsh";
 

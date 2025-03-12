@@ -6,7 +6,6 @@ import {
   integer,
   primaryKey
 } from "drizzle-orm/pg-core";
-import { SQL, sql } from "drizzle-orm";
 
 export const indexerSolana = pgSchema("indexer_solana");
 

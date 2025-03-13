@@ -1,5 +1,5 @@
 import { Keypair, PublicKey, Signer } from "@solana/web3.js";
-import { hexToUint8Array, numberToUint8Array, SOLANA_CHAIN_ID } from "../sdk/utils";
+import { AMB_CHAIN_ID, hexToUint8Array, numberToUint8Array, SOLANA_CHAIN_ID } from "../sdk/utils";
 import { keccak_256 } from "@noble/hashes/sha3";
 import nacl from "tweetnacl";
 import {
@@ -36,6 +36,7 @@ export async function getReceivePayload(user: PublicKey, token: PublicKey, amoun
     to: user.toBytes(),
     tokenAddressTo: token.toBytes(),
     amountTo,
+    chainFrom: AMB_CHAIN_ID,
     chainTo: SOLANA_CHAIN_ID,
     eventId,
     flags: new Uint8Array(32),  // todo
@@ -63,6 +64,7 @@ export async function getSendPayload(
     amountToSend: amountToSend,
     feeAmount,
     chainFrom: SOLANA_CHAIN_ID,
+    chainTo: AMB_CHAIN_ID,
     timestamp,
     flags: new Uint8Array(32), // todo
     flagData: new Uint8Array(0),  // todo

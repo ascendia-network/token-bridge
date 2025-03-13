@@ -1041,6 +1041,10 @@ export type AmbSolBridge = {
             "type": "u64"
           },
           {
+            "name": "chainFrom",
+            "type": "u64"
+          },
+          {
             "name": "chainTo",
             "type": "u64"
           },

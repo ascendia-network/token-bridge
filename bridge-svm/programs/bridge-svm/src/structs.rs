@@ -2,11 +2,23 @@ use anchor_lang::prelude::*;
 use borsh::{BorshDeserialize, BorshSerialize};
 
 
-pub const SOLANA_CHAIN_ID: u64 = 0x534f4c414e41444e; // "SOLANADN" in hex
-pub const AMB_CHAIN_ID: u64 = 22040;
+
 pub const SIGNATURE_VALIDITY_TIME: u64 = 30 * 60; // 30 minutes
 
 pub const ZERO_PUBKEY: Pubkey = Pubkey::new_from_array([0u8; 32]);
+
+
+#[cfg(feature = "mainnet")]
+pub const SOLANA_CHAIN_ID: u64 = 0x534f4c414e410000; // "SOLANA" in hex
+#[cfg(feature = "mainnet")]
+pub const AMB_CHAIN_ID: u64 = 16718;
+
+
+#[cfg(not(feature = "mainnet"))]
+pub const SOLANA_CHAIN_ID: u64 = 0x534f4c414e41444e; // "SOLANADN" in hex
+#[cfg(not(feature = "mainnet"))]
+pub const AMB_CHAIN_ID: u64 = 22040;
+
 
 #[account]
 pub struct GlobalState {
@@ -74,18 +86,21 @@ pub struct SendPayload {
     pub token_address_to: [u8; 20],
     pub amount_to_send: u64,
     pub fee_amount: u64,
-    pub chain_from: u64,
+    pub chain_from: u64,  // must be solana
+    pub chain_to: u64,  // must be amb
     pub timestamp: u64,
     pub flags: [u8; 32],
     pub flag_data: Vec<u8>,
 }
 
 #[event]
+// also ReceiveEvent
 pub struct ReceivePayload {
     pub to: Pubkey,
     pub token_address_to: Pubkey,
     pub amount_to: u64,
-    pub chain_to: u64,
+    pub chain_from: u64,  // must be amb
+    pub chain_to: u64,  // must be solana
     pub event_id: u64,
     pub flags: [u8; 32],
     pub flag_data: Vec<u8>,
@@ -99,8 +114,8 @@ pub struct SendEvent {
     pub token_address_to: [u8; 20],  // source token address (bytes32 because of cross-chain compatibility)
     pub amount_from: u64,  // amount of tokens sent
     pub amount_to: [u8; 32],  // amount of tokens received
-    pub chain_from: u64,  // chain id of the source chain
-    pub chain_to: u64,  // chain id of the destination chain
+    pub chain_from: u64,  // chain id of the source chain (must be solana)
+    pub chain_to: u64,  // chain id of the destination chain (must be amb)
     pub event_id: u64,  // transaction number
     pub flags: [u8; 32],
     pub flag_data: Vec<u8>,

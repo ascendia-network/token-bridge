@@ -79,6 +79,10 @@ pub fn send(ctx: Context<Send>, serialized_args: Vec<u8>, recipient: [u8; 20]) -
         CustomError::InvalidArgs
     );
     require!(
+        args.chain_to == AMB_CHAIN_ID,
+        CustomError::InvalidArgs
+    );
+    require!(
         (Clock::get()?.unix_timestamp as u64) < args.timestamp + SIGNATURE_VALIDITY_TIME,
         CustomError::InvalidArgs
     );

@@ -77,6 +77,7 @@ pub fn receive(
         to: *ctx.accounts.receiver.key,
         token_address_to: ctx.accounts.mint.key(),
         amount_to,
+        chain_from: AMB_CHAIN_ID,
         chain_to: SOLANA_CHAIN_ID,
         event_id,
         flags,

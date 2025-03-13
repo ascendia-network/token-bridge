@@ -15,6 +15,7 @@ import { createMint, getAssociatedTokenAddressSync, mintTo, NATIVE_MINT } from "
 import { AmbSolBridge } from "../../target/types/amb_sol_bridge";
 import { receiveSigner, receiveSigners, sendSigner, signMessage } from "../../src/backend/signs";
 import {
+  AMB_CHAIN_ID,
   getBridgeStateAccount,
   getBridgeTokenAccounts,
   getOrCreateUserATA,
@@ -342,6 +343,7 @@ describe("my-project", () => {
       amountToSend,
       feeAmount: 20,
       chainFrom: SOLANA_CHAIN_ID,
+      chainTo: AMB_CHAIN_ID,
       timestamp: Date.now(),
       flags: new Uint8Array(32),
       flagData: new Uint8Array(0),
@@ -378,6 +380,7 @@ describe("my-project", () => {
       tokenAddressTo: token.toBytes(),
       amountTo: amountToReceive,
       chainTo: SOLANA_CHAIN_ID,
+      chainFrom: AMB_CHAIN_ID,
       eventId: 1,
       flags: new Uint8Array(32),
       flagData: numberToUint8Array(receiveNonce, 8)

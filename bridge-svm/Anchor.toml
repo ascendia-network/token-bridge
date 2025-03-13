@@ -4,8 +4,8 @@
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-bridge_svm = "9xfWfxVZJREXTiALejM8EgA426ChviLtfQxV7GBA8CkY"
+#[programs.localnet]
+#bridge_svm = "6TcA8kPmipG2xQtwYWQQq4CioTMbxHLjSCnpu1jqA6pZ"
 
 [registry]
 url = "https://api.apr.dev"

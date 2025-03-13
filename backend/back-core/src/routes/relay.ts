@@ -11,6 +11,7 @@ import {
   signatureRegex,
 } from "./utils";
 import { Hono } from "hono";
+import { type ContentfulStatusCode } from "hono/utils/http-status";
 import { env } from "hono/adapter";
 import { RELAY_CORS_CONFIG } from "../../config";
 import { cors } from "hono/cors";
@@ -159,12 +160,12 @@ relayRoutes.post(
               properties: {
                 message: {
                   type: "string",
-                  example: "Receipt not found"
-                }
-              }
-            }
-          }
-        }
+                  example: "Receipt not found",
+                },
+              },
+            },
+          },
+        },
       },
       400: {
         description: "Returns error message",
@@ -220,7 +221,7 @@ relayRoutes.post(
       );
       return c.json({ signed: data }, 201);
     } catch (error) {
-      let status = 400;
+      let status: ContentfulStatusCode = 400;
       if ((error as Error).message === "Receipt not found") {
         status = 404;
       }

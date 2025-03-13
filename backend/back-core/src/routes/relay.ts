@@ -150,6 +150,22 @@ relayRoutes.post(
           },
         },
       },
+      404: {
+        description: "Receipt not found",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                message: {
+                  type: "string",
+                  example: "Receipt not found"
+                }
+              }
+            }
+          }
+        }
+      },
       400: {
         description: "Returns error message",
         content: {
@@ -204,8 +220,12 @@ relayRoutes.post(
       );
       return c.json({ signed: data }, 201);
     } catch (error) {
+      let status = 400;
+      if ((error as Error).message === "Receipt not found") {
+        status = 404;
+      }
       console.log(error);
-      return c.json({ message: (error as Error).message }, 400);
+      return c.json({ message: (error as Error).message }, status);
     }
   }
 );

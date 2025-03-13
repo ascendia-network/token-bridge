@@ -19,10 +19,14 @@ import { bridgeAbi } from "../../abis/bridgeAbi";
 import { validatorAbi } from "../../abis/validatorAbi";
 import { consoleLogger } from "../utils";
 import { serializeReceivePayload, ReceivePayload } from "../utils/solana";
-import { CHAIN_ID_TO_CHAIN_NAME, SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID, stageConfig } from "../../config";
+import {
+  CHAIN_ID_TO_CHAIN_NAME,
+  SOLANA_CHAIN_ID,
+  SOLANA_DEV_CHAIN_ID,
+  stageConfig,
+} from "../../config";
 import nacl from "tweetnacl";
 import { Connection, PublicKey } from "@solana/web3.js";
-import type { Env } from "../index";
 import { TokenConfigSchema } from "../routes/utils";
 
 export class ReceiptController {
@@ -56,14 +60,13 @@ export class ReceiptController {
     ordering: "asc" | "desc" = "desc",
     userAddress?: string
   ): Promise<
-    | Array<{
-        receipt: typeof receipt.$inferSelect;
-        receiptMeta: Array<
-          | typeof receiptsMetaInIndexerEvm.$inferSelect
-          | typeof receiptsMetaInIndexerSolana.$inferSelect
-        >;
-      }>
-    | Error
+    Array<{
+      receipt: typeof receipt.$inferSelect;
+      receiptMeta: Array<
+        | typeof receiptsMetaInIndexerEvm.$inferSelect
+        | typeof receiptsMetaInIndexerSolana.$inferSelect
+      >;
+    }>
   > {
     try {
       await this.db.refreshMaterializedView(receipt);
@@ -78,7 +81,7 @@ export class ReceiptController {
       } else {
         baseQuery = this.db.select().from(receipt);
       }
-      
+
       const result = await baseQuery
         .orderBy(
           ordering === "asc" ? asc(receipt.timestamp) : desc(receipt.timestamp)
@@ -137,16 +140,13 @@ export class ReceiptController {
     }
   }
 
-  async getReceipt(receiptId: `${number}_${number}_${number}`): Promise<
-    | {
-        receipt: typeof receipt.$inferSelect;
-        receiptMeta: Array<
-          | typeof receiptsMetaInIndexerEvm.$inferSelect
-          | typeof receiptsMetaInIndexerSolana.$inferSelect
-        >;
-      }
-    | Error
-  > {
+  async getReceipt(receiptId: `${number}_${number}_${number}`): Promise<{
+    receipt: typeof receipt.$inferSelect;
+    receiptMeta: Array<
+      | typeof receiptsMetaInIndexerEvm.$inferSelect
+      | typeof receiptsMetaInIndexerSolana.$inferSelect
+    >;
+  }> {
     try {
       await this.db.refreshMaterializedView(receipt);
       const metaEvm = await this.db
@@ -192,10 +192,7 @@ export class ReceiptController {
 
   async getReceiptSignatures(
     receiptId: `${number}_${number}_${number}`
-  ): Promise<
-    | Array<Omit<typeof signatures.$inferSelect, "id">>
-    | Error
-  > {
+  ): Promise<Array<Omit<typeof signatures.$inferSelect, "id">>> {
     try {
       await this.db.refreshMaterializedView(receipt);
       const signaturesData = await this.db
@@ -222,14 +219,13 @@ export class ReceiptController {
     pubkey: string,
     chainEnum: "evm" | "svm"
   ): Promise<
-    | Array<{
-        receipts: typeof receipt.$inferSelect;
-        receiptsMeta:
-          | typeof receiptsMetaInIndexerEvm.$inferSelect
-          | typeof receiptsMetaInIndexerSolana.$inferSelect
-          | null;
-      }>
-    | Error
+    Array<{
+      receipts: typeof receipt.$inferSelect;
+      receiptsMeta:
+        | typeof receiptsMetaInIndexerEvm.$inferSelect
+        | typeof receiptsMetaInIndexerSolana.$inferSelect
+        | null;
+    }>
   > {
     await this.db.refreshMaterializedView(receipt);
     const joinModel =
@@ -264,10 +260,13 @@ export class ReceiptController {
     return receipts;
   }
 
-  async getBridgeAddress(chainFrom: string, chainTo: string): Promise<string | undefined> {
+  async getBridgeAddress(
+    chainFrom: string,
+    chainTo: string
+  ): Promise<string | undefined> {
     const data = await fetch(stageConfig.tokensConfigUrl).then((res) =>
-          res.json()
-        );
+      res.json()
+    );
     const { bridges } = TokenConfigSchema.parse(data);
     const chainNameFrom = CHAIN_ID_TO_CHAIN_NAME[chainFrom.toString()];
     const chainNameTo = CHAIN_ID_TO_CHAIN_NAME[chainTo.toString()];
@@ -351,7 +350,10 @@ export class ReceiptController {
     );
     const messageHash = keccak256(message);
     const digest = hashMessage({ raw: messageHash });
-    const signerRecovered = await recoverMessageAddress({ message: digest, signature });
+    const signerRecovered = await recoverMessageAddress({
+      message: digest,
+      signature,
+    });
     if (signerRecovered !== signer) {
       throw new Error("Invalid signature");
     }

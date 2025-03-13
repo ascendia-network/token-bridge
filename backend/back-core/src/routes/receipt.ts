@@ -4,14 +4,10 @@ import { describeRoute } from "hono-openapi";
 import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { ReceiptController } from "../controllers/receipt.controller";
 import {
-  evmAddressValidatorSchema,
   receiptIdValidatorSchema,
-  svmAddressValidatorSchema,
   svmAddressBytes32Hex,
   evmAddressBytes32Hex,
-  unsignedReceiptsResponseSchema,
   receiptResponseSchema,
-  signatureRegex,
   signaturesResponseSchema
 } from "./utils";
 import { Hono } from "hono";
@@ -189,6 +185,22 @@ receiptRoutes.get(
           }
         }
       },
+      404: {
+        description: "Receipt not found",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                message: {
+                  type: "string",
+                  example: "Receipt not found"
+                }
+              }
+            }
+          }
+        }
+      },
       400: {
         description: "Returns error message",
         content: {
@@ -213,7 +225,9 @@ receiptRoutes.get(
       const receiptId = c.req.valid("param").receiptId;
       const { receiptController } = c.var;
       const data = await receiptController.getReceipt(receiptId);
-      console.log(data);
+      if (!data || !data.receipt) {
+        return c.json({ message: "Receipt not found" }, 404);
+      }
       return c.json(receiptResponseSchema.parse(data), 200);
     } catch (error) {
       console.log(error);

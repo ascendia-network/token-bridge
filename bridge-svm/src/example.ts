@@ -4,7 +4,7 @@ import type { AmbSolBridge } from "./idl/idlType";
 import idl from "./idl/idl.json";
 import { send } from "./sdk/send";
 
-import { getBridgeStateAccount, getBridgeTokenAccounts, getOrCreateUserATA } from "./sdk/utils";
+import { getBridgeTokenAccounts, getOrCreateUserATA, getUserNoncePda } from "./sdk/utils";
 import { createMint, mintTo } from "@solana/spl-token";
 import { Buffer } from "buffer";
 import { backendMock, receiveSigners, sendSigner } from "./backend/signs";
@@ -98,7 +98,9 @@ async function makeSendTx(tokenFrom: PublicKey, tokenTo: string) {
 }
 
 async function makeReceiveTx() {
-  const { payload, signature } = await backendMock.getReceivePayload(admin.publicKey, usdcKeypair.publicKey, 228_000000, 0, 1);
+  const expectedNonce = +(await program.account.nonceAccount.fetch(getUserNoncePda(admin.publicKey, program.programId))).nonceCounter;
+
+  const { payload, signature } = await backendMock.getReceivePayload(admin.publicKey, usdcKeypair.publicKey, 228_000000, expectedNonce, 1);
   const txSignature = await receive(connection, admin, program, payload, signature);
 
   const txParsed = await connection.getParsedTransaction(txSignature, { commitment: 'confirmed' });

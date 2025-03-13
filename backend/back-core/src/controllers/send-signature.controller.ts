@@ -186,7 +186,7 @@ export class SendSignatureController {
     );
     const payloadHash = keccak256(payload);
     const digest = hashMessage({ raw: payloadHash });
-    return await this.evmSigner.signMessage({ message: digest });
+    return await this.evmSigner.signMessage({ message: { raw: digest} });
   }
 
   async signSvmSendPayload(sendPayload: SendPayloadSolana) {

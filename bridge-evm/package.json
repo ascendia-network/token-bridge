@@ -6,7 +6,7 @@
     "prebuild": "npm run clean",
     "pretest": "npm run build",
     "clean": "forge clean",
-    "coverage": "npm run pretest && FOUNDRY_PROFILE=coverage forge coverage --report lcov --report-file='coverage/lcov.info' --report summary",
+    "coverage": "npm run pretest && FOUNDRY_PROFILE=coverage forge coverage --report lcov --report-file='coverage/lcov.info' --report summary --skip SignatureDifferential.t.sol",
     "build": "forge build",
     "test": "forge test",
     "snapshot": "forge snapshot",

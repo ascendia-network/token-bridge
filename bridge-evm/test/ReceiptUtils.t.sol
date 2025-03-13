@@ -27,6 +27,73 @@ contract ReceiptUtilsTest is Test {
         return string(abi.encodePacked("0x", converted));
     }
 
+    function fullReceipt2hash_check(
+        string memory jsPath,
+        BridgeTypes.FullReceipt memory receipt
+    ) internal {
+        string[] memory runJsInputs = new string[](14);
+        // Build ffi command string
+        runJsInputs[0] = "node";
+        runJsInputs[1] = jsPath;
+        runJsInputs[2] = "--full";
+        runJsInputs[3] = Strings.toHexString(uint256(receipt.from), 32);
+        runJsInputs[4] = Strings.toHexString(uint256(receipt.to), 32);
+        runJsInputs[5] = Strings.toHexString(uint256(receipt.tokenAddressFrom), 32);
+        runJsInputs[6] = Strings.toHexString(uint256(receipt.tokenAddressTo), 32);
+        runJsInputs[7] = Strings.toHexString(receipt.amountFrom, 32);
+        runJsInputs[8] = Strings.toHexString(receipt.amountTo, 32);
+        runJsInputs[9] = Strings.toHexString(receipt.chainFrom, 32);
+        runJsInputs[10] = Strings.toHexString(receipt.chainTo, 32);
+        runJsInputs[11] = Strings.toHexString(receipt.eventId, 32);
+        runJsInputs[12] = Strings.toHexString(receipt.flags, 32);
+        runJsInputs[13] = iToHex(receipt.data);
+
+        // Run command and capture output
+
+        bytes memory jsResult;
+        try vm.ffi(runJsInputs) returns (bytes memory result) {
+            jsResult = result;
+        } catch {
+            revert("JavaScript execution failed");
+        }
+        bytes32 jsGenerated = abi.decode(jsResult, (bytes32));
+
+        bytes32 expectedHash = ReceiptUtils.toHash(receipt);
+        assertEq(expectedHash, jsGenerated);
+    }
+
+    function miniReceipt2hash_check(
+        string memory jsPath,
+        BridgeTypes.MiniReceipt memory receipt
+    ) internal {
+        string[] memory runJsInputs = new string[](11);
+        // Build ffi command string
+        runJsInputs[0] = "node";
+        runJsInputs[1] = jsPath;
+        runJsInputs[2] = "--mini";
+        runJsInputs[3] = Strings.toHexString(uint256(receipt.to), 32);
+        runJsInputs[4] = Strings.toHexString(uint256(receipt.tokenAddressTo), 32);
+        runJsInputs[5] = Strings.toHexString(receipt.amountTo, 32);
+        runJsInputs[6] = Strings.toHexString(receipt.chainFrom, 32);
+        runJsInputs[7] = Strings.toHexString(receipt.chainTo, 32);
+        runJsInputs[8] = Strings.toHexString(receipt.eventId, 32);
+        runJsInputs[9] = Strings.toHexString(receipt.flags, 32);
+        runJsInputs[10] = iToHex(receipt.data);
+
+        // Run command and capture output
+
+        bytes memory jsResult;
+        try vm.ffi(runJsInputs) returns (bytes memory result) {
+            jsResult = result;
+        } catch {
+            revert("JavaScript execution failed");
+        }
+        bytes32 jsGenerated = abi.decode(jsResult, (bytes32));
+
+        bytes32 expectedHash = ReceiptUtils.toHash(receipt);
+        assertEq(expectedHash, jsGenerated);
+    }
+
     string constant JS_RECEIPT_HASH_ETHERS_PATH = "./test/differential_testing/receipt2hashEthers.js";
 
     function test_fuzz_fullReceipt2hash_ethers(
@@ -47,7 +114,6 @@ contract ReceiptUtilsTest is Test {
         require(amountFrom <= type(uint256).max, "Amount from overflow");
         require(amountTo <= type(uint256).max, "Amount to overflow");
 
-        string[] memory runJsInputs = new string[](14);
         BridgeTypes.FullReceipt memory receipt = BridgeTypes.FullReceipt({
             from: from,
             to: to,
@@ -61,35 +127,8 @@ contract ReceiptUtilsTest is Test {
             flags: flags,
             data: data
         });
-
-        // Build ffi command string
-        runJsInputs[0] = "node";
-        runJsInputs[1] = JS_RECEIPT_HASH_ETHERS_PATH;
-        runJsInputs[2] = "--full";
-        runJsInputs[3] = Strings.toHexString(uint256(from), 32);
-        runJsInputs[4] = Strings.toHexString(uint256(to), 32);
-        runJsInputs[5] = Strings.toHexString(uint256(tokenAddressFrom), 32);
-        runJsInputs[6] = Strings.toHexString(uint256(tokenAddressTo), 32);
-        runJsInputs[7] = Strings.toHexString(amountFrom, 32);
-        runJsInputs[8] = Strings.toHexString(amountTo, 32);
-        runJsInputs[9] = Strings.toHexString(chainFrom, 32);
-        runJsInputs[10] = Strings.toHexString(chainTo, 32);
-        runJsInputs[11] = Strings.toHexString(eventId, 32);
-        runJsInputs[12] = Strings.toHexString(flags, 32);
-        runJsInputs[13] = iToHex(data);
-
-        // Run command and capture output
-
-        bytes memory jsResult;
-        try vm.ffi(runJsInputs) returns (bytes memory result) {
-            jsResult = result;
-        } catch {
-            revert("JavaScript execution failed");
-        }
-        bytes32 jsGenerated = abi.decode(jsResult, (bytes32));
-
-        bytes32 expectedHash = ReceiptUtils.toHash(receipt);
-        assertEq(expectedHash, jsGenerated);
+        
+        fullReceipt2hash_check(JS_RECEIPT_HASH_ETHERS_PATH, receipt);
     }
 
     function test_fuzz_miniReceipt2hash_ethers(
@@ -106,7 +145,6 @@ contract ReceiptUtilsTest is Test {
         require(data.length <= 1024, "Data too large");
         require(amountTo <= type(uint256).max, "Amount to overflow");
 
-        string[] memory runJsInputs = new string[](11);
         BridgeTypes.MiniReceipt memory receipt = BridgeTypes.MiniReceipt({
             to: to,
             tokenAddressTo: tokenAddressTo,
@@ -118,25 +156,7 @@ contract ReceiptUtilsTest is Test {
             data: data
         });
 
-        // Build ffi command string
-        runJsInputs[0] = "node";
-        runJsInputs[1] = JS_RECEIPT_HASH_ETHERS_PATH;
-        runJsInputs[2] = "--mini";
-        runJsInputs[3] = Strings.toHexString(uint256(to), 32);
-        runJsInputs[4] = Strings.toHexString(uint256(tokenAddressTo), 32);
-        runJsInputs[5] = Strings.toHexString(amountTo, 32);
-        runJsInputs[6] = Strings.toHexString(chainFrom, 32);
-        runJsInputs[7] = Strings.toHexString(chainTo, 32);
-        runJsInputs[8] = Strings.toHexString(eventId, 32);
-        runJsInputs[9] = Strings.toHexString(flags, 32);
-        runJsInputs[10] = iToHex(data);
-
-        // Run command and capture output
-        bytes memory jsResult = vm.ffi(runJsInputs);
-        bytes32 jsGenerated = abi.decode(jsResult, (bytes32));
-
-        bytes32 expectedHash = ReceiptUtils.toHash(receipt);
-        assertEq(expectedHash, jsGenerated);
+        miniReceipt2hash_check(JS_RECEIPT_HASH_ETHERS_PATH, receipt);
     }
 
     string constant JS_RECEIPT_HASH_VIEM_PATH = "./test/differential_testing/receipt2hashViem.js";
@@ -159,7 +179,6 @@ contract ReceiptUtilsTest is Test {
         require(amountFrom <= type(uint256).max, "Amount from overflow");
         require(amountTo <= type(uint256).max, "Amount to overflow");
 
-        string[] memory runJsInputs = new string[](14);
         BridgeTypes.FullReceipt memory receipt = BridgeTypes.FullReceipt({
             from: from,
             to: to,
@@ -174,34 +193,7 @@ contract ReceiptUtilsTest is Test {
             data: data
         });
 
-        // Build ffi command string
-        runJsInputs[0] = "node";
-        runJsInputs[1] = JS_RECEIPT_HASH_VIEM_PATH;
-        runJsInputs[2] = "--full";
-        runJsInputs[3] = Strings.toHexString(uint256(from), 32);
-        runJsInputs[4] = Strings.toHexString(uint256(to), 32);
-        runJsInputs[5] = Strings.toHexString(uint256(tokenAddressFrom), 32);
-        runJsInputs[6] = Strings.toHexString(uint256(tokenAddressTo), 32);
-        runJsInputs[7] = Strings.toHexString(amountFrom, 32);
-        runJsInputs[8] = Strings.toHexString(amountTo, 32);
-        runJsInputs[9] = Strings.toHexString(chainFrom, 32);
-        runJsInputs[10] = Strings.toHexString(chainTo, 32);
-        runJsInputs[11] = Strings.toHexString(eventId, 32);
-        runJsInputs[12] = Strings.toHexString(flags, 32);
-        runJsInputs[13] = iToHex(data);
-
-        // Run command and capture output
-
-        bytes memory jsResult;
-        try vm.ffi(runJsInputs) returns (bytes memory result) {
-            jsResult = result;
-        } catch {
-            revert("JavaScript execution failed");
-        }
-        bytes32 jsGenerated = abi.decode(jsResult, (bytes32));
-
-        bytes32 expectedHash = ReceiptUtils.toHash(receipt);
-        assertEq(expectedHash, jsGenerated);
+        fullReceipt2hash_check(JS_RECEIPT_HASH_VIEM_PATH, receipt);
     }
 
     function test_fuzz_miniReceipt2hash_viem(
@@ -218,7 +210,6 @@ contract ReceiptUtilsTest is Test {
         require(data.length <= 1024, "Data too large");
         require(amountTo <= type(uint256).max, "Amount to overflow");
 
-        string[] memory runJsInputs = new string[](11);
         BridgeTypes.MiniReceipt memory receipt = BridgeTypes.MiniReceipt({
             to: to,
             tokenAddressTo: tokenAddressTo,
@@ -230,25 +221,7 @@ contract ReceiptUtilsTest is Test {
             data: data
         });
 
-        // Build ffi command string
-        runJsInputs[0] = "node";
-        runJsInputs[1] = JS_RECEIPT_HASH_VIEM_PATH;
-        runJsInputs[2] = "--mini";
-        runJsInputs[3] = Strings.toHexString(uint256(to), 32);
-        runJsInputs[4] = Strings.toHexString(uint256(tokenAddressTo), 32);
-        runJsInputs[5] = Strings.toHexString(amountTo, 32);
-        runJsInputs[6] = Strings.toHexString(chainFrom, 32);
-        runJsInputs[7] = Strings.toHexString(chainTo, 32);
-        runJsInputs[8] = Strings.toHexString(eventId, 32);
-        runJsInputs[9] = Strings.toHexString(flags, 32);
-        runJsInputs[10] = iToHex(data);
-
-        // Run command and capture output
-        bytes memory jsResult = vm.ffi(runJsInputs);
-        bytes32 jsGenerated = abi.decode(jsResult, (bytes32));
-
-        bytes32 expectedHash = ReceiptUtils.toHash(receipt);
-        assertEq(expectedHash, jsGenerated);
+        miniReceipt2hash_check(JS_RECEIPT_HASH_VIEM_PATH, receipt);
     }
 
 }

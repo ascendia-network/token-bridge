@@ -27,6 +27,31 @@ contract PayloadUtilsTest is Test {
         return string(abi.encodePacked("0x", converted));
     }
 
+    function payload2hash_check(
+        string memory jsPath,
+        BridgeTypes.SendPayload memory payload
+    ) public {
+        string[] memory runJsInputs = new string[](10);
+        // Build ffi command string
+        runJsInputs[0] = "node";
+        runJsInputs[1] = jsPath;
+        runJsInputs[2] = Strings.toHexString(uint256(payload.destChainId), 32);
+        runJsInputs[3] = Strings.toHexString(uint256(payload.tokenAddress), 32);
+        runJsInputs[4] = Strings.toHexString(uint256(payload.externalTokenAddress), 32);
+        runJsInputs[5] = Strings.toHexString(payload.amountToSend, 32);
+        runJsInputs[6] = Strings.toHexString(payload.feeAmount, 32);
+        runJsInputs[7] = Strings.toHexString(payload.timestamp, 32);
+        runJsInputs[8] = Strings.toHexString(payload.flags, 32);
+        runJsInputs[9] = iToHex(payload.flagData);
+
+        // Run command and capture output
+        bytes memory jsResult = vm.ffi(runJsInputs);
+        bytes32 jsGenerated = abi.decode(jsResult, (bytes32));
+
+        bytes32 expectedHash = PayloadUtils.toHash(payload);
+        assertEq(expectedHash, jsGenerated);
+    }
+
     string constant JS_PAYLOAD_HASH_ETHERS_PATH = "./test/differential_testing/payload2hashEthers.js";
 
     function test_fuzz_payload2hash_ethers(
@@ -46,7 +71,6 @@ contract PayloadUtilsTest is Test {
         require(timestamp <= type(uint256).max, "Timestamp overflow");
         require(flags <= type(uint256).max, "Flags overflow");
 
-        string[] memory runJsInputs = new string[](10);
         BridgeTypes.SendPayload memory payload = BridgeTypes.SendPayload({
             destChainId: destChainId,
             tokenAddress: tokenAddress,
@@ -58,24 +82,7 @@ contract PayloadUtilsTest is Test {
             flagData: flagData
         });
 
-        // Build ffi command string
-        runJsInputs[0] = "node";
-        runJsInputs[1] = JS_PAYLOAD_HASH_ETHERS_PATH;
-        runJsInputs[2] = Strings.toHexString(uint256(destChainId), 32);
-        runJsInputs[3] = Strings.toHexString(uint256(tokenAddress), 32);
-        runJsInputs[4] = Strings.toHexString(uint256(externalTokenAddress), 32);
-        runJsInputs[5] = Strings.toHexString(amountToSend, 32);
-        runJsInputs[6] = Strings.toHexString(feeAmount, 32);
-        runJsInputs[7] = Strings.toHexString(timestamp, 32);
-        runJsInputs[8] = Strings.toHexString(flags, 32);
-        runJsInputs[9] = iToHex(flagData);
-
-        // Run command and capture output
-        bytes memory jsResult = vm.ffi(runJsInputs);
-        bytes32 jsGenerated = abi.decode(jsResult, (bytes32));
-
-        bytes32 expectedHash = PayloadUtils.toHash(payload);
-        assertEq(expectedHash, jsGenerated);
+        payload2hash_check(JS_PAYLOAD_HASH_ETHERS_PATH, payload);
     }
 
     string constant JS_PAYLOAD_HASH_VIEM_PATH = "./test/differential_testing/payload2hashViem.js";
@@ -97,7 +104,6 @@ contract PayloadUtilsTest is Test {
         require(timestamp <= type(uint256).max, "Timestamp overflow");
         require(flags <= type(uint256).max, "Flags overflow");
 
-        string[] memory runJsInputs = new string[](10);
         BridgeTypes.SendPayload memory payload = BridgeTypes.SendPayload({
             destChainId: destChainId,
             tokenAddress: tokenAddress,
@@ -109,24 +115,7 @@ contract PayloadUtilsTest is Test {
             flagData: flagData
         });
 
-        // Build ffi command string
-        runJsInputs[0] = "node";
-        runJsInputs[1] = JS_PAYLOAD_HASH_VIEM_PATH;
-        runJsInputs[2] = Strings.toHexString(uint256(destChainId), 32);
-        runJsInputs[3] = Strings.toHexString(uint256(tokenAddress), 32);
-        runJsInputs[4] = Strings.toHexString(uint256(externalTokenAddress), 32);
-        runJsInputs[5] = Strings.toHexString(amountToSend, 32);
-        runJsInputs[6] = Strings.toHexString(feeAmount, 32);
-        runJsInputs[7] = Strings.toHexString(timestamp, 32);
-        runJsInputs[8] = Strings.toHexString(flags, 32);
-        runJsInputs[9] = iToHex(flagData);
-
-        // Run command and capture output
-        bytes memory jsResult = vm.ffi(runJsInputs);
-        bytes32 jsGenerated = abi.decode(jsResult, (bytes32));
-
-        bytes32 expectedHash = PayloadUtils.toHash(payload);
-        assertEq(expectedHash, jsGenerated);
+        payload2hash_check(JS_PAYLOAD_HASH_VIEM_PATH, payload);
     }
 
 }

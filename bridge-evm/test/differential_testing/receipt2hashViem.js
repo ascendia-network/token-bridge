@@ -2,8 +2,8 @@ const { fullReceipt2hash, miniReceipt2hash } = require("./utils/viem/2Hash");
 const { hashMessageViem } = require("./utils/viem/hashMessage");
 
 function help(mode) {
-  fullHelp = "node receipt2HashViem.js--full <from> <to> <tokenAddressFrom> <tokenAddressTo> <amountFrom> <amountTo> <chainFrom> <chainTo> <eventId> <flags> <data>"
-  miniHelp = "node receipt2HashViem.js--mini <to> <tokenAddressTo> <amountTo> <chainFrom> <chainTo> <eventId> <flags> <data>"
+  const fullHelp = "node receipt2HashViem.js--full <from> <to> <tokenAddressFrom> <tokenAddressTo> <amountFrom> <amountTo> <chainFrom> <chainTo> <eventId> <flags> <data>"
+  const miniHelp = "node receipt2HashViem.js--mini <to> <tokenAddressTo> <amountTo> <chainFrom> <chainTo> <eventId> <flags> <data>"
   console.log(`Usage: \n${mode === "full" ? fullHelp : miniHelp}`);
   process.exit(1);
 

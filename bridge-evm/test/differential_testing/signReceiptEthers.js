@@ -35,8 +35,8 @@ async function signMiniReceipt(to, tokenAddressTo, amountTo, chainFrom, chainTo,
 }
 
 function help(mode) {
-  fullHelp = "node signReceiptEthers.js--full <from> <to> <tokenAddressFrom> <tokenAddressTo> <amountFrom> <amountTo> <chainFrom> <chainTo> <eventId> <flags> <data> <privateKey>"
-  miniHelp = "node signReceiptEthers.js--mini <to> <tokenAddressTo> <amountTo> <chainFrom> <chainTo> <eventId> <flags> <data> <privateKey>"
+  const fullHelp = "node signReceiptEthers.js--full <from> <to> <tokenAddressFrom> <tokenAddressTo> <amountFrom> <amountTo> <chainFrom> <chainTo> <eventId> <flags> <data> <privateKey>"
+  const miniHelp = "node signReceiptEthers.js--mini <to> <tokenAddressTo> <amountTo> <chainFrom> <chainTo> <eventId> <flags> <data> <privateKey>"
   console.log(`Usage: \n${mode === "full" ? fullHelp : miniHelp}`);
   process.exit(1);
 

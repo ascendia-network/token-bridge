@@ -3,8 +3,8 @@ const { fullReceipt2hash, miniReceipt2hash } = require("./utils/ethers/2Hash");
 const { hashMessageEthers } = require("./utils/ethers/hashMessage");
 
 function help(mode) {
-  fullHelp = "node receipt2HashEthers.js--full <from> <to> <tokenAddressFrom> <tokenAddressTo> <amountFrom> <amountTo> <chainFrom> <chainTo> <eventId> <flags> <data>"
-  miniHelp = "node receipt2HashEthers.js--mini <to> <tokenAddressTo> <amountTo> <chainFrom> <chainTo> <eventId> <flags> <data>"
+  const fullHelp = "node receipt2HashEthers.js--full <from> <to> <tokenAddressFrom> <tokenAddressTo> <amountFrom> <amountTo> <chainFrom> <chainTo> <eventId> <flags> <data>"
+  const miniHelp = "node receipt2HashEthers.js--mini <to> <tokenAddressTo> <amountTo> <chainFrom> <chainTo> <eventId> <flags> <data>"
   console.log(`Usage: \n${mode === "full" ? fullHelp : miniHelp}`);
   process.exit(1);
 

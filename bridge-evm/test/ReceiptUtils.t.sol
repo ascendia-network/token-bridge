@@ -27,9 +27,9 @@ contract ReceiptUtilsTest is Test {
         return string(abi.encodePacked("0x", converted));
     }
 
-    string constant JS_RECEIPT_HASH_PATH = "./test/differential_testing/receipt2hash.js";
+    string constant JS_RECEIPT_HASH_ETHERS_PATH = "./test/differential_testing/receipt2hashEthers.js";
 
-    function test_fuzz_fullReceipt2hash(
+    function test_fuzz_fullReceipt2hash_ethers(
         bytes32 from, // source address (bytes32 because of cross-chain compatibility)
         bytes32 to, // destination address (bytes32 because of cross-chain compatibility)
         bytes32 tokenAddressFrom, // source token address (bytes32 because of cross-chain compatibility)
@@ -64,7 +64,7 @@ contract ReceiptUtilsTest is Test {
 
         // Build ffi command string
         runJsInputs[0] = "node";
-        runJsInputs[1] = JS_RECEIPT_HASH_PATH;
+        runJsInputs[1] = JS_RECEIPT_HASH_ETHERS_PATH;
         runJsInputs[2] = "--full";
         runJsInputs[3] = Strings.toHexString(uint256(from), 32);
         runJsInputs[4] = Strings.toHexString(uint256(to), 32);
@@ -92,7 +92,7 @@ contract ReceiptUtilsTest is Test {
         assertEq(expectedHash, jsGenerated);
     }
 
-    function test_fuzz_miniReceipt2hash(
+    function test_fuzz_miniReceipt2hash_ethers(
         bytes32 to, // destination address (bytes32 because of cross-chain compatibility)
         bytes32 tokenAddressTo, // destination token address (bytes32 because of cross-chain compatibility)
         uint256 amountTo, // amount of tokens received
@@ -120,7 +120,119 @@ contract ReceiptUtilsTest is Test {
 
         // Build ffi command string
         runJsInputs[0] = "node";
-        runJsInputs[1] = JS_RECEIPT_HASH_PATH;
+        runJsInputs[1] = JS_RECEIPT_HASH_ETHERS_PATH;
+        runJsInputs[2] = "--mini";
+        runJsInputs[3] = Strings.toHexString(uint256(to), 32);
+        runJsInputs[4] = Strings.toHexString(uint256(tokenAddressTo), 32);
+        runJsInputs[5] = Strings.toHexString(amountTo, 32);
+        runJsInputs[6] = Strings.toHexString(chainFrom, 32);
+        runJsInputs[7] = Strings.toHexString(chainTo, 32);
+        runJsInputs[8] = Strings.toHexString(eventId, 32);
+        runJsInputs[9] = Strings.toHexString(flags, 32);
+        runJsInputs[10] = iToHex(data);
+
+        // Run command and capture output
+        bytes memory jsResult = vm.ffi(runJsInputs);
+        bytes32 jsGenerated = abi.decode(jsResult, (bytes32));
+
+        bytes32 expectedHash = ReceiptUtils.toHash(receipt);
+        assertEq(expectedHash, jsGenerated);
+    }
+
+    string constant JS_RECEIPT_HASH_VIEM_PATH = "./test/differential_testing/receipt2hashViem.js";
+
+    function test_fuzz_fullReceipt2hash_viem(
+        bytes32 from, // source address (bytes32 because of cross-chain compatibility)
+        bytes32 to, // destination address (bytes32 because of cross-chain compatibility)
+        bytes32 tokenAddressFrom, // source token address (bytes32 because of cross-chain compatibility)
+        bytes32 tokenAddressTo, // destination token address (bytes32 because of cross-chain compatibility)
+        uint256 amountFrom, // amount of tokens sent
+        uint256 amountTo, // amount of tokens received
+        uint256 chainFrom, // chain id of the source chain
+        uint256 chainTo, // chain id of the destination chain
+        uint256 eventId, // transaction number
+        uint256 flags, // flags for receiver
+        bytes memory data // additional data of the transaction (eg. user nonce for Solana)
+    ) public {
+        // Validate inputs
+        require(data.length <= 1024, "Data too large");
+        require(amountFrom <= type(uint256).max, "Amount from overflow");
+        require(amountTo <= type(uint256).max, "Amount to overflow");
+
+        string[] memory runJsInputs = new string[](14);
+        BridgeTypes.FullReceipt memory receipt = BridgeTypes.FullReceipt({
+            from: from,
+            to: to,
+            tokenAddressFrom: tokenAddressFrom,
+            tokenAddressTo: tokenAddressTo,
+            amountFrom: amountFrom,
+            amountTo: amountTo,
+            chainFrom: chainFrom,
+            chainTo: chainTo,
+            eventId: eventId,
+            flags: flags,
+            data: data
+        });
+
+        // Build ffi command string
+        runJsInputs[0] = "node";
+        runJsInputs[1] = JS_RECEIPT_HASH_VIEM_PATH;
+        runJsInputs[2] = "--full";
+        runJsInputs[3] = Strings.toHexString(uint256(from), 32);
+        runJsInputs[4] = Strings.toHexString(uint256(to), 32);
+        runJsInputs[5] = Strings.toHexString(uint256(tokenAddressFrom), 32);
+        runJsInputs[6] = Strings.toHexString(uint256(tokenAddressTo), 32);
+        runJsInputs[7] = Strings.toHexString(amountFrom, 32);
+        runJsInputs[8] = Strings.toHexString(amountTo, 32);
+        runJsInputs[9] = Strings.toHexString(chainFrom, 32);
+        runJsInputs[10] = Strings.toHexString(chainTo, 32);
+        runJsInputs[11] = Strings.toHexString(eventId, 32);
+        runJsInputs[12] = Strings.toHexString(flags, 32);
+        runJsInputs[13] = iToHex(data);
+
+        // Run command and capture output
+
+        bytes memory jsResult;
+        try vm.ffi(runJsInputs) returns (bytes memory result) {
+            jsResult = result;
+        } catch {
+            revert("JavaScript execution failed");
+        }
+        bytes32 jsGenerated = abi.decode(jsResult, (bytes32));
+
+        bytes32 expectedHash = ReceiptUtils.toHash(receipt);
+        assertEq(expectedHash, jsGenerated);
+    }
+
+    function test_fuzz_miniReceipt2hash_viem(
+        bytes32 to, // destination address (bytes32 because of cross-chain compatibility)
+        bytes32 tokenAddressTo, // destination token address (bytes32 because of cross-chain compatibility)
+        uint256 amountTo, // amount of tokens received
+        uint256 chainFrom, // chain id of the source chain
+        uint256 chainTo, // chain id of the destination chain
+        uint256 eventId, // transaction number
+        uint256 flags, // flags for receiver
+        bytes memory data // additional data of the transaction (eg. user nonce for Solana)
+    ) public {
+        // Validate inputs
+        require(data.length <= 1024, "Data too large");
+        require(amountTo <= type(uint256).max, "Amount to overflow");
+
+        string[] memory runJsInputs = new string[](11);
+        BridgeTypes.MiniReceipt memory receipt = BridgeTypes.MiniReceipt({
+            to: to,
+            tokenAddressTo: tokenAddressTo,
+            amountTo: amountTo,
+            chainFrom: chainFrom,
+            chainTo: chainTo,
+            eventId: eventId,
+            flags: flags,
+            data: data
+        });
+
+        // Build ffi command string
+        runJsInputs[0] = "node";
+        runJsInputs[1] = JS_RECEIPT_HASH_VIEM_PATH;
         runJsInputs[2] = "--mini";
         runJsInputs[3] = Strings.toHexString(uint256(to), 32);
         runJsInputs[4] = Strings.toHexString(uint256(tokenAddressTo), 32);

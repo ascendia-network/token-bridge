@@ -11,6 +11,7 @@ import { Keypair } from "@solana/web3.js";
 import {
   bytesToHex,
   encodeAbiParameters,
+  encodePacked,
   hashMessage,
   keccak256,
   toBytes,
@@ -122,71 +123,30 @@ export class SendSignatureController {
   }
 
   async signEvmSendPayload(sendPayload: SendPayloadEVM) {
-    const PayloadAbi = {
-      name: "payload",
-      type: "tuple",
-      internalType: "struct BridgeTypes.SendPayload",
-      components: [
-        {
-          name: "destChainId",
-          type: "uint256",
-          internalType: "uint256",
-        },
-        {
-          name: "tokenAddress",
-          type: "bytes32",
-          internalType: "bytes32",
-        },
-        {
-          name: "externalTokenAddress",
-          type: "bytes32",
-          internalType: "bytes32",
-        },
-        {
-          name: "amountToSend",
-          type: "uint256",
-          internalType: "uint256",
-        },
-        {
-          name: "feeAmount",
-          type: "uint256",
-          internalType: "uint256",
-        },
-        {
-          name: "timestamp",
-          type: "uint256",
-          internalType: "uint256",
-        },
-        {
-          name: "flags",
-          type: "uint256",
-          internalType: "uint256",
-        },
-        {
-          name: "flagData",
-          type: "bytes",
-          internalType: "bytes",
-        },
-      ],
-    };
-    const payload = encodeAbiParameters<[typeof PayloadAbi]>(
-      [PayloadAbi],
+    const payload = encodePacked(
       [
-        {
-          destChainId: sendPayload.destChainId,
-          tokenAddress: sendPayload.tokenAddress,
-          externalTokenAddress: sendPayload.externalTokenAddress,
-          amountToSend: sendPayload.amountToSend,
-          feeAmount: sendPayload.feeAmount,
-          timestamp: sendPayload.timestamp,
-          flags: sendPayload.flags,
-          flagData: sendPayload.flagData,
-        },
+        "uint256",
+        "bytes32",
+        "bytes32",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "bytes",
+      ],
+      [
+        sendPayload.destChainId,
+        sendPayload.tokenAddress as `0x${string}`,
+        sendPayload.externalTokenAddress as `0x${string}`,
+        sendPayload.amountToSend,
+        sendPayload.feeAmount,
+        BigInt(sendPayload.timestamp),
+        sendPayload.flags,
+        sendPayload.flagData as `0x${string}`,
       ]
     );
     const payloadHash = keccak256(payload);
-    const digest = hashMessage({ raw: payloadHash });
-    return await this.evmSigner.signMessage({ message: { raw: digest} });
+    return await this.evmSigner.signMessage({ message: { raw: payloadHash } });
   }
 
   async signSvmSendPayload(sendPayload: SendPayloadSolana) {

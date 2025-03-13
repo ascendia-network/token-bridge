@@ -1,12 +1,4 @@
-import {
-  Connection,
-  Keypair,
-  PublicKey,
-  Transaction,
-  SystemProgram,
-  sendAndConfirmTransaction,
-  TransactionSignature,
-} from "@solana/web3.js";
+import { Connection, Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { Program, AnchorProvider, Wallet, Idl, BN } from "@coral-xyz/anchor";
 import { TOKEN_PROGRAM_ID, createTransferInstruction } from "@solana/spl-token";
 import idl from "../../bridge-svm/target/idl/multisig_nonce.json";
@@ -14,24 +6,27 @@ import * as dotenv from "dotenv";
 import axios from "axios";
 
 dotenv.config();
-const CONNECTION_URL = process.env.CONNECTION_URL;
-const SOLANA_SECRET_KEY = process.env.SOLANA_SECRET_KEY;
-const AUTHORITY_PUBKEYS = process.env.AUTHORITY_PUBKEYS;
+const SOLANA_ENDPOINT_URL = process.env.SOLANA_ENDPOINT_URL;
+const SOLANA_KEYPAIR = process.env.SOLANA_KEYPAIR;
+const SOLANA_SIGNERS_PUBKEYS = process.env.SOLANA_SIGNERS_PUBKEYS;
 
-const authorityPubkeys = JSON.parse(AUTHORITY_PUBKEYS).map(
+const authorityPubkeys = JSON.parse(SOLANA_SIGNERS_PUBKEYS).map(
   (key: string) => new PublicKey(key),
 );
+
 const remainingAccounts = authorityPubkeys.map((pubkey: PublicKey) => ({
   pubkey,
   isSigner: true,
-  isWritable: false,
+  isWritable: true,
 }));
-const secretKey = Uint8Array.from(JSON.parse(SOLANA_SECRET_KEY));
+
+const secretKey = Uint8Array.from(JSON.parse(SOLANA_KEYPAIR));
 const keypair = Keypair.fromSecretKey(
-  Uint8Array.from(JSON.parse(SOLANA_SECRET_KEY)),
+  Uint8Array.from(JSON.parse(SOLANA_KEYPAIR)),
 );
+
 const wallet = new Wallet(keypair);
-const connection = new Connection(CONNECTION_URL, "confirmed");
+const connection = new Connection(SOLANA_ENDPOINT_URL, "confirmed");
 const provider = new AnchorProvider(connection, wallet, {
   preflightCommitment: "processed",
 });
@@ -78,33 +73,13 @@ async function signTransaction(
   return await serializeTransaction(tx);
 }
 
-async function lockTokens(
-  authority: Keypair,
-  from: PublicKey,
-  to: PublicKey,
-  amount: number,
-  address: string,
-): Promise<Transaction> {
-  const tx = await program.methods
-    .lock(new BN(amount), address)
-    .accounts({
-      authority: authority.publicKey,
-      from,
-      to,
-      tokenProgram: TOKEN_PROGRAM_ID,
-    })
-    .transaction();
-  tx.partialSign(authority);
-  return tx;
-}
-
 async function unlockTokens(
   signer: Keypair,
   authority: PublicKey,
   client: PublicKey,
   from: PublicKey,
   to: PublicKey,
-  nonceAccount: PublicKey,
+  nonce: PublicKey,
   amount: number,
   nonceValue: number,
 ): Promise<Transaction> {
@@ -114,7 +89,7 @@ async function unlockTokens(
       authority: authority,
       from,
       to,
-      nonceAccount,
+      nonce,
       tokenProgram: TOKEN_PROGRAM_ID,
     })
     .remainingAccounts(remainingAccounts)

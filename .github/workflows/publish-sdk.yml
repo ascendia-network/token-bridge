@@ -1,7 +1,5 @@
-name: Publish Package to npmjs
+name: Publish SDK Package to NPM
 on:
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
       tag:

@@ -33,8 +33,8 @@ export async function getSendPayload(
   return {
     sendPayload: {
       destChainId: BigInt(data.sendPayload.destChainId),
-      tokenAddress,
-      externalTokenAddress,
+      tokenAddress: data.sendPayload.tokenAddress,
+      externalTokenAddress: data.sendPayload.externalTokenAddress,
       amountToSend: BigInt(data.sendPayload.amountToSend),
       feeAmount: BigInt(data.sendPayload.feeAmount),
       timestamp: BigInt(data.sendPayload.timestamp),

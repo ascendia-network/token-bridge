@@ -59,7 +59,7 @@ contract CreateClaimSignature is Script {
 
     function run(
         string memory path
-    ) public {
+    ) public view {
         BridgeTypes.FullReceipt memory receipt = getReceipt(path);
         bytes32 digest = receipt.toHash();
         uint256[] memory signers = vm.envUint("SIGNERS", ",");

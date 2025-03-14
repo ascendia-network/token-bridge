@@ -48,7 +48,7 @@ contract CreatePayloadSignature is Script {
 
     function run(
         string memory path
-    ) public {
+    ) public view {
         BridgeTypes.SendPayload memory payload = getPayload(path);
         bytes32 digest = payload.toHash();
         uint256 signer = vm.envUint("PAYLOAD_SIGNER");

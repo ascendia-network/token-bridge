@@ -1,11 +1,8 @@
 {
   "bridges": {
     "sol-dev": {
-      "amb-test": "0x81c448672fc9167aa5c00B2eD773e8d2ff3F19BE",
+      "amb-test": "0x48722498168d61bcCfc5CAA5F6082975EfD92d46",
       "side": "ambZMSUBvU8bLfxop5uupQd9tcafeJKea1KoyTv2yM1"
-    },
-    "base-test": {
-      "amb-test": "0xAe91d2F64BDDC37a9E3dd39507E5Bb58955d1813"
     }
   },
   "tokens": {
@@ -53,7 +50,7 @@
         "sol"
       ],
       "addresses": {
-        "amb-test": "0x8132928B8F4c0d278cc849b9b98Dffb28aE0B685",
+        "amb-test": "0xB547f613B72928d4F62BCAc6Cc0d28C721f8D6bF",
         "sol-dev": "usdc3xpQ18NLAumSUvadS62srrkxQWrvQHugk8Nv7MA"
       },
       "nativeAnalog": ""
@@ -76,7 +73,7 @@
         "sol"
       ],
       "addresses": {
-        "amb-test": "0xC6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
+        "amb-test": "0x5B9E2BD997bc8f6aE97145cE0a8dEE075653f1AA",
         "sol": "So11111111111111111111111111111111111111112",
         "sol-dev": "So11111111111111111111111111111111111111112"
       },

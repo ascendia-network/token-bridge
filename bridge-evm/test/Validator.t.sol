@@ -418,9 +418,7 @@ contract ValidatorTest is Test {
             s := mload(add(signature, 0x40))
             v := byte(0, mload(add(signature, 0x60)))
         }
-        vm.expectRevert(
-            abi.encodeWithSelector(ECDSA.ECDSAInvalidSignatureS.selector, s)
-        );
+        vm.expectRevert(ECDSA.ECDSAInvalidSignature.selector);
         validatorInstance.validatePayload(payloadCommon, signature);
     }
 

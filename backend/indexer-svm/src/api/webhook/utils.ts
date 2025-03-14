@@ -6,7 +6,7 @@
  *
  *  This Source Code Form is “Incompatible With Secondary Licenses”, as defined by the Mozilla Public License, v. 2.0.
  */
-import { Base58 } from 'ox';
+import { Base58, Hex } from 'ox';
 
 export function toHexFromBytes(byteArray: Uint8Array): string {
   return `0x${Buffer.from(padTo32Bytes(byteArray)).toString("hex")}`;
@@ -47,5 +47,5 @@ export function padTo32Bytes(byteArray: Uint8Array): Uint8Array {
 }
 
 export function toHex(bs58String: string): string {
-  return Base58.toHex(bs58String);
+  return Hex.fromBytes(Base58.toBytes(bs58String));
 }

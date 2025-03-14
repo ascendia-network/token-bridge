@@ -1,0 +1,34 @@
+{
+  "networks": {
+    "amb": "https://network.ambrosus.io",
+    "amb-test": "https://network.ambrosus-test.io",
+    "base-test": "https://sepolia.base.org",
+    "base": "https://mainnet.base.org"
+  },
+  "contracts": {
+    "ambsol": "0x48722498168d61bcCfc5CAA5F6082975EfD92d46"
+  },
+  "tokensConfigUrl": "https://raw.githubusercontent.com/ambrosus/token-bridge/refs/heads/backend/backend/back-core/config/tokens/test.json",
+  "fees": {
+    "networks": {
+      "amb": {
+        "minBridgeFeeUSD": 0.01
+      },
+      "amb-test": {
+        "minBridgeFeeUSD": 0.01
+      },
+      "sol": {
+        "minBridgeFeeUSD": 0.01
+      },
+      "sol-dev": {
+        "minBridgeFeeUSD": 0.01
+      },
+      "base": {
+        "minBridgeFeeUSD": 0.01
+      },
+      "base-test": {
+        "minBridgeFeeUSD": 0.01
+      }
+    }
+  }
+}

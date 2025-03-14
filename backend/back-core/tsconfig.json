@@ -1,0 +1,21 @@
+{
+  "exclude": [
+    "node_modules"
+  ],
+  "compilerOptions": {
+    "outDir": "./dist",
+    "target": "ESNext",
+    "module": "esnext",
+    "strict": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "types": [
+      "node"
+    ],
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx",
+    "strictNullChecks": true,
+    "esModuleInterop": true
+  }
+}

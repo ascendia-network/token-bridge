@@ -1,0 +1,83 @@
+{
+  "bridges": {
+    "sol-dev": {
+      "amb-test": "0x48722498168d61bcCfc5CAA5F6082975EfD92d46",
+      "side": "ambZMSUBvU8bLfxop5uupQd9tcafeJKea1KoyTv2yM1"
+    }
+  },
+  "tokens": {
+    "SAMB": {
+      "isActive": true,
+      "name": "Synthetic Amber",
+      "symbol": "SAMB",
+      "denomination": 18,
+      "decimals": {
+        "amb-test": 18,
+        "base-test": 18,
+        "amb": 18,
+        
+        "base": 18,
+        "sol": 6,
+        "sol-dev": 6
+      },
+      "logo": "https://media-exp1.licdn.com/dms/image/C560BAQFuR2Fncbgbtg/company-logo_200_200/0/1636390910839?e=2159024400&v=beta&t=W0WA5w02tIEH859mVypmzB_FPn29tS5JqTEYr4EYvps",
+      "primaryNets": [
+        "amb",
+        "amb-test"
+      ],
+      "addresses": {
+        "amb-test": "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b",
+        "sol-dev": "samb9vCFCTEvoi3eWDErSCb5GvTq8Kgv6VKSqvt7pgi"
+      },
+      "nativeAnalog": "AMB"
+    },
+    "USDC": {
+      "isActive": true,
+      "name": "USD Coin",
+      "symbol": "USDC",
+      "denomination": 6,
+      "decimals": {
+        "amb-test": 18,
+        "amb": 18,
+        "bsc": 18,
+        "eth": 6,
+        "sol-dev": 6
+      },
+      "logo": "https://etherscan.io/token/images/centre-usdc_28.png",
+      "primaryNets": [
+        "base",
+        "sol-dev",
+        "sol"
+      ],
+      "addresses": {
+        "amb-test": "0xB547f613B72928d4F62BCAc6Cc0d28C721f8D6bF",
+        "sol-dev": "usdc3xpQ18NLAumSUvadS62srrkxQWrvQHugk8Nv7MA"
+      },
+      "nativeAnalog": ""
+    },
+    "wSOL": {
+      "isActive": true,
+      "name": "Wrapped Solana",
+      "symbol": "wSOL",
+      "denomination": 18,
+      "decimals": {
+        "amb-test": 18,
+        "amb": 18,
+        "base": 18,
+        "sol": 6,
+        "sol-dev": 6
+      },
+      "logo": "https://en.wikipedia.org/wiki/File:Solana_logo.png#/media/File:Solana_logo.png",
+      "primaryNets": [
+        "sol-dev",
+        "sol"
+      ],
+      "addresses": {
+        "amb-test": "0x5B9E2BD997bc8f6aE97145cE0a8dEE075653f1AA",
+        "sol": "So11111111111111111111111111111111111111112",
+        "sol-dev": "So11111111111111111111111111111111111111112"
+      },
+      "nativeAnalog": "SOL"
+    }
+  }
+}

@@ -78,7 +78,6 @@ contract DeployerBase is Script {
                 "implementationAddress",
                 deployments[i].implementationAddress
             );
-            console.log(deploymentJson);
             deploymentsJson[i] = obj;
         }
 
@@ -104,7 +103,6 @@ contract DeployerBase is Script {
             root, "/deployments/", vm.toString(block.chainid), ".json"
         );
         string memory deploymentsJson = serializeDeployments(data);
-        console.log(deploymentsJson);
         vm.writeJson(deploymentsJson, path);
     }
 

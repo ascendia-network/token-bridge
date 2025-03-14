@@ -1,0 +1,431 @@
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "prevId": "",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "indexer_evm.receiptsMeta": {
+      "name": "receiptsMeta",
+      "schema": "indexer_evm",
+      "columns": {
+        "receipt_id": {
+          "name": "receipt_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "block_hash": {
+          "name": "block_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "block_number": {
+          "name": "block_number",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "transaction_hash": {
+          "name": "transaction_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "transaction_index": {
+          "name": "transaction_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "indexer_evm.bridges": {
+      "name": "bridges",
+      "schema": "indexer_evm",
+      "columns": {
+        "bridge_address": {
+          "name": "bridge_address",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "fee_receiver": {
+          "name": "fee_receiver",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "native_send_amount": {
+          "name": "native_send_amount",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "validator_address": {
+          "name": "validator_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "indexer_evm.bridged_tokens": {
+      "name": "bridged_tokens",
+      "schema": "indexer_evm",
+      "columns": {
+        "token_address_hex": {
+          "name": "token_address_hex",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "token_address": {
+          "name": "token_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_bridged": {
+          "name": "is_bridged",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "is_paused": {
+          "name": "is_paused",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "indexer_evm.bridge_to_token": {
+      "name": "bridge_to_token",
+      "schema": "indexer_evm",
+      "columns": {
+        "bridge_address": {
+          "name": "bridge_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_address": {
+          "name": "token_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "bridge_to_token_bridge_address_token_address_pk": {
+          "name": "bridge_to_token_bridge_address_token_address_pk",
+          "columns": [
+            "bridge_address",
+            "token_address"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "indexer_evm.receiptsClaimed": {
+      "name": "receiptsClaimed",
+      "schema": "indexer_evm",
+      "columns": {
+        "receipt_id": {
+          "name": "receipt_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bridge_address": {
+          "name": "bridge_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "to": {
+          "name": "to",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_address_to": {
+          "name": "token_address_to",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount_to": {
+          "name": "amount_to",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chain_from": {
+          "name": "chain_from",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chain_to": {
+          "name": "chain_to",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "flags": {
+          "name": "flags",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "receiptsClaimed_chain_from_chain_to_event_id_pk": {
+          "name": "receiptsClaimed_chain_from_chain_to_event_id_pk",
+          "columns": [
+            "chain_from",
+            "chain_to",
+            "event_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "indexer_evm.receiptsSent": {
+      "name": "receiptsSent",
+      "schema": "indexer_evm",
+      "columns": {
+        "receipt_id": {
+          "name": "receipt_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bridge_address": {
+          "name": "bridge_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "from": {
+          "name": "from",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "to": {
+          "name": "to",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_address_from": {
+          "name": "token_address_from",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_address_to": {
+          "name": "token_address_to",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount_from": {
+          "name": "amount_from",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount_to": {
+          "name": "amount_to",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chain_from": {
+          "name": "chain_from",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chain_to": {
+          "name": "chain_to",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "flags": {
+          "name": "flags",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "receiptsSent_chain_from_chain_to_event_id_pk": {
+          "name": "receiptsSent_chain_from_chain_to_event_id_pk",
+          "columns": [
+            "chain_from",
+            "chain_to",
+            "event_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {
+    "indexer_evm": "indexer_evm"
+  },
+  "sequences": {
+    "indexer_evm._reorg__receiptsSent_operation_id_seq": {
+      "name": "_reorg__receiptsSent_operation_id_seq",
+      "schema": "indexer_evm",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    },
+    "indexer_evm._reorg__receiptsClaimed_operation_id_seq": {
+      "name": "_reorg__receiptsClaimed_operation_id_seq",
+      "schema": "indexer_evm",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    },
+    "indexer_evm._reorg__receiptsMeta_operation_id_seq": {
+      "name": "_reorg__receiptsMeta_operation_id_seq",
+      "schema": "indexer_evm",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    },
+    "indexer_evm._reorg__bridges_operation_id_seq": {
+      "name": "_reorg__bridges_operation_id_seq",
+      "schema": "indexer_evm",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    },
+    "indexer_evm._reorg__bridged_tokens_operation_id_seq": {
+      "name": "_reorg__bridged_tokens_operation_id_seq",
+      "schema": "indexer_evm",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    },
+    "indexer_evm._reorg__bridge_to_token_operation_id_seq": {
+      "name": "_reorg__bridge_to_token_operation_id_seq",
+      "schema": "indexer_evm",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "increment": "1",
+      "cycle": false,
+      "cache": "1"
+    }
+  },
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "tables": {}
+  }
+}

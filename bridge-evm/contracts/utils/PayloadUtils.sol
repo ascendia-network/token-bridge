@@ -28,7 +28,7 @@ library PayloadUtils {
         BridgeTypes.SendPayload memory payload
     ) internal pure returns (bytes32 hash) {
         bytes32 messageHash = keccak256(
-            abi.encode(
+            abi.encodePacked(
                 payload.destChainId,
                 payload.tokenAddress,
                 payload.externalTokenAddress,

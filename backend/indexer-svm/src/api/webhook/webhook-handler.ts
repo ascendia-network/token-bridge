@@ -12,6 +12,7 @@ import {
   toHex,
   toHexFromBytes
 } from "./utils";
+import { eq } from "drizzle-orm";
 
 const CHAIN_NAME_TO_CHAIN_ID = {
   "devnet": "6003100671677645902",
@@ -21,7 +22,6 @@ const CHAIN_NAME_TO_CHAIN_ID = {
 type Cluster = "devnet" | "testnet" | "mainnet-beta"
 
 const connection = new Connection(clusterApiUrl(process.env.SOL_ENVIRONMENT as Cluster), "confirmed");
-const solanaChainId = CHAIN_NAME_TO_CHAIN_ID[process.env.SOL_ENVIRONMENT || "devnet"];
 export const program = new Program(idl, { connection });
 
 export async function webhookHandler(request, reply) {
@@ -38,17 +38,19 @@ export async function webhookHandler(request, reply) {
         let insertValues: any = null;
         let model: any = null;
 
-        if (log.name === "SendEvent") {
-          ({ model, values: insertValues } = processSendEvent(log, event));
-          insertValues.receiptId = `${insertValues.chainFrom}_${insertValues.chainTo}_${insertValues.eventId}`;
-        } else if (log.name === "ReceivePayload") {
-          ({ model, values: insertValues } = processReceiveEvent(log, event));
-          insertValues.receiptId = `${solanaChainId}_${insertValues.chainTo}_${insertValues.eventId}`;
-        } else {
-          continue;
+        switch (log.name) {
+          case "SendEvent":
+            ({ model, values: insertValues } = processSendEvent(log, event));
+            break;
+          case "ReceivePayload":
+            ({ model, values: insertValues } = await processReceiveEvent(log, event));
+            break;
+          default:
+            continue;
         }
 
         if (insertValues && model) {
+          insertValues.receiptId = `${insertValues.chainFrom}_${insertValues.chainTo}_${insertValues.eventId}`;
           const entity = await db
             .insert(model)
             .values(insertValues)
@@ -68,7 +70,6 @@ export async function webhookHandler(request, reply) {
             .values({ ...metadata })
             .onConflictDoNothing();
         }
-
       }
     }
   } catch (err) {
@@ -79,7 +80,6 @@ export async function webhookHandler(request, reply) {
 }
 
 function processSendEvent(log: any, event: SolanaTransaction) {
-  console.log("processSendEvent", { chain_from: BigInt("0x" + log.data.chain_from.toString("hex")) });
   return {
     model: receiptsSent,
     values: {
@@ -100,9 +100,18 @@ function processSendEvent(log: any, event: SolanaTransaction) {
   };
 }
 
-function processReceiveEvent(log: any, event: SolanaTransaction) {
+async function processReceiveEvent(log: any, event: SolanaTransaction) {
   const toAddress = new PublicKey(log.data.to);
   const tokenAddressTo = new PublicKey(log.data.token_address_to);
+  const eventId = safeBigIntFromHex(log.data.event_id);
+
+  const chainFromResult = await db
+    .select({ chainFrom: receiptsSent.chainTo })
+    .from(receiptsSent)
+    .where(eq(receiptsSent.eventId, eventId.toString()))
+    .limit(1);
+
+  const chainFrom = chainFromResult.length > 0 ? chainFromResult[0].chainFrom : null;
   return {
     model: receiptsClaimed,
     values: {
@@ -112,7 +121,8 @@ function processReceiveEvent(log: any, event: SolanaTransaction) {
       tokenAddressTo: toHexFromBytes(tokenAddressTo.toBytes()),
       amountTo: safeBigIntFromHex(log.data.amount_to),
       chainTo: safeBigIntFromHex(log.data.chain_to),
-      eventId: safeBigIntFromHex(log.data.event_id),
+      chainFrom,
+      eventId,
       flags: safeHexToNumber(log.data.flags),
       data: safeHexToString(log.data.flag_data)
     }

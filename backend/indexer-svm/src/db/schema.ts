@@ -28,14 +28,15 @@ export const receiptsClaimed = indexerSolana.table(
     tokenAddressTo: text("token_address_to").notNull(),
     amountTo: numeric("amount_to", { precision: 78, scale: 0 }).notNull(),
     chainTo: numeric("chain_to", { precision: 78, scale: 0 }).notNull(),
+    chainFrom: numeric("chain_from", { precision: 78, scale: 0 }).notNull(),
     eventId: numeric("event_id", { precision: 78, scale: 0 }).notNull(),
     flags: numeric({ precision: 78, scale: 0 }).notNull(),
-    data: text().notNull(),
+    data: text().notNull()
   },
   (table) => [
     primaryKey({
-      columns: [table.chainTo, table.eventId],
-    }),
+      columns: [table.chainTo, table.eventId]
+    })
   ]
 );
 
@@ -55,11 +56,11 @@ export const receiptsSent = indexerSolana.table(
     chainTo: numeric("chain_to", { precision: 78, scale: 0 }).notNull(),
     eventId: numeric("event_id", { precision: 78, scale: 0 }).notNull(),
     flags: numeric({ precision: 78, scale: 0 }).notNull(),
-    data: text().notNull(),
+    data: text().notNull()
   },
   (table) => [
     primaryKey({
-      columns: [table.chainFrom, table.chainTo, table.eventId],
-    }),
+      columns: [table.chainFrom, table.chainTo, table.eventId]
+    })
   ]
 );

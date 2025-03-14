@@ -8,6 +8,7 @@ CREATE TABLE "indexer_solana"."receiptsClaimed" (
 	"token_address_to" text NOT NULL,
 	"amount_to" numeric(78, 0) NOT NULL,
 	"chain_to" numeric(78, 0) NOT NULL,
+	"chain_from" numeric(78, 0) NOT NULL,
 	"event_id" numeric(78, 0) NOT NULL,
 	"flags" numeric(78, 0) NOT NULL,
 	"data" text NOT NULL,

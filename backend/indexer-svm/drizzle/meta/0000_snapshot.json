@@ -1,5 +1,5 @@
 {
-  "id": "175db80a-2491-4384-947c-d23e49428c74",
+  "id": "50615cc0-8d1e-475e-8aa0-a21891e83d64",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -46,6 +46,12 @@
         },
         "chain_to": {
           "name": "chain_to",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chain_from": {
+          "name": "chain_from",
           "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true

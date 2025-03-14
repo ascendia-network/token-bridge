@@ -5,101 +5,153 @@
  * IDL can be found at `target/idl/amb_sol_bridge.json`.
  */
 export type AmbSolBridge = {
-  address: "ambZMSUBvU8bLfxop5uupQd9tcafeJKea1KoyTv2yM1";
-  metadata: {
-    name: "ambSolBridge";
-    version: "0.1.0";
-    spec: "0.1.0";
-    description: "Created with Anchor";
-  };
-  instructions: [
+  "address": "ambZMSUBvU8bLfxop5uupQd9tcafeJKea1KoyTv2yM1",
+  "metadata": {
+    "name": "ambSolBridge",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
     {
-      name: "initialize";
-      discriminator: [175, 175, 109, 31, 13, 152, 155, 237];
-      accounts: [
+      "name": "initialize",
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
         {
-          name: "state";
-          writable: true;
-          pda: {
-            seeds: [
+          "name": "state",
+          "writable": true,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                value: [103, 108, 111, 98, 97, 108, 95, 115, 116, 97, 116, 101];
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "admin";
-          writable: true;
-          signer: true;
+          "name": "admin",
+          "writable": true,
+          "signer": true
         },
         {
-          name: "systemProgram";
-          address: "11111111111111111111111111111111";
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
         }
-      ];
-      args: [
+      ],
+      "args": [
         {
-          name: "sendSigner";
-          type: "pubkey";
+          "name": "sendSigner",
+          "type": "pubkey"
         },
         {
-          name: "receiveSigner";
-          type: "pubkey";
+          "name": "receiveSigner",
+          "type": "pubkey"
         }
-      ];
+      ]
     },
     {
-      name: "initializeToken";
-      discriminator: [38, 209, 150, 50, 190, 117, 16, 54];
-      accounts: [
+      "name": "initializeToken",
+      "discriminator": [
+        38,
+        209,
+        150,
+        50,
+        190,
+        117,
+        16,
+        54
+      ],
+      "accounts": [
         {
-          name: "state";
-          pda: {
-            seeds: [
+          "name": "state",
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                value: [103, 108, 111, 98, 97, 108, 95, 115, 116, 97, 116, 101];
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "admin";
-          writable: true;
-          signer: true;
-          relations: ["state"];
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "state"
+          ]
         },
         {
-          name: "bridgeToken";
-          writable: true;
-          pda: {
-            seeds: [
+          "name": "bridgeToken",
+          "writable": true,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                value: [116, 111, 107, 101, 110];
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110
+                ]
               },
               {
-                kind: "account";
-                path: "mint";
+                "kind": "account",
+                "path": "mint"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "bridgeTokenAccount";
-          writable: true;
-          optional: true;
-          pda: {
-            seeds: [
+          "name": "bridgeTokenAccount",
+          "writable": true,
+          "optional": true,
+          "pda": {
+            "seeds": [
               {
-                kind: "account";
-                path: "bridgeToken";
+                "kind": "account",
+                "path": "bridgeToken"
               },
               {
-                kind: "const";
-                value: [
+                "kind": "const",
+                "value": [
                   6,
                   221,
                   246,
@@ -132,16 +184,16 @@ export type AmbSolBridge = {
                   255,
                   0,
                   169
-                ];
+                ]
               },
               {
-                kind: "account";
-                path: "mint";
+                "kind": "account",
+                "path": "mint"
               }
-            ];
-            program: {
-              kind: "const";
-              value: [
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
                 140,
                 151,
                 37,
@@ -174,84 +226,109 @@ export type AmbSolBridge = {
                 233,
                 248,
                 89
-              ];
-            };
-          };
+              ]
+            }
+          }
         },
         {
-          name: "mint";
+          "name": "mint"
         },
         {
-          name: "tokenProgram";
-          address: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          name: "associatedTokenProgram";
-          address: "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
-          name: "systemProgram";
-          address: "11111111111111111111111111111111";
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
         }
-      ];
-      args: [
+      ],
+      "args": [
         {
-          name: "ambToken";
-          type: {
-            array: ["u8", 20];
-          };
+          "name": "ambToken",
+          "type": {
+            "array": [
+              "u8",
+              20
+            ]
+          }
         },
         {
-          name: "ambDecimals";
-          type: "u8";
+          "name": "ambDecimals",
+          "type": "u8"
         },
         {
-          name: "isMintable";
-          type: "bool";
+          "name": "isMintable",
+          "type": "bool"
         }
-      ];
+      ]
     },
     {
-      name: "receive";
-      discriminator: [86, 17, 255, 171, 17, 17, 187, 219];
-      accounts: [
+      "name": "receive",
+      "discriminator": [
+        86,
+        17,
+        255,
+        171,
+        17,
+        17,
+        187,
+        219
+      ],
+      "accounts": [
         {
-          name: "state";
-          pda: {
-            seeds: [
+          "name": "state",
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                value: [103, 108, 111, 98, 97, 108, 95, 115, 116, 97, 116, 101];
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "receiver";
-          writable: true;
-          signer: true;
+          "name": "receiver",
+          "writable": true,
+          "signer": true
         },
         {
-          name: "receiverTokenAccount";
-          writable: true;
-          pda: {
-            seeds: [
+          "name": "receiverTokenAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
               {
-                kind: "account";
-                path: "receiver";
+                "kind": "account",
+                "path": "receiver"
               },
               {
-                kind: "account";
-                path: "tokenProgram";
+                "kind": "account",
+                "path": "tokenProgram"
               },
               {
-                kind: "account";
-                path: "mint";
+                "kind": "account",
+                "path": "mint"
               }
-            ];
-            program: {
-              kind: "const";
-              value: [
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
                 140,
                 151,
                 37,
@@ -284,54 +361,66 @@ export type AmbSolBridge = {
                 233,
                 248,
                 89
-              ];
-            };
-          };
+              ]
+            }
+          }
         },
         {
-          name: "receiverNonceAccount";
-          writable: true;
-          pda: {
-            seeds: [
+          "name": "receiverNonceAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                value: [110, 111, 110, 99, 101];
+                "kind": "const",
+                "value": [
+                  110,
+                  111,
+                  110,
+                  99,
+                  101
+                ]
               },
               {
-                kind: "account";
-                path: "receiver";
+                "kind": "account",
+                "path": "receiver"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "bridgeToken";
-          pda: {
-            seeds: [
+          "name": "bridgeToken",
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                value: [116, 111, 107, 101, 110];
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110
+                ]
               },
               {
-                kind: "account";
-                path: "mint";
+                "kind": "account",
+                "path": "mint"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "bridgeTokenAccount";
-          writable: true;
-          optional: true;
-          pda: {
-            seeds: [
+          "name": "bridgeTokenAccount",
+          "writable": true,
+          "optional": true,
+          "pda": {
+            "seeds": [
               {
-                kind: "account";
-                path: "bridgeToken";
+                "kind": "account",
+                "path": "bridgeToken"
               },
               {
-                kind: "const";
-                value: [
+                "kind": "const",
+                "value": [
                   6,
                   221,
                   246,
@@ -364,16 +453,16 @@ export type AmbSolBridge = {
                   255,
                   0,
                   169
-                ];
+                ]
               },
               {
-                kind: "account";
-                path: "mint";
+                "kind": "account",
+                "path": "mint"
               }
-            ];
-            program: {
-              kind: "const";
-              value: [
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
                 140,
                 151,
                 37,
@@ -406,90 +495,115 @@ export type AmbSolBridge = {
                 233,
                 248,
                 89
-              ];
-            };
-          };
+              ]
+            }
+          }
         },
         {
-          name: "mint";
-          writable: true;
+          "name": "mint",
+          "writable": true
         },
         {
-          name: "ixSysvar";
-          docs: [
+          "name": "ixSysvar",
+          "docs": [
             "the supplied Sysvar could be anything else.",
             "The Instruction Sysvar has not been implemented",
             "in the Anchor framework yet, so this is the safe approach."
-          ];
-          address: "Sysvar1nstructions1111111111111111111111111";
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         },
         {
-          name: "tokenProgram";
-          address: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          name: "systemProgram";
-          address: "11111111111111111111111111111111";
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
         },
         {
-          name: "associatedTokenProgram";
-          address: "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         }
-      ];
-      args: [
+      ],
+      "args": [
         {
-          name: "amountTo";
-          type: "u64";
+          "name": "amountTo",
+          "type": "u64"
         },
         {
-          name: "eventId";
-          type: "u64";
+          "name": "eventId",
+          "type": "u64"
         },
         {
-          name: "flags";
-          type: {
-            array: ["u8", 32];
-          };
+          "name": "flags",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
         },
         {
-          name: "flagData";
-          type: "bytes";
+          "name": "flagData",
+          "type": "bytes"
         }
-      ];
+      ]
     },
     {
-      name: "send";
-      discriminator: [102, 251, 20, 187, 65, 75, 12, 69];
-      accounts: [
+      "name": "send",
+      "discriminator": [
+        102,
+        251,
+        20,
+        187,
+        65,
+        75,
+        12,
+        69
+      ],
+      "accounts": [
         {
-          name: "state";
-          writable: true;
-          pda: {
-            seeds: [
+          "name": "state",
+          "writable": true,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                value: [103, 108, 111, 98, 97, 108, 95, 115, 116, 97, 116, 101];
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "sender";
-          writable: true;
-          signer: true;
+          "name": "sender",
+          "writable": true,
+          "signer": true
         },
         {
-          name: "senderTokenAccount";
-          writable: true;
-          pda: {
-            seeds: [
+          "name": "senderTokenAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
               {
-                kind: "account";
-                path: "sender";
+                "kind": "account",
+                "path": "sender"
               },
               {
-                kind: "const";
-                value: [
+                "kind": "const",
+                "value": [
                   6,
                   221,
                   246,
@@ -522,16 +636,16 @@ export type AmbSolBridge = {
                   255,
                   0,
                   169
-                ];
+                ]
               },
               {
-                kind: "account";
-                path: "mint";
+                "kind": "account",
+                "path": "mint"
               }
-            ];
-            program: {
-              kind: "const";
-              value: [
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
                 140,
                 151,
                 37,
@@ -564,38 +678,44 @@ export type AmbSolBridge = {
                 233,
                 248,
                 89
-              ];
-            };
-          };
+              ]
+            }
+          }
         },
         {
-          name: "bridgeToken";
-          pda: {
-            seeds: [
+          "name": "bridgeToken",
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                value: [116, 111, 107, 101, 110];
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110
+                ]
               },
               {
-                kind: "account";
-                path: "mint";
+                "kind": "account",
+                "path": "mint"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "bridgeTokenAccount";
-          writable: true;
-          optional: true;
-          pda: {
-            seeds: [
+          "name": "bridgeTokenAccount",
+          "writable": true,
+          "optional": true,
+          "pda": {
+            "seeds": [
               {
-                kind: "account";
-                path: "bridgeToken";
+                "kind": "account",
+                "path": "bridgeToken"
               },
               {
-                kind: "const";
-                value: [
+                "kind": "const",
+                "value": [
                   6,
                   221,
                   246,
@@ -628,16 +748,16 @@ export type AmbSolBridge = {
                   255,
                   0,
                   169
-                ];
+                ]
               },
               {
-                kind: "account";
-                path: "mint";
+                "kind": "account",
+                "path": "mint"
               }
-            ];
-            program: {
-              kind: "const";
-              value: [
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
                 140,
                 151,
                 37,
@@ -670,294 +790,388 @@ export type AmbSolBridge = {
                 233,
                 248,
                 89
-              ];
-            };
-          };
+              ]
+            }
+          }
         },
         {
-          name: "mint";
-          writable: true;
+          "name": "mint",
+          "writable": true
         },
         {
-          name: "ixSysvar";
-          docs: [
+          "name": "ixSysvar",
+          "docs": [
             "the supplied Sysvar could be anything else.",
             "The Instruction Sysvar has not been implemented",
             "in the Anchor framework yet, so this is the safe approach."
-          ];
-          address: "Sysvar1nstructions1111111111111111111111111";
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         },
         {
-          name: "tokenProgram";
-          address: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          name: "systemProgram";
-          address: "11111111111111111111111111111111";
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
         }
-      ];
-      args: [
+      ],
+      "args": [
         {
-          name: "serializedArgs";
-          type: "bytes";
+          "name": "serializedArgs",
+          "type": "bytes"
         },
         {
-          name: "recipient";
-          type: {
-            array: ["u8", 20];
-          };
+          "name": "recipient",
+          "type": {
+            "array": [
+              "u8",
+              20
+            ]
+          }
         }
-      ];
+      ]
     },
     {
-      name: "setPause";
-      discriminator: [63, 32, 154, 2, 56, 103, 79, 45];
-      accounts: [
+      "name": "setPause",
+      "discriminator": [
+        63,
+        32,
+        154,
+        2,
+        56,
+        103,
+        79,
+        45
+      ],
+      "accounts": [
         {
-          name: "state";
-          pda: {
-            seeds: [
+          "name": "state",
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                value: [103, 108, 111, 98, 97, 108, 95, 115, 116, 97, 116, 101];
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "admin";
-          writable: true;
-          signer: true;
-          relations: ["state"];
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "state"
+          ]
         }
-      ];
-      args: [
+      ],
+      "args": [
         {
-          name: "pause";
-          type: "bool";
+          "name": "pause",
+          "type": "bool"
         }
-      ];
+      ]
     }
-  ];
-  accounts: [
+  ],
+  "accounts": [
     {
-      name: "globalState";
-      discriminator: [163, 46, 74, 168, 216, 123, 133, 98];
+      "name": "globalState",
+      "discriminator": [
+        163,
+        46,
+        74,
+        168,
+        216,
+        123,
+        133,
+        98
+      ]
     },
     {
-      name: "nonceAccount";
-      discriminator: [110, 202, 133, 201, 147, 206, 238, 84];
+      "name": "nonceAccount",
+      "discriminator": [
+        110,
+        202,
+        133,
+        201,
+        147,
+        206,
+        238,
+        84
+      ]
     },
     {
-      name: "tokenConfig";
-      discriminator: [92, 73, 255, 43, 107, 51, 117, 101];
+      "name": "tokenConfig",
+      "discriminator": [
+        92,
+        73,
+        255,
+        43,
+        107,
+        51,
+        117,
+        101
+      ]
     }
-  ];
-  events: [
+  ],
+  "events": [
     {
-      name: "receivePayload";
-      discriminator: [106, 38, 196, 36, 206, 174, 71, 34];
+      "name": "receivePayload",
+      "discriminator": [
+        106,
+        38,
+        196,
+        36,
+        206,
+        174,
+        71,
+        34
+      ]
     },
     {
-      name: "sendEvent";
-      discriminator: [140, 14, 81, 77, 70, 218, 3, 30];
+      "name": "sendEvent",
+      "discriminator": [
+        140,
+        14,
+        81,
+        77,
+        70,
+        218,
+        3,
+        30
+      ]
     }
-  ];
-  errors: [
+  ],
+  "errors": [
     {
-      code: 6000;
-      name: "invalidSignature";
-      msg: "Signature invalid";
+      "code": 6000,
+      "name": "invalidSignature",
+      "msg": "Signature invalid"
     },
     {
-      code: 6001;
-      name: "invalidNonce";
-      msg: "Invalid nonce";
+      "code": 6001,
+      "name": "invalidNonce",
+      "msg": "Invalid nonce"
     },
     {
-      code: 6002;
-      name: "invalidToken";
-      msg: "Invalid token";
+      "code": 6002,
+      "name": "invalidToken",
+      "msg": "Invalid token"
     },
     {
-      code: 6003;
-      name: "invalidSerialization";
-      msg: "Invalid serialization";
+      "code": 6003,
+      "name": "invalidSerialization",
+      "msg": "Invalid serialization"
     },
     {
-      code: 6004;
-      name: "invalidArgs";
-      msg: "Invalid input arguments";
+      "code": 6004,
+      "name": "invalidArgs",
+      "msg": "Invalid input arguments"
     }
-  ];
-  types: [
+  ],
+  "types": [
     {
-      name: "globalState";
-      type: {
-        kind: "struct";
-        fields: [
+      "name": "globalState",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "admin";
-            type: "pubkey";
+            "name": "admin",
+            "type": "pubkey"
           },
           {
-            name: "sendSigner";
-            type: "pubkey";
+            "name": "sendSigner",
+            "type": "pubkey"
           },
           {
-            name: "receiveSigner";
-            type: "pubkey";
+            "name": "receiveSigner",
+            "type": "pubkey"
           },
           {
-            name: "nonce";
-            type: "u64";
+            "name": "nonce",
+            "type": "u64"
           },
           {
-            name: "pause";
-            type: "bool";
+            "name": "pause",
+            "type": "bool"
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "nonceAccount";
-      type: {
-        kind: "struct";
-        fields: [
+      "name": "nonceAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "nonceCounter";
-            type: "u64";
+            "name": "nonceCounter",
+            "type": "u64"
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "receivePayload";
-      type: {
-        kind: "struct";
-        fields: [
+      "name": "receivePayload",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "to";
-            type: "pubkey";
+            "name": "to",
+            "type": "pubkey"
           },
           {
-            name: "tokenAddressTo";
-            type: "pubkey";
+            "name": "tokenAddressTo",
+            "type": "pubkey"
           },
           {
-            name: "amountTo";
-            type: "u64";
+            "name": "amountTo",
+            "type": "u64"
           },
           {
-            name: "chainTo";
-            type: "u64";
+            "name": "chainFrom",
+            "type": "u64"
           },
           {
-            name: "eventId";
-            type: "u64";
+            "name": "chainTo",
+            "type": "u64"
           },
           {
-            name: "flags";
-            type: {
-              array: ["u8", 32];
-            };
+            "name": "eventId",
+            "type": "u64"
           },
           {
-            name: "flagData";
-            type: "bytes";
+            "name": "flags",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "flagData",
+            "type": "bytes"
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "sendEvent";
-      type: {
-        kind: "struct";
-        fields: [
+      "name": "sendEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "from";
-            type: "pubkey";
+            "name": "from",
+            "type": "pubkey"
           },
           {
-            name: "to";
-            type: {
-              array: ["u8", 20];
-            };
+            "name": "to",
+            "type": {
+              "array": [
+                "u8",
+                20
+              ]
+            }
           },
           {
-            name: "tokenAddressFrom";
-            type: "pubkey";
+            "name": "tokenAddressFrom",
+            "type": "pubkey"
           },
           {
-            name: "tokenAddressTo";
-            type: {
-              array: ["u8", 20];
-            };
+            "name": "tokenAddressTo",
+            "type": {
+              "array": [
+                "u8",
+                20
+              ]
+            }
           },
           {
-            name: "amountFrom";
-            type: "u64";
+            "name": "amountFrom",
+            "type": "u64"
           },
           {
-            name: "amountTo";
-            type: {
-              array: ["u8", 32];
-            };
+            "name": "amountTo",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
           },
           {
-            name: "chainFrom";
-            type: "u64";
+            "name": "chainFrom",
+            "type": "u64"
           },
           {
-            name: "chainTo";
-            type: "u64";
+            "name": "chainTo",
+            "type": "u64"
           },
           {
-            name: "eventId";
-            type: "u64";
+            "name": "eventId",
+            "type": "u64"
           },
           {
-            name: "flags";
-            type: {
-              array: ["u8", 32];
-            };
+            "name": "flags",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
           },
           {
-            name: "flagData";
-            type: "bytes";
+            "name": "flagData",
+            "type": "bytes"
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "tokenConfig";
-      type: {
-        kind: "struct";
-        fields: [
+      "name": "tokenConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "token";
-            type: "pubkey";
+            "name": "token",
+            "type": "pubkey"
           },
           {
-            name: "ambToken";
-            type: {
-              array: ["u8", 20];
-            };
+            "name": "ambToken",
+            "type": {
+              "array": [
+                "u8",
+                20
+              ]
+            }
           },
           {
-            name: "ambDecimals";
-            type: "u8";
+            "name": "ambDecimals",
+            "type": "u8"
           },
           {
-            name: "isMintable";
-            type: "bool";
+            "name": "isMintable",
+            "type": "bool"
           },
           {
-            name: "bump";
-            type: "u8";
+            "name": "bump",
+            "type": "u8"
           }
-        ];
-      };
+        ]
+      }
     }
-  ];
+  ]
 };

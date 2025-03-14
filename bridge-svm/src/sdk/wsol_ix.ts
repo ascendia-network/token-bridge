@@ -4,14 +4,10 @@ import {
   createCloseAccountInstruction,
   createSyncNativeInstruction,
   getAssociatedTokenAddressSync,
-  NATIVE_MINT,
+  NATIVE_MINT
 } from "@solana/spl-token";
 
-export async function wrapSolInstructions(
-  connection: Connection,
-  user: Signer,
-  amountToSend: number
-) {
+export async function wrapSolInstructions(connection: Connection, user: Signer, amountToSend: number) {
   const instructions = [];
 
   const userATA = getAssociatedTokenAddressSync(NATIVE_MINT, user.publicKey);
@@ -20,34 +16,31 @@ export async function wrapSolInstructions(
   try {
     balance = +(await connection.getTokenAccountBalance(userATA)).value.amount;
   } catch (e) {
-    console.log("need to create user WSOL ATA");
+    console.log("need to create user WSOL ATA")
     instructions.push(
-      createAssociatedTokenAccountInstruction(
-        user.publicKey,
-        userATA,
-        user.publicKey,
-        NATIVE_MINT
-      )
+      createAssociatedTokenAccountInstruction(user.publicKey, userATA, user.publicKey, NATIVE_MINT)
     );
   }
 
   if (balance < amountToSend) {
-    console.log("need to wrap some SOL", amountToSend - balance);
+    console.log("need to wrap some SOL", amountToSend - balance)
     instructions.push(
       SystemProgram.transfer({
         fromPubkey: user.publicKey,
         toPubkey: userATA,
         lamports: amountToSend - balance,
       }),
-      createSyncNativeInstruction(userATA) // update ata balance
+      createSyncNativeInstruction(userATA)  // update ata balance
     );
   }
 
   return instructions;
 }
 
+
 export function unwrapWSolInstruction(userPubkey: PublicKey) {
   // can't specify amount to unwrap, so just close the account and send all SOL to user
   const userATA = getAssociatedTokenAddressSync(NATIVE_MINT, userPubkey);
   return createCloseAccountInstruction(userATA, userPubkey, userPubkey);
+
 }

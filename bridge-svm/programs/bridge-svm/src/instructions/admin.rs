@@ -21,7 +21,7 @@ pub struct Initialize<'info> {
 }
 
 #[derive(Accounts)]
-pub struct CreateTokenAccount<'info> {
+pub struct CreateToken<'info> {
     #[account(
         has_one = admin,
         seeds = [GlobalState::SEED_PREFIX], bump
@@ -45,7 +45,10 @@ pub struct CreateTokenAccount<'info> {
         associated_token::mint = mint,
         associated_token::authority = bridge_token,
     )]
-    pub bridge_token_account: InterfaceAccount<'info, TokenAccount>,
+    // Will be inited if non-mintable (non-synthetic).
+    // If synthetic, there is no need for bridge to store tokens, so don't init it;
+    // clients must pass null or programId of the bridge instead.
+    pub bridge_token_account: Option<InterfaceAccount<'info, TokenAccount>>,
 
     pub mint: InterfaceAccount<'info, Mint>,
 
@@ -80,13 +83,30 @@ pub fn initialize(
     Ok(())
 }
 
-pub fn initialize_token(ctx: Context<CreateTokenAccount>, amb_token: [u8; 20], amb_decimals: u8) -> Result<()> {
+pub fn initialize_token(
+    ctx: Context<CreateToken>,
+    amb_token: [u8; 20],
+    amb_decimals: u8,
+    is_mintable: bool,
+) -> Result<()> {
     let bridge_token = &mut ctx.accounts.bridge_token;
+
+    require!(
+        is_mintable == !ctx.accounts.bridge_token_account.is_some(),
+        ErrorCode::RequireViolated
+    );
+    if is_mintable {
+        require!(
+            ctx.accounts.mint.mint_authority.expect("no mint authority") == bridge_token.key(),
+            ErrorCode::RequireViolated
+        );
+    }
 
     bridge_token.set_inner(TokenConfig::new(
         ctx.accounts.mint.key(),
         amb_token,
         amb_decimals,
+        is_mintable,
         ctx.bumps.bridge_token,
     ));
 

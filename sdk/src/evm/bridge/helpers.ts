@@ -1,22 +1,28 @@
 import {
   toHex,
-  toBytes,
+  hexToBytes,
   Address,
   Hex,
   encodePacked,
   keccak256,
   hashMessage,
+  hexToBigInt,
 } from "viem";
 import { Base58 } from "ox";
 import { FullReceipt, MiniReceipt } from "../types/calls";
 
 export function addressToBytes32(address: Address): Hex {
-  return toHex(toBytes(address, { size: 32 }));
+  return toHex(hexToBigInt(address, { size: 20 }), { size: 32 });
 }
 export const evmAddressToBytes32 = addressToBytes32;
 
 export function base58AddressToBytes32(address: string): Hex {
-  return toHex(Base58.toBytes(address), { size: 32 });
+  const hex = toHex(Base58.toBytes(address));
+  if (hex.length !== 66) {
+    console.error(hex.length, hex)
+    throw new Error("Possibly invalid solana address");
+  }
+  return hex;
 }
 export const solanaAddressToBytes32 = base58AddressToBytes32;
 

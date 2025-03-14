@@ -5,7 +5,8 @@ export async function getTokensConfig() {
   const response = await fetch(tokensConfigUrl);
   if (!response.ok) {
     throw new Error(
-      `Failed to get tokens config: ${response.statusText
+      `Failed to get tokens config: ${
+        response.statusText
       }, ${await response.json()}`
     );
   }
@@ -13,26 +14,26 @@ export async function getTokensConfig() {
   return data as {
     bridges: {
       [key: string]: {
-        [network: string]: string,
-        side: string,
+        [network: string]: string;
+        side: string;
       };
-    }
+    };
     tokens: {
       [symbol: string]: {
-        isActive: boolean,
-        name: string,
-        symbol: string,
-        denomination: number,
+        isActive: boolean;
+        name: string;
+        symbol: string;
+        denomination: number;
         decimals: {
-          [network: string]: number,
-        },
-        logo: string,
-        primaryNets: string[],
+          [network: string]: number;
+        };
+        logo: string;
+        primaryNets: string[];
         addresses: {
-          [network: string]: string,
-        },
-        nativeAnalog: string,
-      }
-    }
+          [network: string]: string;
+        };
+        nativeAnalog: string;
+      };
+    };
   };
 }

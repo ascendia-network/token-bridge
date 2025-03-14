@@ -9,7 +9,7 @@ export interface SendPayloadEVM {
   timestamp: number | bigint;
   flags: bigint;
   flagData: Hex;
-};
+}
 
 export interface SendCall {
   recipient: Hex;
@@ -20,7 +20,7 @@ export interface SendCall {
   v?: bigint;
   r?: Hex;
   s?: Hex;
-};
+}
 
 export interface MiniReceipt {
   to: Hex;

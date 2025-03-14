@@ -1,4 +1,4 @@
-import { Address, Hex, PublicClient, http, createPublicClient } from "viem";
+import { Address, Hex, PublicClient } from "viem";
 import { bridgeAbi } from "../abi/bridgeAbi";
 import { FullReceipt, MiniReceipt } from "../types/calls";
 
@@ -25,4 +25,4 @@ export async function amountAdditionalNativeToSend(
     functionName: "nativeSendAmount",
     args: [],
   })) as bigint;
-};
+}

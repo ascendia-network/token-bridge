@@ -1,4 +1,12 @@
-import { toHex, toBytes, Address, Hex, encodePacked, keccak256, hashMessage } from "viem";
+import {
+  toHex,
+  toBytes,
+  Address,
+  Hex,
+  encodePacked,
+  keccak256,
+  hashMessage,
+} from "viem";
 import { Base58 } from "ox";
 import { FullReceipt, MiniReceipt } from "../types/calls";
 
@@ -16,9 +24,7 @@ export function gatherSignaturesForClaim(signatures: Array<Hex>): Hex {
   return signatures.reduce((acc, sig) => (acc + sig.slice(2)) as Hex, "0x");
 }
 
-function full2mini(
-  receipt: FullReceipt
-): MiniReceipt {
+function full2mini(receipt: FullReceipt): MiniReceipt {
   return {
     to: receipt.to,
     tokenAddressTo: receipt.tokenAddressTo,
@@ -31,16 +37,12 @@ function full2mini(
   };
 }
 
-function fullReceipt2hash(
-  receipt: FullReceipt
-) {
+function fullReceipt2hash(receipt: FullReceipt) {
   const mini = full2mini(receipt);
   return miniReceipt2hash(mini);
 }
 
-function miniReceipt2hash(
-  receipt: MiniReceipt
-) {
+function miniReceipt2hash(receipt: MiniReceipt) {
   const encoded = encodePacked(
     [
       "bytes32",
@@ -67,9 +69,8 @@ function miniReceipt2hash(
   return messageHash;
 }
 
-export function hashReceipt(
-  receipt: FullReceipt | MiniReceipt,
-) {
-  const digest = "from" in receipt ? fullReceipt2hash(receipt) : miniReceipt2hash(receipt);
+export function hashReceipt(receipt: FullReceipt | MiniReceipt) {
+  const digest =
+    "from" in receipt ? fullReceipt2hash(receipt) : miniReceipt2hash(receipt);
   return hashMessage({ raw: digest });
 }

@@ -80,9 +80,11 @@ export function handleCustomError(error: Error): CustomError {
       }
     }
   }
-  return processedError ?? {
-    ...error,
-    errorName: "Unknown",
-    errorArgs: [],
-  };
+  return (
+    processedError ?? {
+      ...error,
+      errorName: "Unknown",
+      errorArgs: [],
+    }
+  );
 }

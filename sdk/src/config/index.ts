@@ -1,5 +1,5 @@
-import { config } from 'dotenv';
+import { config } from "dotenv";
 config();
-export * from './rpcs';
+export * from "./rpcs";
 
-export const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
+export const backendUrl = process.env.BACKEND_URL || "http://localhost:3000";

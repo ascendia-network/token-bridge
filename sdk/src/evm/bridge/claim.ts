@@ -1,13 +1,6 @@
-import {
-  Address,
-  Hex,
-  PublicClient,
-  WalletClient,
-} from "viem";
+import { Address, PublicClient, WalletClient } from "viem";
 import { getBridgeContract } from "./contract";
-import {
-  type ClaimCall,
-} from "../types/calls";
+import { type ClaimCall } from "../types/calls";
 import { handleCustomError } from "../utils/customErrors";
 
 export async function claimInEVM(
@@ -22,10 +15,7 @@ export async function claimInEVM(
     walletClient
   );
   try {
-    const params = [
-      claimParams.receipt,
-      claimParams.signature
-    ]
+    const params = [claimParams.receipt, claimParams.signature];
     await bridgeContract.simulate.claim(params);
     return await bridgeContract.write.claim(params);
   } catch (err) {

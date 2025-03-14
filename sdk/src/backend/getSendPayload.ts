@@ -24,7 +24,11 @@ export async function getSendPayload(
   sendPayloadUrl.searchParams.set("flagData", flagData);
   const response = await fetch(sendPayloadUrl);
   if (!response.ok) {
-    throw new Error(`Failed to get send payload: ${response.statusText}, ${await response.json()}`);
+    throw new Error(
+      `Failed to get send payload: ${
+        response.statusText
+      }, ${await response.json()}`
+    );
   }
   const data = await response.json();
   if (!data.sendPayload || !data.signature) {
@@ -39,7 +43,7 @@ export async function getSendPayload(
       feeAmount: BigInt(data.sendPayload.feeAmount),
       timestamp: BigInt(data.sendPayload.timestamp),
       flags: BigInt(data.sendPayload.flags),
-      flagData
+      flagData,
     },
     signature: data.signature,
   };

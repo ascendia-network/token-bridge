@@ -1,5 +1,5 @@
-const { signMessage } = require("viem/accounts");
-const { toBytes  } = require("viem");
+const { privateKeyToAccount } = require("viem/accounts");
+const { recoverMessageAddress } = require("viem");
 const { payload2hash } = require("./utils/viem/2Hash");
 
 if (process.argv.length < 11) {
@@ -9,7 +9,14 @@ if (process.argv.length < 11) {
 
 async function signPayload(destChainId, tokenAddress, externalTokenAddress, amountToSend, feeAmount, timestamp, flags, flagData, privateKey) {
   const hash = payload2hash(destChainId, tokenAddress, externalTokenAddress, amountToSend, feeAmount, timestamp, flags, flagData);
-  return signMessage({ privateKey, message: { raw: hash } });
+  const account = privateKeyToAccount(privateKey);
+  const signature = await account.signMessage({ message: { raw: hash } });
+  console.assert(
+      await recoverMessageAddress({
+      message: { raw: hash },
+      signature,
+    }) === account.address, "Invalid signature");
+  return signature;
 }
 
 signPayload(

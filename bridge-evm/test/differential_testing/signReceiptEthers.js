@@ -1,4 +1,4 @@
-const { ethers, getBytes } = require("ethers");
+const { ethers, getBytes, recoverAddress, hashMessage } = require("ethers");
 const { fullReceipt2hash, miniReceipt2hash } = require("./utils/ethers/2Hash");
 
 async function signFullReceipt(from, to, tokenAddressFrom, tokenAddressTo, amountFrom, amountTo, chainFrom, chainTo, eventId, flags, data, privateKey) {
@@ -16,7 +16,9 @@ async function signFullReceipt(from, to, tokenAddressFrom, tokenAddressTo, amoun
     data
   );
   const wallet = new ethers.Wallet(privateKey);
-  return wallet.signMessage(getBytes(hash));
+  const signature = await wallet.signMessage(getBytes(hash));
+  console.assert(recoverAddress(getBytes(hashMessage(getBytes(hash))), signature) === wallet.address, "Invalid signature");
+  return signature;
 }
 
 async function signMiniReceipt(to, tokenAddressTo, amountTo, chainFrom, chainTo, eventId, flags, data, privateKey) {
@@ -31,7 +33,9 @@ async function signMiniReceipt(to, tokenAddressTo, amountTo, chainFrom, chainTo,
     data
   );
   const wallet = new ethers.Wallet(privateKey);
-  return wallet.signMessage(getBytes(hash));
+  const signature = await wallet.signMessage(getBytes(hash));
+  console.assert(recoverAddress(getBytes(hashMessage(getBytes(hash))), signature) === wallet.address, "Invalid signature");
+  return signature;
 }
 
 function help(mode) {

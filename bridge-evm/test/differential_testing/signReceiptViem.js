@@ -1,4 +1,5 @@
 const { privateKeyToAccount } = require("viem/accounts");
+const { recoverMessageAddress } = require("viem");
 const { fullReceipt2hash, miniReceipt2hash } = require("./utils/viem/2Hash");
 
 async function signFullReceipt(from, to, tokenAddressFrom, tokenAddressTo, amountFrom, amountTo, chainFrom, chainTo, eventId, flags, data, privateKey) {
@@ -16,7 +17,13 @@ async function signFullReceipt(from, to, tokenAddressFrom, tokenAddressTo, amoun
     data
   );
   const account = privateKeyToAccount(privateKey);
-  return account.signMessage({ message: { raw: hash } });
+  const signature = await account.signMessage({ message: { raw: hash } });
+  console.assert(
+    await recoverMessageAddress({
+    message: { raw: hash },
+    signature,
+  }) === account.address, "Invalid signature");
+  return signature;
 }
 
 async function signMiniReceipt(to, tokenAddressTo, amountTo, chainFrom, chainTo, eventId, flags, data, privateKey) {
@@ -31,7 +38,13 @@ async function signMiniReceipt(to, tokenAddressTo, amountTo, chainFrom, chainTo,
     data
   );
   const account = privateKeyToAccount(privateKey);
-  return account.signMessage({ message: { raw: hash } });
+  const signature = await account.signMessage({ message: { raw: hash } });
+  console.assert(
+    await recoverMessageAddress({
+      message: { raw: hash },
+      signature,
+    }) === account.address, "Invalid signature");
+  return signature;
 }
 
 function help(mode) {

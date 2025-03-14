@@ -158,8 +158,8 @@ export const sendSignatureQuerySchema = z.object({
     example: 0n,
     description: "Flags for the transaction",
   }),
-  flagData: z.string().default("").openapi({
-    example: "",
+  flagData: z.string().default("0x").openapi({
+    example: "0x",
     description: "Data for the flags",
   }),
 });
@@ -264,11 +264,14 @@ const ReceiptSchema = createSelectSchema(receipt, {
       example: "0",
       description: "Flags for the transaction",
     }),
-  data: (schema: z.ZodSchema) =>
-    schema.openapi({
-      example: "",
-      description: "Data for the flags",
-    }),
+  data: (schema: z.ZodString) =>
+    schema
+      .transform((val) => (val === "" ? "0x" : val))
+      .pipe(z.string())
+      .openapi({
+        example: "0x",
+        description: "Data for the flags",
+      }),
   claimed: (schema: z.ZodSchema) =>
     schema.openapi({
       example: false,
@@ -441,8 +444,8 @@ export const SendPayloadEVM = z.object({
     example: 0n,
     description: "Flags for the transaction",
   }),
-  flagData: z.string().default("").openapi({
-    example: "",
+  flagData: z.string().default("0x").openapi({
+    example: "0x",
     description: "Data for the flags as hex string",
   }),
 });
@@ -489,8 +492,8 @@ export const SendPayloadSolana = z.object({
     example: 0n,
     description: "Flags for the transaction",
   }),
-  flagData: z.string().default("").openapi({
-    example: "",
+  flagData: z.string().default("0x").openapi({
+    example: "0x",
     description: "Data for the flags as hex string",
   }),
 });

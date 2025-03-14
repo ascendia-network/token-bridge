@@ -6,7 +6,7 @@
     "base": "https://mainnet.base.org"
   },
   "contracts": {
-    "ambsol": "0xe10eB55f6EeF66218BbE58B749428ec4A51D6659"
+    "ambsol": "0x48722498168d61bcCfc5CAA5F6082975EfD92d46"
   },
   "tokensConfigUrl": "https://raw.githubusercontent.com/ambrosus/token-bridge/refs/heads/backend/backend/back-core/config/tokens/test.json",
   "fees": {

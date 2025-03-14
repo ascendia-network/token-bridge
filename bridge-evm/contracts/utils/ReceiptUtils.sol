@@ -56,7 +56,7 @@ library ReceiptUtils {
         BridgeTypes.MiniReceipt memory receipt
     ) internal pure returns (bytes32 hash) {
         bytes32 messageHash = keccak256(
-            abi.encode(
+            abi.encodePacked(
                 receipt.to,
                 receipt.tokenAddressTo,
                 receipt.amountTo,

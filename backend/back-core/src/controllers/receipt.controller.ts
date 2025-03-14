@@ -5,18 +5,14 @@ import { receiptsMetaInIndexerSolana } from "../db/schema/solana.schema";
 import { eq, or, asc, desc, ne, and, notInArray, inArray } from "drizzle-orm";
 import {
   toBytes,
-  encodeAbiParameters,
   keccak256,
-  hashMessage,
   recoverMessageAddress,
-  createPublicClient,
   http,
   webSocket,
   type WebSocketTransport,
   type HttpTransport,
+  encodePacked,
 } from "viem";
-import { bridgeAbi } from "../../abis/bridgeAbi";
-import { validatorAbi } from "../../abis/validatorAbi";
 import { consoleLogger } from "../utils";
 import { serializeReceivePayload, ReceivePayload } from "../utils/solana";
 import {
@@ -285,109 +281,68 @@ export class ReceiptController {
     signer: `0x${string}`,
     signature: `0x${string}`
   ): Promise<`0x${string}`> {
-    const MiniReceiptAbi = {
-      name: "receipt",
-      type: "tuple",
-      indexed: false,
-      internalType: "struct BridgeTypes.MiniReceipt",
-      components: [
-        {
-          name: "to",
-          type: "bytes32",
-          internalType: "bytes32",
-        },
-        {
-          name: "tokenAddressTo",
-          type: "bytes32",
-          internalType: "bytes32",
-        },
-        {
-          name: "amountTo",
-          type: "uint256",
-          internalType: "uint256",
-        },
-        {
-          name: "chainFrom",
-          type: "uint256",
-          internalType: "uint256",
-        },
-        {
-          name: "chainTo",
-          type: "uint256",
-          internalType: "uint256",
-        },
-        {
-          name: "eventId",
-          type: "uint256",
-          internalType: "uint256",
-        },
-        {
-          name: "flags",
-          type: "uint256",
-          internalType: "uint256",
-        },
-        {
-          name: "data",
-          type: "bytes",
-          internalType: "bytes",
-        },
-      ],
-    };
-    const message = encodeAbiParameters<[typeof MiniReceiptAbi]>(
-      [MiniReceiptAbi],
+    const message = encodePacked(
       [
-        {
-          to: receiptToSign.to as `0x${string}`,
-          tokenAddressTo: receiptToSign.tokenAddressTo as `0x${string}`,
-          amountTo: BigInt(receiptToSign.amountTo),
-          chainFrom: BigInt(receiptToSign.chainFrom),
-          chainTo: BigInt(receiptToSign.chainTo),
-          eventId: BigInt(receiptToSign.eventId),
-          flags: BigInt(receiptToSign.flags),
-          data: receiptToSign.data as `0x${string}`,
-        },
+        "bytes32",
+        "bytes32",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "bytes",
+      ],
+      [
+        receiptToSign.to as `0x${string}`,
+        receiptToSign.tokenAddressTo as `0x${string}`,
+        BigInt(receiptToSign.amountTo),
+        BigInt(receiptToSign.chainFrom),
+        BigInt(receiptToSign.chainTo),
+        BigInt(receiptToSign.eventId),
+        BigInt(receiptToSign.flags),
+        receiptToSign.data as `0x${string}`,
       ]
     );
     const messageHash = keccak256(message);
-    const digest = hashMessage({ raw: messageHash });
     const signerRecovered = await recoverMessageAddress({
-      message: digest,
+      message: { raw: messageHash },
       signature,
     });
     if (signerRecovered !== signer) {
       throw new Error("Invalid signature");
     }
-    if (
-      BigInt(receiptToSign.chainTo) === SOLANA_CHAIN_ID ||
-      BigInt(receiptToSign.chainTo) === SOLANA_DEV_CHAIN_ID
-    ) {
-      throw new Error("Invalid chain ID");
-    }
-    const nodeURL = this.RPCs[`RPC_URL_${Number(receiptToSign.chainTo)}`];
-    if (!nodeURL) throw new Error("RPC node not found");
-    const client = createPublicClient({
-      transport: nodeURL as WebSocketTransport | HttpTransport,
-    });
-    const bridgeAddress = await this.getBridgeAddress(
-      receiptToSign.chainFrom,
-      receiptToSign.chainTo
-    );
-    if (!bridgeAddress) throw new Error("Bridge address not found");
-    const validatorAddress = await client.readContract({
-      abi: bridgeAbi,
-      address: bridgeAddress as `0x${string}`,
-      functionName: "validator",
-      args: [],
-    });
-    const isValidator = await client.readContract({
-      abi: validatorAbi,
-      address: validatorAddress,
-      functionName: "isValidator",
-      args: [signer],
-    });
-    if (!isValidator) {
-      throw Error("Signer is not a validator");
-    }
+    // TODO: Replace to check against config
+    // if (
+    //   BigInt(receiptToSign.chainTo) === SOLANA_CHAIN_ID ||
+    //   BigInt(receiptToSign.chainTo) === SOLANA_DEV_CHAIN_ID
+    // ) {
+    //   throw new Error("Invalid chain ID");
+    // }
+    // const nodeURL = this.RPCs[`RPC_URL_${Number(receiptToSign.chainTo)}`];
+    // if (!nodeURL) throw new Error("RPC node not found");
+    // const client = createPublicClient({
+    //   transport: nodeURL as WebSocketTransport | HttpTransport,
+    // });
+    // const bridgeAddress = await this.getBridgeAddress(
+    //   receiptToSign.chainFrom,
+    //   receiptToSign.chainTo
+    // );
+    // if (!bridgeAddress) throw new Error("Bridge address not found");
+    // const validatorAddress = await client.readContract({
+    //   abi: bridgeAbi,
+    //   address: bridgeAddress as `0x${string}`,
+    //   functionName: "validator",
+    //   args: [],
+    // });
+    // const isValidator = await client.readContract({
+    //   abi: validatorAbi,
+    //   address: validatorAddress,
+    //   functionName: "isValidator",
+    //   args: [signer],
+    // });
+    // if (!isValidator) {
+    //   throw Error("Signer is not a validator");
+    // }
     return signer;
   }
 
@@ -414,7 +369,7 @@ export class ReceiptController {
     if (!isValid) {
       throw new Error("Invalid signature");
     }
-    // TODO: Check if signer is a validator on-chain
+    // TODO: Check if signer is a validator against config
     return signer;
   }
 

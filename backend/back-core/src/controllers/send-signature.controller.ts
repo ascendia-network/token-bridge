@@ -10,9 +10,7 @@ import nacl from "tweetnacl";
 import { Keypair } from "@solana/web3.js";
 import {
   bytesToHex,
-  encodeAbiParameters,
   encodePacked,
-  hashMessage,
   keccak256,
   toBytes,
   type PrivateKeyAccount,

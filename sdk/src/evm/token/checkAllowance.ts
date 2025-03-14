@@ -1,6 +1,6 @@
 import { Address, erc20Abi, PublicClient } from "viem";
 
-export async function checkAllowance(
+export async function checkAllowanceERC20(
   tokenAddress: Address,
   owner: Address,
   spender: Address,
@@ -15,20 +15,6 @@ export async function checkAllowance(
   });
   if (allowedBalance < amount) {
     throw new Error("Insufficient allowance");
-  }
-  return true;
-}
-
-export async function checkBalanceNative(
-  owner: Address,
-  amount: bigint,
-  client: PublicClient
-): Promise<boolean> {
-  const balance = await client.getBalance({
-    address: owner,
-  });
-  if (balance < amount) {
-    throw new Error("Insufficient balance");
   }
   return true;
 }

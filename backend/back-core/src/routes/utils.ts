@@ -6,6 +6,7 @@ import { receiptsMetaInIndexerSolana } from "../db/schema/solana.schema";
 import { createSelectSchema } from "drizzle-zod";
 import { Base58 } from "ox";
 import { SOLANA_DEV_CHAIN_ID } from "../../config";
+import { toHex } from "viem";
 
 export const EvmAddressRegex = /^0x[a-fA-F0-9]{40}$/;
 export const SvmAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
@@ -30,7 +31,7 @@ export const svmAddressBytes32Hex = z
   .regex(SvmAddressRegex)
   .transform((val, ctx) => {
     const processed = String(val);
-    const hexAddress = Base58.toHex(processed);
+    const hexAddress = toHex(Base58.toBytes(processed));
     if (hexAddress.length !== 64 + 2) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

@@ -155,7 +155,7 @@ describe("Test bridge helpers", () => {
   });
 
   test("Should throw an error when trying to convert invalid solana address", () => {
-    expect(helpers.solanaAddressToBytes32("2NEpo7TZRRrLZSi2U")).toThrowError(
+    expect(() => helpers.solanaAddressToBytes32("2NEpo7TZRRrLZSi2U")).toThrow(
       "Possibly invalid solana address"
     );
   })

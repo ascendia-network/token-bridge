@@ -20,5 +20,15 @@
     "linebreak-style": ["error", "unix"],
     "quotes": ["error", "double"],
     "semi": ["error", "always"]
-  }
+  },
+  "overrides": [
+    {
+      "files": [
+        "tests/**/*"
+      ],
+      "env": {
+        "jest": true
+      }
+    }
+  ]
 }

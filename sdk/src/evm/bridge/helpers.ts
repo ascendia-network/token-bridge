@@ -1,6 +1,5 @@
 import {
   toHex,
-  hexToBytes,
   Address,
   Hex,
   encodePacked,

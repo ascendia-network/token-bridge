@@ -24,8 +24,11 @@ jobs:
           node-version: 'lts/*'
           registry-url: "https://registry.npmjs.org"
           scope: "@airdao"
+          cache: 'npm'
       - name: Install dependencies
         run: npm ci
+      - name: Test package
+        run: npm test
       - name: Build package
         run: npm run build
       - name: Publish package

@@ -1,10 +1,8 @@
 import { describe, expect, test } from "@jest/globals";
 import { Address, Hex } from "viem";
 import * as helpers from "../../../src/evm/bridge/helpers";
-import type {
-  FullReceipt,
-  MiniReceipt,
-} from "../../../src/evm/types";
+import type { FullReceipt, MiniReceipt } from "../../../src/evm/types";
+import { receipts } from "../../mocks/fixtures/receipt";
 
 describe("Test bridge helpers", () => {
   test.each<[Address, Hex]>([
@@ -97,66 +95,41 @@ describe("Test bridge helpers", () => {
     }
   );
 
-  test.each<[FullReceipt | MiniReceipt, Hex]>([
-    [
-      {
-        from: "0x111122223333444455556666777788889999AAAABBBBCCCCDDDDEEEEFFFFCCCC",
-        to: "0x000000000000000000000000e0b52ec5ce3e124ab5306ea42463be85aeb5eddd",
-        tokenAddressFrom:
-          "0x54455354494e4700000000000000000000000000000000000000000000000000",
-        tokenAddressTo:
-          "0x0000000000000000000000006deE265d22085F4c0BB1582BF0BAd8a6Af0309d9",
-        amountFrom: 1000000000000000000000n,
-        amountTo: 1000000000000000000000n,
-        chainFrom:
-          37682073643888590243866347653768361305805979805942384833434275429159048052736n,
-        chainTo: 22040n,
-        eventId: 0n,
-        flags: 0n,
-        data: "0x",
-      },
-      "0x56d78f233132a401208e5ba9b7959aa22719eeb4213283e299d57195399f648e",
-    ],
-    [
-      {
-        to: "0x000000000000000000000000e0b52ec5ce3e124ab5306ea42463be85aeb5eddd",
-        tokenAddressTo:
-          "0x0000000000000000000000006deE265d22085F4c0BB1582BF0BAd8a6Af0309d9",
-        amountTo: 1000000000000000000000n,
-        chainFrom:
-          37682073643888590243866347653768361305805979805942384833434275429159048052736n,
-        chainTo: 22040n,
-        eventId: 0n,
-        flags: 0n,
-        data: "0x",
-      },
-      "0x56d78f233132a401208e5ba9b7959aa22719eeb4213283e299d57195399f648e",
-    ],
-    [
-      {
-        from: "0x111122223333444455556666777788889999AAAABBBBCCCCDDDDEEEEFFFFCCCC",
-        to: "0x000000000000000000000000e0b52ec5ce3e124ab5306ea42463be85aeb5eddd",
-        tokenAddressFrom:
-          "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
-        tokenAddressTo:
-          "0x0000000000000000000000005B9E2BD997bc8f6aE97145cE0a8dEE075653f1AA",
-        amountFrom: 1000000000000000000000n,
-        amountTo: 1000000000000000n,
-        chainFrom: 6003100671677645902n,
-        chainTo: 22040n,
-        eventId: 12345n,
-        flags: 0n,
-        data: "0x",
-      },
-      "0x9d32d2270629b95b2590e468a8ac108e706bf888cdb4b8b5dee3f6d6db4f6aff",
-    ],
-  ])(`Should correctly convert receipt to hash`, (receipt, expectedHash) => {
+  test.each<[FullReceipt | MiniReceipt, Hex]>(
+    receipts
+      .map<[FullReceipt | MiniReceipt, Hex]>((entry) => [
+        entry.receipt,
+        entry.hash,
+      ])
+      .concat(
+        receipts.map<[FullReceipt | MiniReceipt, Hex]>((entry) => [
+          helpers.full2miniReceipt(entry.receipt),
+          entry.hash,
+        ])
+      )
+  )(`Should correctly convert receipt to hash`, (receipt, expectedHash) => {
     expect(helpers.hashReceipt(receipt)).toBe(expectedHash);
+  });
+
+  test("Should throw an error when trying to convert invalid solana address", () => {
+    expect(() =>
+      helpers.evmAddressToBytes32(
+        "0x56d78f233132a401208e5ba9b7959aa22719eeb4213283e299d57195399f648e"
+      )
+    ).toThrow("Possibly invalid evm address");
+    expect(() =>
+      helpers.addressToBytes32(
+        "0x56d78f233132a401208e5ba9b7959aa22719eeb4213283e299d57195399f648e"
+      )
+    ).toThrow("Possibly invalid evm address");
   });
 
   test("Should throw an error when trying to convert invalid solana address", () => {
     expect(() => helpers.solanaAddressToBytes32("2NEpo7TZRRrLZSi2U")).toThrow(
       "Possibly invalid solana address"
     );
-  })
+    expect(() => helpers.base58AddressToBytes32("2NEpo7TZRRrLZSi2U")).toThrow(
+      "Possibly invalid solana address"
+    );
+  });
 });

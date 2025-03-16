@@ -100,6 +100,15 @@ function processSendEvent(log: any, event: SolanaTransaction) {
   };
 }
 
+/**
+ * Extracts and formats data from a Solana receive event log for claimed receipt processing.
+ *
+ * This asynchronous function converts raw log data from a Solana transaction event into a structured object. It parses hexadecimal values such as token addresses, amounts, chain identifiers, event ID, and flags into appropriate formats, preparing the data for insertion into the database under the claimed receipts model.
+ *
+ * @param log - The log entry containing raw event data including recipient addresses, amounts, chain identifiers, and flag details.
+ * @param event - The Solana transaction event providing metadata such as the block time.
+ * @returns An object with the receipts claimed model and a values object populated with the formatted and converted event data.
+ */
 async function processReceiveEvent(log: any, event: SolanaTransaction) {
   const toAddress = new PublicKey(log.data.to);
   const tokenAddressTo = new PublicKey(log.data.token_address_to);

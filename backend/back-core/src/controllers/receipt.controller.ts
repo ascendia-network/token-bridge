@@ -7,47 +7,26 @@ import {
   toBytes,
   keccak256,
   recoverMessageAddress,
-  http,
-  webSocket,
-  type WebSocketTransport,
-  type HttpTransport,
-  encodePacked,
+  encodePacked
 } from "viem";
 import { consoleLogger } from "../utils";
 import { serializeReceivePayload, ReceivePayload } from "../utils/solana";
 import {
+  bridgeValidators,
   CHAIN_ID_TO_CHAIN_NAME,
   SOLANA_CHAIN_ID,
   SOLANA_DEV_CHAIN_ID,
-  stageConfig,
+  stageConfig
 } from "../../config";
 import nacl from "tweetnacl";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { TokenConfigSchema } from "../routes/utils";
 
 export class ReceiptController {
   db: NodePgDatabase;
-  RPCs: Record<
-    `RPC_URL_${number}`,
-    WebSocketTransport | HttpTransport | Connection
-  >;
 
-  constructor(dbUrl: string, RPCs: Record<`RPC_URL_${number}`, string>) {
+  constructor(dbUrl: string) {
     this.db = drizzle(dbUrl);
-    this.RPCs = Object.fromEntries(
-      Object.entries(RPCs).map(([key, value]) => {
-        switch (key) {
-          case `RPC_URL_${SOLANA_CHAIN_ID}`:
-          case `RPC_URL_${SOLANA_DEV_CHAIN_ID}`:
-            return [[key], new Connection(value, "confirmed")];
-          default:
-            return [
-              [key],
-              value.startsWith("ws") ? webSocket(value) : http(value),
-            ];
-        }
-      })
-    );
   }
 
   async getAllReceipts(
@@ -91,7 +70,7 @@ export class ReceiptController {
           blockNumber: receiptsMetaInIndexerEvm.blockNumber,
           timestamp: receiptsMetaInIndexerEvm.timestamp,
           transactionHash: receiptsMetaInIndexerEvm.transactionHash,
-          transactionIndex: receiptsMetaInIndexerEvm.transactionIndex,
+          transactionIndex: receiptsMetaInIndexerEvm.transactionIndex
         })
         .from(receiptsMetaInIndexerEvm)
         .where(
@@ -107,7 +86,7 @@ export class ReceiptController {
           blockNumber: receiptsMetaInIndexerSolana.blockNumber,
           timestamp: receiptsMetaInIndexerSolana.timestamp,
           transactionHash: receiptsMetaInIndexerSolana.transactionHash,
-          transactionIndex: receiptsMetaInIndexerSolana.transactionIndex,
+          transactionIndex: receiptsMetaInIndexerSolana.transactionIndex
         })
         .from(receiptsMetaInIndexerSolana)
         .where(
@@ -123,7 +102,7 @@ export class ReceiptController {
         );
         return {
           receipt: r,
-          receiptMeta: [...metaEvm, ...metaSolana],
+          receiptMeta: [...metaEvm, ...metaSolana]
         };
       });
     } catch (error) {
@@ -152,7 +131,7 @@ export class ReceiptController {
           blockNumber: receiptsMetaInIndexerEvm.blockNumber,
           timestamp: receiptsMetaInIndexerEvm.timestamp,
           transactionHash: receiptsMetaInIndexerEvm.transactionHash,
-          transactionIndex: receiptsMetaInIndexerEvm.transactionIndex,
+          transactionIndex: receiptsMetaInIndexerEvm.transactionIndex
         })
         .from(receiptsMetaInIndexerEvm)
         .where(eq(receiptsMetaInIndexerEvm.receiptId, receiptId));
@@ -163,7 +142,7 @@ export class ReceiptController {
           blockNumber: receiptsMetaInIndexerSolana.blockNumber,
           timestamp: receiptsMetaInIndexerSolana.timestamp,
           transactionHash: receiptsMetaInIndexerSolana.transactionHash,
-          transactionIndex: receiptsMetaInIndexerSolana.transactionIndex,
+          transactionIndex: receiptsMetaInIndexerSolana.transactionIndex
         })
         .from(receiptsMetaInIndexerSolana)
         .where(eq(receiptsMetaInIndexerSolana.receiptId, receiptId));
@@ -174,7 +153,7 @@ export class ReceiptController {
 
       return {
         receipt: result,
-        receiptMeta: [...metaEvm, ...metaSolana],
+        receiptMeta: [...metaEvm, ...metaSolana]
       };
     } catch (error) {
       consoleLogger(
@@ -195,7 +174,7 @@ export class ReceiptController {
         .select({
           receiptId: signatures.receiptId,
           signedBy: signatures.signedBy,
-          signature: signatures.signature,
+          signature: signatures.signature
         })
         .from(signatures)
         .where(eq(signatures.receiptId, receiptId))
@@ -236,13 +215,13 @@ export class ReceiptController {
           eq(receipt.claimed, false),
           chainEnum === "svm"
             ? or(
-                eq(receipt.chainTo, SOLANA_CHAIN_ID.toString()),
-                eq(receipt.chainTo, SOLANA_DEV_CHAIN_ID.toString())
-              )
+              eq(receipt.chainTo, SOLANA_CHAIN_ID.toString()),
+              eq(receipt.chainTo, SOLANA_DEV_CHAIN_ID.toString())
+            )
             : and(
-                ne(receipt.chainTo, SOLANA_CHAIN_ID.toString()),
-                ne(receipt.chainTo, SOLANA_DEV_CHAIN_ID.toString())
-              ),
+              ne(receipt.chainTo, SOLANA_CHAIN_ID.toString()),
+              ne(receipt.chainTo, SOLANA_DEV_CHAIN_ID.toString())
+            ),
           notInArray(
             receipt.receiptId,
             this.db
@@ -290,7 +269,7 @@ export class ReceiptController {
         "uint256",
         "uint256",
         "uint256",
-        "bytes",
+        "bytes"
       ],
       [
         receiptToSign.to as `0x${string}`,
@@ -300,49 +279,33 @@ export class ReceiptController {
         BigInt(receiptToSign.chainTo),
         BigInt(receiptToSign.eventId),
         BigInt(receiptToSign.flags),
-        receiptToSign.data as `0x${string}`,
+        receiptToSign.data as `0x${string}`
       ]
     );
     const messageHash = keccak256(message);
     const signerRecovered = await recoverMessageAddress({
       message: { raw: messageHash },
-      signature,
+      signature
     });
     if (signerRecovered !== signer) {
       throw new Error("Invalid signature");
     }
-    // TODO: Replace to check against config
-    // if (
-    //   BigInt(receiptToSign.chainTo) === SOLANA_CHAIN_ID ||
-    //   BigInt(receiptToSign.chainTo) === SOLANA_DEV_CHAIN_ID
-    // ) {
-    //   throw new Error("Invalid chain ID");
-    // }
-    // const nodeURL = this.RPCs[`RPC_URL_${Number(receiptToSign.chainTo)}`];
-    // if (!nodeURL) throw new Error("RPC node not found");
-    // const client = createPublicClient({
-    //   transport: nodeURL as WebSocketTransport | HttpTransport,
-    // });
-    // const bridgeAddress = await this.getBridgeAddress(
-    //   receiptToSign.chainFrom,
-    //   receiptToSign.chainTo
-    // );
-    // if (!bridgeAddress) throw new Error("Bridge address not found");
-    // const validatorAddress = await client.readContract({
-    //   abi: bridgeAbi,
-    //   address: bridgeAddress as `0x${string}`,
-    //   functionName: "validator",
-    //   args: [],
-    // });
-    // const isValidator = await client.readContract({
-    //   abi: validatorAbi,
-    //   address: validatorAddress,
-    //   functionName: "isValidator",
-    //   args: [signer],
-    // });
-    // if (!isValidator) {
-    //   throw Error("Signer is not a validator");
-    // }
+    // TODO: change it when we will add new networks
+    if (
+      BigInt(receiptToSign.chainTo) === SOLANA_CHAIN_ID ||
+      BigInt(receiptToSign.chainTo) === SOLANA_DEV_CHAIN_ID
+    ) {
+      throw new Error("Invalid chain ID");
+    }
+    const bridgeAddress = await this.getBridgeAddress(
+      receiptToSign.chainFrom,
+      receiptToSign.chainTo
+    );
+    if (!bridgeAddress) throw new Error("Bridge address not found");
+
+    const validators = bridgeValidators[receiptToSign.chainTo];
+    if (validators.length === 0) throw new Error("Validators not found");
+    if (!validators.includes(signer)) throw Error("Signer is not a validator");
     return signer;
   }
 
@@ -357,7 +320,7 @@ export class ReceiptController {
       amountTo: BigInt(receiptToSign.amountTo),
       chainTo: BigInt(receiptToSign.chainTo),
       flags: toBytes(BigInt(receiptToSign.flags), { size: 32 }),
-      flagData: toBytes(receiptToSign.data),
+      flagData: toBytes(receiptToSign.data)
     });
     const payload = serializeReceivePayload(value);
     const signatureBytes = toBytes(signature);
@@ -369,7 +332,9 @@ export class ReceiptController {
     if (!isValid) {
       throw new Error("Invalid signature");
     }
-    // TODO: Check if signer is a validator against config
+    const validators = bridgeValidators[receiptToSign.chainTo];
+    if (validators.length === 0) throw new Error("Validators not found");
+    if (!validators.includes(signer)) throw Error("Signer is not a validator");
     return signer;
   }
 
@@ -401,7 +366,7 @@ export class ReceiptController {
         await this.db.insert(signatures).values({
           receiptId,
           signedBy,
-          signature,
+          signature
         });
         return true;
       default:
@@ -413,7 +378,7 @@ export class ReceiptController {
         await this.db.insert(signatures).values({
           receiptId,
           signedBy,
-          signature,
+          signature
         });
         return true;
     }

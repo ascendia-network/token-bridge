@@ -18,10 +18,8 @@ import { cors } from "hono/cors";
 const receiptControllerDep = new Dependency((c) => {
   const vars = env<{
     DATABASE_URL: string
-    [key: `RPC_URL_${number}`]: string
   }>(c);
-  const RPCs = Object.fromEntries(Object.entries(vars).filter(([key]) => key.startsWith("RPC_URL_")));
-  return new ReceiptController(vars.DATABASE_URL, RPCs);
+  return new ReceiptController(vars.DATABASE_URL);
 });
 
 export const receiptRoutes = new Hono();
@@ -245,9 +243,9 @@ receiptRoutes.get(
         description: "Returns receipt",
         content: {
           "application/json": {
-            schema: resolver(signaturesResponseSchema),
-          },
-        },
+            schema: resolver(signaturesResponseSchema)
+          }
+        }
       },
       400: {
         description: "Returns error message",
@@ -257,14 +255,14 @@ receiptRoutes.get(
               type: "object",
               properties: {
                 message: {
-                  type: "string",
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+                  type: "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }),
   zValidator("param", receiptIdValidatorSchema),
   receiptControllerDep.middleware("receiptController"),
@@ -277,7 +275,7 @@ receiptRoutes.get(
       return c.json(
         signaturesResponseSchema.parse({
           receiptId,
-          signatures: data,
+          signatures: data
         }),
         200
       );

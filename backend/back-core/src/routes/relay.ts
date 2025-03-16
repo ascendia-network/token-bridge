@@ -8,7 +8,7 @@ import {
   receiptIdValidatorSchema,
   svmAddressValidatorSchema,
   unsignedReceiptsResponseSchema,
-  signatureRegex,
+  signatureRegex
 } from "./utils";
 import { Hono } from "hono";
 import { type ContentfulStatusCode } from "hono/utils/http-status";
@@ -19,12 +19,8 @@ import { cors } from "hono/cors";
 const receiptControllerDep = new Dependency((c) => {
   const vars = env<{
     DATABASE_URL: string;
-    [key: `RPC_URL_${number}`]: string;
   }>(c);
-  const RPCs = Object.fromEntries(
-    Object.entries(vars).filter(([key]) => key.startsWith("RPC_URL_"))
-  );
-  return new ReceiptController(vars.DATABASE_URL, RPCs);
+  return new ReceiptController(vars.DATABASE_URL);
 });
 
 export const relayRoutes = new Hono();
@@ -45,9 +41,9 @@ relayRoutes.get(
         description: "Returns unsigned EVM receipts with receipt metadata",
         content: {
           "application/json": {
-            schema: resolver(unsignedReceiptsResponseSchema),
-          },
-        },
+            schema: resolver(unsignedReceiptsResponseSchema)
+          }
+        }
       },
       400: {
         description: "Returns error message",
@@ -57,14 +53,14 @@ relayRoutes.get(
               type: "object",
               properties: {
                 message: {
-                  type: "string",
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+                  type: "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }),
   zValidator("param", evmAddressValidatorSchema),
   receiptControllerDep.middleware("receiptController"),
@@ -92,9 +88,9 @@ relayRoutes.get(
         description: "Returns unsigned Solana receipts with receipt metadata",
         content: {
           "application/json": {
-            schema: resolver(unsignedReceiptsResponseSchema),
-          },
-        },
+            schema: resolver(unsignedReceiptsResponseSchema)
+          }
+        }
       },
       400: {
         description: "Returns error message",
@@ -104,14 +100,14 @@ relayRoutes.get(
               type: "object",
               properties: {
                 message: {
-                  type: "string",
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+                  type: "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }),
   zValidator("param", svmAddressValidatorSchema),
   receiptControllerDep.middleware("receiptController"),
@@ -142,14 +138,14 @@ relayRoutes.post(
               type: "object",
               properties: {
                 signed: {
-                  type: "boolean",
-                },
+                  type: "boolean"
+                }
               },
               example: { signed: true },
-              description: "If receipt has been signed",
-            },
-          },
-        },
+              description: "If receipt has been signed"
+            }
+          }
+        }
       },
       404: {
         description: "Receipt not found",
@@ -160,12 +156,12 @@ relayRoutes.post(
               properties: {
                 message: {
                   type: "string",
-                  example: "Receipt not found",
-                },
-              },
-            },
-          },
-        },
+                  example: "Receipt not found"
+                }
+              }
+            }
+          }
+        }
       },
       400: {
         description: "Returns error message",
@@ -175,14 +171,14 @@ relayRoutes.post(
               type: "object",
               properties: {
                 message: {
-                  type: "string",
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+                  type: "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }),
   zValidator("param", receiptIdValidatorSchema),
   zValidator(
@@ -191,9 +187,9 @@ relayRoutes.post(
       signer: z.string().openapi({
         examples: [
           "0xe0b52EC5cE3e124ab5306ea42463bE85aeb5eDDd",
-          "FMYR5BFh3JapZS1cfwYViiBMYJxFGwKdchnghBnBtxkk",
+          "FMYR5BFh3JapZS1cfwYViiBMYJxFGwKdchnghBnBtxkk"
         ],
-        description: "Signer address",
+        description: "Signer address"
       }),
       signature: z
         .string()
@@ -204,7 +200,7 @@ relayRoutes.post(
             return `0x${processed.slice(2)}` as `0x${string}`;
           }
           return `0x${processed}` as `0x${string}`;
-        }),
+        })
     })
   ),
   receiptControllerDep.middleware("receiptController"),

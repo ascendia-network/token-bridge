@@ -58,6 +58,17 @@ setProvider(provider);
 
 export const program = new Program(idl as AmbSolBridge, provider);
 
+/**
+ * Serves as the main entry point for demonstrating blockchain token operations.
+ *
+ * This asynchronous function demonstrates various Solana token operations, including token initialization and transaction processing.
+ * While several operations (e.g., token creation and state initialization) are provided as commented examples, the current implementation
+ * executes a token receive transaction by calling {@link makeReceiveTx}. Uncomment additional operations as needed for testing.
+ *
+ * @example
+ * // Execute the main function to perform a receive transaction.
+ * await main();
+ */
 export async function main() {
   // await initialize()
 
@@ -80,6 +91,14 @@ export async function main() {
   await makeReceiveTx();
 }
 
+/**
+ * Creates a new token mint.
+ *
+ * For synthetic tokens, the mint authority is set to a bridge token PDA derived from the provided token's public key. For standard tokens, the admin's public key is used as the mint authority and an initial supply of 1,000,000 tokens (with 6 decimals) is minted to the user's associated token account.
+ *
+ * @param tokenKeypair - The keypair representing the token mint to be created.
+ * @param isSynthetic - Optional flag indicating if the token should be synthetic (default is false).
+ */
 async function createToken(tokenKeypair: Keypair, isSynthetic = false) {
   if (isSynthetic) {
     // mint authority should be bridge token PDA for synthetic tokens
@@ -121,6 +140,16 @@ async function createToken(tokenKeypair: Keypair, isSynthetic = false) {
   }
 }
 
+/**
+ * Initializes the global state of the program.
+ *
+ * This asynchronous function aggregates the public keys of all configured receive signers by encoding each into a fixed-length buffer,
+ * then computes the keccak256 hash of the concatenated buffer to derive a unique receive signer public key.
+ * It subsequently invokes the program's initialize method using the send signer's public key and the derived receive signer,
+ * setting the admin's public key as the admin account for the transaction.
+ *
+ * @remark The derived receive signer is obtained by splitting the buffer into 32-byte segments for each signer's public key before hashing.
+ */
 async function initialize() {
   // initialize global state
   const receiveSignersBuffer = Buffer.alloc(32 * receiveSigners.length);
@@ -138,6 +167,17 @@ async function initialize() {
     .rpc();
 }
 
+/**
+ * Sends tokens from a source account to a destination account and logs the transaction details along with parsed events.
+ *
+ * This asynchronous function initiates a token transfer by calling a send method with predefined parameters,
+ * including an admin wallet, a smart contract program, and a backend mock service. After submitting the transaction,
+ * it retrieves the parsed transaction data with a confirmed commitment status and logs both the overall transaction details
+ * and each event parsed from the transaction logs.
+ *
+ * @param tokenFrom - The public key of the token account from which tokens are sent.
+ * @param tokenTo - The identifier of the destination token account.
+ */
 async function makeSendTx(tokenFrom: PublicKey, tokenTo: string) {
   const txSignature = await send(
     connection,
@@ -166,6 +206,17 @@ async function makeSendTx(tokenFrom: PublicKey, tokenTo: string) {
   }
 }
 
+/**
+ * Executes a receive transaction by fetching the expected nonce, obtaining a signed payload,
+ * and processing the transaction on the Solana blockchain.
+ *
+ * The function retrieves the current nonce from the blockchain state, then requests a receive
+ * payload and signature from a backend service. It submits the receive transaction and logs both the
+ * parsed transaction details and any events emitted during execution.
+ *
+ * @example
+ * await makeReceiveTx();
+ */
 async function makeReceiveTx() {
   const expectedNonce = +(
     await program.account.nonceAccount.fetch(

@@ -101,6 +101,14 @@ const solanaRPCs = {
   [`RPC_URL_${SOLANA_DEV_CHAIN_ID}`]: clusterApiUrl("devnet")
 };
 
+/**
+ * Combines predefined Solana RPC endpoints with additional network RPC URLs from the configuration.
+ *
+ * This function merges the Solana-specific RPC endpoints with URLs provided in the configuration. For each network entry that matches a known chain in the network mapping, it adds an RPC URL keyed as "RPC_URL_" followed by the corresponding chain identifier.
+ *
+ * @param config - The application configuration that includes network RPC endpoints.
+ * @returns A consolidated mapping of RPC URL identifiers to their URL strings.
+ */
 export function buildRPCs(config: Config) {
   return {
     ...solanaRPCs,

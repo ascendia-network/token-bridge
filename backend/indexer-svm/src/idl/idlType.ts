@@ -1,9 +1,13 @@
-import { Idl } from "@coral-xyz/anchor";
-
-export const bridgeIdl = {
+/**
+ * Program IDL in camelCase format in order to be used in JS/TS.
+ *
+ * Note that this is only a type helper and is not the actual IDL. The original
+ * IDL can be found at `target/idl/amb_sol_bridge.json`.
+ */
+export type AmbSolBridge = {
   "address": "ambZMSUBvU8bLfxop5uupQd9tcafeJKea1KoyTv2yM1",
   "metadata": {
-    "name": "amb_sol_bridge",
+    "name": "ambSolBridge",
     "version": "0.1.0",
     "spec": "0.1.0",
     "description": "Created with Anchor"
@@ -53,23 +57,23 @@ export const bridgeIdl = {
           "signer": true
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
         {
-          "name": "send_signer",
+          "name": "sendSigner",
           "type": "pubkey"
         },
         {
-          "name": "receive_signer",
+          "name": "receiveSigner",
           "type": "pubkey"
         }
       ]
     },
     {
-      "name": "initialize_token",
+      "name": "initializeToken",
       "discriminator": [
         38,
         209,
@@ -114,7 +118,7 @@ export const bridgeIdl = {
           ]
         },
         {
-          "name": "bridge_token",
+          "name": "bridgeToken",
           "writable": true,
           "pda": {
             "seeds": [
@@ -136,14 +140,14 @@ export const bridgeIdl = {
           }
         },
         {
-          "name": "bridge_token_account",
+          "name": "bridgeTokenAccount",
           "writable": true,
           "optional": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "bridge_token"
+                "path": "bridgeToken"
               },
               {
                 "kind": "const",
@@ -230,21 +234,21 @@ export const bridgeIdl = {
           "name": "mint"
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "name": "associated_token_program",
+          "name": "associatedTokenProgram",
           "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
         {
-          "name": "amb_token",
+          "name": "ambToken",
           "type": {
             "array": [
               "u8",
@@ -253,11 +257,11 @@ export const bridgeIdl = {
           }
         },
         {
-          "name": "amb_decimals",
+          "name": "ambDecimals",
           "type": "u8"
         },
         {
-          "name": "is_mintable",
+          "name": "isMintable",
           "type": "bool"
         }
       ]
@@ -305,7 +309,7 @@ export const bridgeIdl = {
           "signer": true
         },
         {
-          "name": "receiver_token_account",
+          "name": "receiverTokenAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -315,7 +319,7 @@ export const bridgeIdl = {
               },
               {
                 "kind": "account",
-                "path": "token_program"
+                "path": "tokenProgram"
               },
               {
                 "kind": "account",
@@ -362,7 +366,7 @@ export const bridgeIdl = {
           }
         },
         {
-          "name": "receiver_nonce_account",
+          "name": "receiverNonceAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -384,7 +388,7 @@ export const bridgeIdl = {
           }
         },
         {
-          "name": "bridge_token",
+          "name": "bridgeToken",
           "pda": {
             "seeds": [
               {
@@ -405,14 +409,14 @@ export const bridgeIdl = {
           }
         },
         {
-          "name": "bridge_token_account",
+          "name": "bridgeTokenAccount",
           "writable": true,
           "optional": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "bridge_token"
+                "path": "bridgeToken"
               },
               {
                 "kind": "const",
@@ -500,7 +504,7 @@ export const bridgeIdl = {
           "writable": true
         },
         {
-          "name": "ix_sysvar",
+          "name": "ixSysvar",
           "docs": [
             "the supplied Sysvar could be anything else.",
             "The Instruction Sysvar has not been implemented",
@@ -509,25 +513,25 @@ export const bridgeIdl = {
           "address": "Sysvar1nstructions1111111111111111111111111"
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         },
         {
-          "name": "associated_token_program",
+          "name": "associatedTokenProgram",
           "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         }
       ],
       "args": [
         {
-          "name": "amount_to",
+          "name": "amountTo",
           "type": "u64"
         },
         {
-          "name": "event_id",
+          "name": "eventId",
           "type": "u64"
         },
         {
@@ -540,7 +544,7 @@ export const bridgeIdl = {
           }
         },
         {
-          "name": "flag_data",
+          "name": "flagData",
           "type": "bytes"
         }
       ]
@@ -589,7 +593,7 @@ export const bridgeIdl = {
           "signer": true
         },
         {
-          "name": "sender_token_account",
+          "name": "senderTokenAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -679,7 +683,7 @@ export const bridgeIdl = {
           }
         },
         {
-          "name": "bridge_token",
+          "name": "bridgeToken",
           "pda": {
             "seeds": [
               {
@@ -700,14 +704,14 @@ export const bridgeIdl = {
           }
         },
         {
-          "name": "bridge_token_account",
+          "name": "bridgeTokenAccount",
           "writable": true,
           "optional": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "bridge_token"
+                "path": "bridgeToken"
               },
               {
                 "kind": "const",
@@ -795,7 +799,7 @@ export const bridgeIdl = {
           "writable": true
         },
         {
-          "name": "ix_sysvar",
+          "name": "ixSysvar",
           "docs": [
             "the supplied Sysvar could be anything else.",
             "The Instruction Sysvar has not been implemented",
@@ -804,17 +808,17 @@ export const bridgeIdl = {
           "address": "Sysvar1nstructions1111111111111111111111111"
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
         {
-          "name": "serialized_args",
+          "name": "serializedArgs",
           "type": "bytes"
         },
         {
@@ -829,7 +833,7 @@ export const bridgeIdl = {
       ]
     },
     {
-      "name": "set_pause",
+      "name": "setPause",
       "discriminator": [
         63,
         32,
@@ -884,7 +888,7 @@ export const bridgeIdl = {
   ],
   "accounts": [
     {
-      "name": "GlobalState",
+      "name": "globalState",
       "discriminator": [
         163,
         46,
@@ -897,7 +901,7 @@ export const bridgeIdl = {
       ]
     },
     {
-      "name": "NonceAccount",
+      "name": "nonceAccount",
       "discriminator": [
         110,
         202,
@@ -910,7 +914,7 @@ export const bridgeIdl = {
       ]
     },
     {
-      "name": "TokenConfig",
+      "name": "tokenConfig",
       "discriminator": [
         92,
         73,
@@ -925,7 +929,7 @@ export const bridgeIdl = {
   ],
   "events": [
     {
-      "name": "ReceivePayload",
+      "name": "receivePayload",
       "discriminator": [
         106,
         38,
@@ -938,7 +942,7 @@ export const bridgeIdl = {
       ]
     },
     {
-      "name": "SendEvent",
+      "name": "sendEvent",
       "discriminator": [
         140,
         14,
@@ -954,33 +958,33 @@ export const bridgeIdl = {
   "errors": [
     {
       "code": 6000,
-      "name": "InvalidSignature",
+      "name": "invalidSignature",
       "msg": "Signature invalid"
     },
     {
       "code": 6001,
-      "name": "InvalidNonce",
+      "name": "invalidNonce",
       "msg": "Invalid nonce"
     },
     {
       "code": 6002,
-      "name": "InvalidToken",
+      "name": "invalidToken",
       "msg": "Invalid token"
     },
     {
       "code": 6003,
-      "name": "InvalidSerialization",
+      "name": "invalidSerialization",
       "msg": "Invalid serialization"
     },
     {
       "code": 6004,
-      "name": "InvalidArgs",
+      "name": "invalidArgs",
       "msg": "Invalid input arguments"
     }
   ],
   "types": [
     {
-      "name": "GlobalState",
+      "name": "globalState",
       "type": {
         "kind": "struct",
         "fields": [
@@ -989,11 +993,11 @@ export const bridgeIdl = {
             "type": "pubkey"
           },
           {
-            "name": "send_signer",
+            "name": "sendSigner",
             "type": "pubkey"
           },
           {
-            "name": "receive_signer",
+            "name": "receiveSigner",
             "type": "pubkey"
           },
           {
@@ -1008,19 +1012,19 @@ export const bridgeIdl = {
       }
     },
     {
-      "name": "NonceAccount",
+      "name": "nonceAccount",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "nonce_counter",
+            "name": "nonceCounter",
             "type": "u64"
           }
         ]
       }
     },
     {
-      "name": "ReceivePayload",
+      "name": "receivePayload",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1029,23 +1033,23 @@ export const bridgeIdl = {
             "type": "pubkey"
           },
           {
-            "name": "token_address_to",
+            "name": "tokenAddressTo",
             "type": "pubkey"
           },
           {
-            "name": "amount_to",
+            "name": "amountTo",
             "type": "u64"
           },
           {
-            "name": "chain_from",
+            "name": "chainFrom",
             "type": "u64"
           },
           {
-            "name": "chain_to",
+            "name": "chainTo",
             "type": "u64"
           },
           {
-            "name": "event_id",
+            "name": "eventId",
             "type": "u64"
           },
           {
@@ -1058,14 +1062,14 @@ export const bridgeIdl = {
             }
           },
           {
-            "name": "flag_data",
+            "name": "flagData",
             "type": "bytes"
           }
         ]
       }
     },
     {
-      "name": "SendEvent",
+      "name": "sendEvent",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1083,11 +1087,11 @@ export const bridgeIdl = {
             }
           },
           {
-            "name": "token_address_from",
+            "name": "tokenAddressFrom",
             "type": "pubkey"
           },
           {
-            "name": "token_address_to",
+            "name": "tokenAddressTo",
             "type": {
               "array": [
                 "u8",
@@ -1096,11 +1100,11 @@ export const bridgeIdl = {
             }
           },
           {
-            "name": "amount_from",
+            "name": "amountFrom",
             "type": "u64"
           },
           {
-            "name": "amount_to",
+            "name": "amountTo",
             "type": {
               "array": [
                 "u8",
@@ -1109,15 +1113,15 @@ export const bridgeIdl = {
             }
           },
           {
-            "name": "chain_from",
+            "name": "chainFrom",
             "type": "u64"
           },
           {
-            "name": "chain_to",
+            "name": "chainTo",
             "type": "u64"
           },
           {
-            "name": "event_id",
+            "name": "eventId",
             "type": "u64"
           },
           {
@@ -1130,14 +1134,14 @@ export const bridgeIdl = {
             }
           },
           {
-            "name": "flag_data",
+            "name": "flagData",
             "type": "bytes"
           }
         ]
       }
     },
     {
-      "name": "TokenConfig",
+      "name": "tokenConfig",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1146,7 +1150,7 @@ export const bridgeIdl = {
             "type": "pubkey"
           },
           {
-            "name": "amb_token",
+            "name": "ambToken",
             "type": {
               "array": [
                 "u8",
@@ -1155,11 +1159,11 @@ export const bridgeIdl = {
             }
           },
           {
-            "name": "amb_decimals",
+            "name": "ambDecimals",
             "type": "u8"
           },
           {
-            "name": "is_mintable",
+            "name": "isMintable",
             "type": "bool"
           },
           {
@@ -1170,5 +1174,4 @@ export const bridgeIdl = {
       }
     }
   ]
-} as const satisfies Idl;
-export default bridgeIdl;
+};

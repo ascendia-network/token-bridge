@@ -103,15 +103,7 @@ function processSendEvent(log: any, event: SolanaTransaction) {
 async function processReceiveEvent(log: any, event: SolanaTransaction) {
   const toAddress = new PublicKey(log.data.to);
   const tokenAddressTo = new PublicKey(log.data.token_address_to);
-  const eventId = safeBigIntFromHex(log.data.event_id);
 
-  const chainFromResult = await db
-    .select({ chainFrom: receiptsSent.chainTo })
-    .from(receiptsSent)
-    .where(eq(receiptsSent.eventId, eventId.toString()))
-    .limit(1);
-
-  const chainFrom = chainFromResult.length > 0 ? chainFromResult[0].chainFrom : null;
   return {
     model: receiptsClaimed,
     values: {
@@ -121,8 +113,8 @@ async function processReceiveEvent(log: any, event: SolanaTransaction) {
       tokenAddressTo: toHexFromBytes(tokenAddressTo.toBytes()),
       amountTo: safeBigIntFromHex(log.data.amount_to),
       chainTo: safeBigIntFromHex(log.data.chain_to),
-      chainFrom,
-      eventId,
+      chainFrom: safeBigIntFromHex(log.data.chain_from),
+      eventId: safeBigIntFromHex(log.data.event_id),
       flags: safeHexToNumber(log.data.flags),
       data: safeHexToString(log.data.flag_data)
     }

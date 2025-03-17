@@ -21,5 +21,8 @@ export default {
       lines: 80,
       statements: 85
     }
-  }
+  },
+  // This options exists because of mocking contracts (IDK how to fix it) 
+  forceExit: true,
+  detectOpenHandles: true,
 }

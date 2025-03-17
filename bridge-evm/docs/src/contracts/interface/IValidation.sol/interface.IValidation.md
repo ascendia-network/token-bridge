@@ -1,5 +1,5 @@
 # IValidation
-[Git Source](https://github.com/ambrosus/token-bridge/blob/c9e5c0649869e1d0d7d463cf7e74634fda87430d/contracts/interface/IValidation.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/b8faea8dbabdd33f2dbbdda724404a71e4c5b492/contracts/interface/IValidation.sol)
 
 **Inherits:**
 [BridgeTypes](/contracts/interface/BridgeTypes.sol/interface.BridgeTypes.md)
@@ -12,9 +12,9 @@ Set the address of the payload signer
 
 
 ```solidity
-function setPayloadSigner(address _payloadSigner)
-    external
-    returns (bool success);
+function setPayloadSigner(
+    address _payloadSigner
+) external returns (bool success);
 ```
 **Parameters**
 
@@ -35,9 +35,9 @@ Set the fee validity window in seconds
 
 
 ```solidity
-function setFeeValidityWindow(uint256 _validityWindow)
-    external
-    returns (bool success);
+function setFeeValidityWindow(
+    uint256 _validityWindow
+) external returns (bool success);
 ```
 **Parameters**
 
@@ -91,10 +91,7 @@ Validate the transaction receipt
 function validate(
     FullReceipt memory receipt,
     bytes memory signature
-)
-    external
-    view
-    returns (bool isValid);
+) external view returns (bool isValid);
 ```
 **Parameters**
 
@@ -119,10 +116,7 @@ Validate the transaction receipt
 function validate(
     MiniReceipt memory receipt,
     bytes memory signature
-)
-    external
-    view
-    returns (bool isValid);
+) external view returns (bool isValid);
 ```
 **Parameters**
 
@@ -147,10 +141,7 @@ Validate the send payload
 function validatePayload(
     SendPayload memory payload,
     bytes memory signature
-)
-    external
-    view
-    returns (bool isValid);
+) external view returns (bool isValid);
 ```
 **Parameters**
 

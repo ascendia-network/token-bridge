@@ -1,6 +1,6 @@
-import { type AbiItem } from "viem";
+import { type Abi } from "viem";
 
-export const validatorAbi = [
+export const validatorAbi: Abi = [
   {
     type: "function",
     name: "addValidator",
@@ -346,7 +346,12 @@ export const validatorAbi = [
         internalType: "struct BridgeTypes.SendPayload",
         components: [
           {
-            name: "destChainId",
+            name: "chainFrom",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "chainTo",
             type: "uint256",
             internalType: "uint256",
           },
@@ -620,4 +625,4 @@ export const validatorAbi = [
       },
     ],
   },
-] as const satisfies AbiItem[];
+];

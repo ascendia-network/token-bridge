@@ -1,7 +1,7 @@
 {
   "bridges": {
     "sol-dev": {
-      "amb-test": "0x48722498168d61bcCfc5CAA5F6082975EfD92d46",
+      "amb-test": "0x5Bcb9233DfEbcec502C1aCce6fc94FefF8c037C3",
       "side": "ambZMSUBvU8bLfxop5uupQd9tcafeJKea1KoyTv2yM1"
     }
   },

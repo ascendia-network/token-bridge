@@ -29,7 +29,8 @@ library PayloadUtils {
     ) internal pure returns (bytes32 hash) {
         bytes32 messageHash = keccak256(
             abi.encodePacked(
-                payload.destChainId,
+                payload.chainFrom,
+                payload.chainTo,
                 payload.tokenAddress,
                 payload.externalTokenAddress,
                 payload.amountToSend,

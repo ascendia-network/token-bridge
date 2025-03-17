@@ -1,8 +1,8 @@
 # ERC20Bridged
-[Git Source](https://github.com/ambrosus/token-bridge/blob/c9e5c0649869e1d0d7d463cf7e74634fda87430d/contracts/token/ERC20Bridged.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/b8faea8dbabdd33f2dbbdda724404a71e4c5b492/contracts/token/ERC20Bridged.sol)
 
 **Inherits:**
-Initializable, ERC20Upgradeable, AccessManagedUpgradeable, ERC20PermitUpgradeable
+Initializable, AccessManagedUpgradeable, ERC20Upgradeable, ERC20PermitUpgradeable
 
 
 ## State Variables
@@ -45,9 +45,7 @@ function initialize(
     string memory symbol_,
     uint8 decimals_,
     address bridge_
-)
-    public
-    initializer;
+) public initializer;
 ```
 
 ### __ERC20Bridged_init
@@ -60,9 +58,7 @@ function __ERC20Bridged_init(
     string memory symbol_,
     uint8 decimals_,
     address bridge_
-)
-    internal
-    onlyInitializing;
+) internal onlyInitializing;
 ```
 
 ### __ERC20Bridged_init_unchained
@@ -70,11 +66,12 @@ function __ERC20Bridged_init(
 
 ```solidity
 function __ERC20Bridged_init_unchained(
+    address authority_,
+    string memory name_,
+    string memory symbol_,
     uint8 decimals_,
     address bridge_
-)
-    internal
-    onlyInitializing;
+) internal onlyInitializing;
 ```
 
 ### decimals
@@ -119,7 +116,9 @@ function bridge() public view returns (address bridgeAddress);
 
 
 ```solidity
-modifier notInBlacklist(address account);
+modifier notInBlacklist(
+    address account
+);
 ```
 
 ### addBlacklist
@@ -128,7 +127,9 @@ modifier notInBlacklist(address account);
 
 
 ```solidity
-function addBlacklist(address account) public restricted;
+function addBlacklist(
+    address account
+) public restricted;
 ```
 **Parameters**
 
@@ -143,7 +144,9 @@ function addBlacklist(address account) public restricted;
 
 
 ```solidity
-function removeBlacklist(address account) public restricted;
+function removeBlacklist(
+    address account
+) public restricted;
 ```
 **Parameters**
 
@@ -164,11 +167,7 @@ function _update(
     address from,
     address to,
     uint256 value
-)
-    internal
-    override
-    notInBlacklist(from)
-    notInBlacklist(to);
+) internal override notInBlacklist(from) notInBlacklist(to);
 ```
 
 ## Errors

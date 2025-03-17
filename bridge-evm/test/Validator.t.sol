@@ -212,7 +212,8 @@ contract ValidatorTest is Test {
         );
 
         payloadCommon = BridgeTypes.SendPayload({
-            destChainId: uint256(bytes32("SOLANA")),
+            chainFrom: block.chainid,
+            chainTo: uint256(bytes32("SOLANA")),
             tokenAddress: bytes32(uint256(uint160(fakeToken))),
             externalTokenAddress: bytes32("SOLANA_TOKEN"),
             amountToSend: 100 ether,
@@ -418,7 +419,9 @@ contract ValidatorTest is Test {
             s := mload(add(signature, 0x40))
             v := byte(0, mload(add(signature, 0x60)))
         }
-        vm.expectRevert(ECDSA.ECDSAInvalidSignature.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(ECDSA.ECDSAInvalidSignatureS.selector, s)
+        );
         validatorInstance.validatePayload(payloadCommon, signature);
     }
 

@@ -1,5 +1,5 @@
 # IBridge
-[Git Source](https://github.com/ambrosus/token-bridge/blob/c9e5c0649869e1d0d7d463cf7e74634fda87430d/contracts/interface/IBridge.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/b8faea8dbabdd33f2dbbdda724404a71e4c5b492/contracts/interface/IBridge.sol)
 
 **Inherits:**
 [BridgeTypes](/contracts/interface/BridgeTypes.sol/interface.BridgeTypes.md)
@@ -26,7 +26,7 @@ function nextEventID() external view returns (uint256 nonce);
 Send tokens to another chain
 
 *This function should be called by the user who wants to send tokens to another chain.
-It transfers the tokens to the contract, and validates fee amount that was sent and emits a `TokensLocked` event.
+It transfers the tokens to the contract, and validates fee amount that was sent and emits a `TokenLocked` event.
 The function should be payable to receive the fee in native currency.*
 
 
@@ -35,10 +35,7 @@ function send(
     bytes32 recipient,
     SendPayload calldata payload,
     bytes calldata payloadSignature
-)
-    external
-    payable
-    returns (FullReceipt memory receipt);
+) external payable returns (FullReceipt memory receipt);
 ```
 **Parameters**
 
@@ -73,10 +70,7 @@ function send(
     uint8 v,
     bytes32 r,
     bytes32 s
-)
-    external
-    payable
-    returns (FullReceipt memory receipt);
+) external payable returns (FullReceipt memory receipt);
 ```
 **Parameters**
 
@@ -109,9 +103,7 @@ It claims the tokens from the contract, and emits a `TokenUnlocked` event.*
 function claim(
     MiniReceipt calldata receipt,
     bytes calldata signature
-)
-    external
-    returns (bool success);
+) external returns (bool success);
 ```
 **Parameters**
 
@@ -139,9 +131,7 @@ It claims the tokens from the contract, and emits a `TokenUnlocked` event.*
 function claim(
     FullReceipt calldata receipt,
     bytes calldata signature
-)
-    external
-    returns (bool success);
+) external returns (bool success);
 ```
 **Parameters**
 
@@ -163,10 +153,9 @@ Check if the receipt is already claimed
 
 
 ```solidity
-function isClaimed(FullReceipt calldata receipt)
-    external
-    view
-    returns (bool claimed);
+function isClaimed(
+    FullReceipt calldata receipt
+) external view returns (bool claimed);
 ```
 **Parameters**
 
@@ -187,10 +176,9 @@ Check if the receipt is already claimed
 
 
 ```solidity
-function isClaimed(MiniReceipt calldata receipt)
-    external
-    view
-    returns (bool claimed);
+function isClaimed(
+    MiniReceipt calldata receipt
+) external view returns (bool claimed);
 ```
 **Parameters**
 
@@ -211,7 +199,9 @@ Check if the receipt is already claimed
 
 
 ```solidity
-function isClaimed(bytes32 hash) external view returns (bool claimed);
+function isClaimed(
+    bytes32 hash
+) external view returns (bool claimed);
 ```
 **Parameters**
 
@@ -277,7 +267,9 @@ Set the address of the fee receiver
 
 
 ```solidity
-function setFeeReceiver(address payable _feeReceiver) external;
+function setFeeReceiver(
+    address payable _feeReceiver
+) external;
 ```
 **Parameters**
 
@@ -292,7 +284,9 @@ Set the amount of native currency that should be sent to the receiver in destina
 
 
 ```solidity
-function setNativeSendAmount(uint256 _nativeSendAmount) external;
+function setNativeSendAmount(
+    uint256 _nativeSendAmount
+) external;
 ```
 **Parameters**
 
@@ -307,7 +301,9 @@ Sets the validator contract
 
 
 ```solidity
-function setValidator(IValidation validator) external;
+function setValidator(
+    IValidation validator
+) external;
 ```
 **Parameters**
 

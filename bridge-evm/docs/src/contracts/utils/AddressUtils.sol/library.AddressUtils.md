@@ -1,5 +1,5 @@
 # AddressUtils
-[Git Source](https://github.com/ambrosus/token-bridge/blob/c9e5c0649869e1d0d7d463cf7e74634fda87430d/contracts/utils/AddressUtils.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/b8faea8dbabdd33f2dbbdda724404a71e4c5b492/contracts/utils/AddressUtils.sol)
 
 
 ## Functions
@@ -11,7 +11,9 @@ Convert address to bytes32 using big-endian byte order
 
 
 ```solidity
-function toAddressBE(bytes32 value) internal pure returns (address converted);
+function toAddressBE(
+    bytes32 value
+) internal pure returns (address converted);
 ```
 **Parameters**
 
@@ -34,7 +36,9 @@ Convert bytes32 to address using little-endian byte order
 
 
 ```solidity
-function toAddressLE(bytes32 value) internal pure returns (address converted);
+function toAddressLE(
+    bytes32 value
+) internal pure returns (address converted);
 ```
 **Parameters**
 
@@ -58,10 +62,7 @@ Convert bytes32 to address using big-endian or little-endian byte order
 function toAddress(
     bytes32 value,
     bool le
-)
-    internal
-    pure
-    returns (address converted);
+) internal pure returns (address converted);
 ```
 **Parameters**
 
@@ -85,7 +86,9 @@ Shortcut  to convert bytes32 to address using big-endian byte order
 
 
 ```solidity
-function toAddress(bytes32 value) internal pure returns (address converted);
+function toAddress(
+    bytes32 value
+) internal pure returns (address converted);
 ```
 **Parameters**
 
@@ -108,10 +111,9 @@ Convert string to address
 
 
 ```solidity
-function toAddress(string memory _address)
-    public
-    pure
-    returns (address converted);
+function toAddress(
+    string memory _address
+) public pure returns (address converted);
 ```
 **Parameters**
 

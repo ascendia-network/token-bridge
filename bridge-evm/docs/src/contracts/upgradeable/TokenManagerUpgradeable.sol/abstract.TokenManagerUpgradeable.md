@@ -1,5 +1,5 @@
 # TokenManagerUpgradeable
-[Git Source](https://github.com/ambrosus/token-bridge/blob/c9e5c0649869e1d0d7d463cf7e74634fda87430d/contracts/upgradeable/TokenManagerUpgradeable.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/b8faea8dbabdd33f2dbbdda724404a71e4c5b492/contracts/upgradeable/TokenManagerUpgradeable.sol)
 
 **Inherits:**
 [ITokenManager](/contracts/interface/ITokenManager.sol/interface.ITokenManager.md), Initializable
@@ -33,9 +33,7 @@ function __TokenManager_init(
     address tokenBeacon_,
     address bridge_,
     address SAMB
-)
-    internal
-    onlyInitializing;
+) internal onlyInitializing;
 ```
 
 ### __TokenManager_init_unchained
@@ -46,16 +44,16 @@ function __TokenManager_init_unchained(
     address tokenBeacon_,
     address bridge_,
     address SAMB
-)
-    internal
-    onlyInitializing;
+) internal onlyInitializing;
 ```
 
 ### isBridgable
 
 
 ```solidity
-modifier isBridgable(bytes32 token);
+modifier isBridgable(
+    bytes32 token
+);
 ```
 
 ### addToken
@@ -68,10 +66,7 @@ function addToken(
     address token,
     ExternalTokenUnmapped calldata externalToken_,
     bool paused
-)
-    public
-    virtual
-    returns (bool success);
+) public virtual returns (bool success);
 ```
 **Parameters**
 
@@ -97,11 +92,7 @@ Map external token address to token
 function mapExternalToken(
     ExternalTokenUnmapped calldata externalToken_,
     address token
-)
-    public
-    virtual
-    override
-    returns (bool success);
+) public virtual override returns (bool success);
 ```
 **Parameters**
 
@@ -123,11 +114,9 @@ Unmap external token address to token
 
 
 ```solidity
-function unmapExternalToken(bytes32 externalTokenAddress)
-    public
-    virtual
-    override
-    returns (bool success);
+function unmapExternalToken(
+    bytes32 externalTokenAddress
+) public virtual override returns (bool success);
 ```
 **Parameters**
 
@@ -148,11 +137,9 @@ Pause token bridging
 
 
 ```solidity
-function pauseToken(address token)
-    public
-    virtual
-    override
-    returns (bool success);
+function pauseToken(
+    address token
+) public virtual override returns (bool success);
 ```
 **Parameters**
 
@@ -173,11 +160,9 @@ Unpause token bridging
 
 
 ```solidity
-function unpauseToken(address token)
-    public
-    virtual
-    override
-    returns (bool success);
+function unpauseToken(
+    address token
+) public virtual override returns (bool success);
 ```
 **Parameters**
 
@@ -198,11 +183,9 @@ Remove token from the bridge
 
 
 ```solidity
-function removeToken(address token)
-    public
-    virtual
-    override
-    returns (bool success);
+function removeToken(
+    address token
+) public virtual override returns (bool success);
 ```
 **Parameters**
 
@@ -230,11 +213,7 @@ function deployExternalTokenERC20(
     string calldata name,
     string calldata symbol,
     uint8 decimals
-)
-    public
-    virtual
-    override
-    returns (address token);
+) public virtual override returns (address token);
 ```
 **Parameters**
 
@@ -258,7 +237,9 @@ Used to wrap AMB to SAMB
 
 
 ```solidity
-function _wrap(uint256 amount) internal;
+function _wrap(
+    uint256 amount
+) internal;
 ```
 **Parameters**
 
@@ -273,7 +254,9 @@ Used to unwrap SAMB to AMB
 
 
 ```solidity
-function _unwrap(uint256 amount) internal;
+function _unwrap(
+    uint256 amount
+) internal;
 ```
 **Parameters**
 
@@ -295,11 +278,9 @@ Check if the token is bridgable
 
 
 ```solidity
-function bridgableTokens(address token)
-    public
-    view
-    override
-    returns (bool isBridgable_);
+function bridgableTokens(
+    address token
+) public view override returns (bool isBridgable_);
 ```
 **Parameters**
 
@@ -320,11 +301,9 @@ Get token address by external token address
 
 
 ```solidity
-function external2token(bytes32 externalTokenAddress)
-    public
-    view
-    override
-    returns (address token);
+function external2token(
+    bytes32 externalTokenAddress
+) public view override returns (address token);
 ```
 **Parameters**
 
@@ -345,11 +324,9 @@ Get external token address
 
 
 ```solidity
-function externalToken(bytes32 externalTokenAddress)
-    public
-    view
-    override
-    returns (ExternalToken memory _externalToken);
+function externalToken(
+    bytes32 externalTokenAddress
+) public view override returns (ExternalToken memory _externalToken);
 ```
 **Parameters**
 
@@ -370,11 +347,9 @@ Check if the token is paused
 
 
 ```solidity
-function pausedTokens(address token)
-    public
-    view
-    override
-    returns (bool isPaused);
+function pausedTokens(
+    address token
+) public view override returns (bool isPaused);
 ```
 **Parameters**
 
@@ -414,9 +389,7 @@ function _addToken(
     address token,
     ExternalTokenUnmapped memory externalToken_,
     bool paused
-)
-    private
-    returns (bool success);
+) private returns (bool success);
 ```
 **Parameters**
 
@@ -442,9 +415,7 @@ Map external token address to token
 function _mapToken(
     ExternalTokenUnmapped memory externalToken_,
     address token
-)
-    private
-    returns (bool success);
+) private returns (bool success);
 ```
 **Parameters**
 
@@ -466,9 +437,9 @@ Unmap external token address to token
 
 
 ```solidity
-function _unmapToken(bytes32 externalTokenAddress)
-    private
-    returns (bool success);
+function _unmapToken(
+    bytes32 externalTokenAddress
+) private returns (bool success);
 ```
 **Parameters**
 
@@ -489,7 +460,9 @@ Remove token from the bridge
 
 
 ```solidity
-function _removeToken(address token) private returns (bool success);
+function _removeToken(
+    address token
+) private returns (bool success);
 ```
 **Parameters**
 
@@ -520,9 +493,7 @@ function _deployExternalTokenERC20(
     string calldata name,
     string calldata symbol,
     uint8 decimals
-)
-    internal
-    returns (address token);
+) internal returns (address token);
 ```
 **Parameters**
 
@@ -547,7 +518,9 @@ Pause token bridging
 
 
 ```solidity
-function _pauseToken(address token) private returns (bool success);
+function _pauseToken(
+    address token
+) private returns (bool success);
 ```
 **Parameters**
 
@@ -568,7 +541,9 @@ Unpause token bridging
 
 
 ```solidity
-function _unpauseToken(address token) private returns (bool success);
+function _unpauseToken(
+    address token
+) private returns (bool success);
 ```
 **Parameters**
 

@@ -2,13 +2,13 @@ const { privateKeyToAccount } = require("viem/accounts");
 const { recoverMessageAddress } = require("viem");
 const { payload2hash } = require("./utils/viem/2Hash");
 
-if (process.argv.length < 11) {
-  console.log('Usage: node signPayloadViem.js <destChainId> <tokenAddress> <externalTokenAddress> <amountToSend> <feeAmount> <timestamp> <flags> <flagData> <privateKey>');
+if (process.argv.length < 12) {
+  console.log('Usage: node signPayloadViem.js <chainFrom> <chainTo> <tokenAddress> <externalTokenAddress> <amountToSend> <feeAmount> <timestamp> <flags> <flagData> <privateKey>');
   process.exit(1);
 }
 
-async function signPayload(destChainId, tokenAddress, externalTokenAddress, amountToSend, feeAmount, timestamp, flags, flagData, privateKey) {
-  const hash = payload2hash(destChainId, tokenAddress, externalTokenAddress, amountToSend, feeAmount, timestamp, flags, flagData);
+async function signPayload(chainFrom, chainTo, tokenAddress, externalTokenAddress, amountToSend, feeAmount, timestamp, flags, flagData, privateKey) {
+  const hash = payload2hash(chainFrom, chainTo, tokenAddress, externalTokenAddress, amountToSend, feeAmount, timestamp, flags, flagData);
   const account = privateKeyToAccount(privateKey);
   const signature = await account.signMessage({ message: { raw: hash } });
   console.assert(
@@ -28,7 +28,8 @@ signPayload(
   process.argv[7],
   process.argv[8],
   process.argv[9],
-  process.argv[10]
+  process.argv[10],
+  process.argv[11]
 ).then((signature) => {
   process.stdout.write(signature);
 });

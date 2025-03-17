@@ -1037,6 +1037,10 @@ export const bridgeIdl = {
             "type": "u64"
           },
           {
+            "name": "chain_from",
+            "type": "u64"
+          },
+          {
             "name": "chain_to",
             "type": "u64"
           },

@@ -1,7 +1,8 @@
 import { Hex } from "viem";
 
 export interface SendPayloadEVM {
-  destChainId: bigint;
+  chainFrom: bigint;
+  chainTo: bigint;
   tokenAddress: Hex;
   externalTokenAddress: Hex;
   amountToSend: bigint;

@@ -799,7 +799,12 @@ export const bridgeAbi: Abi = [
         internalType: "struct BridgeTypes.SendPayload",
         components: [
           {
-            name: "destChainId",
+            name: "chainFrom",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "chainTo",
             type: "uint256",
             internalType: "uint256",
           },
@@ -927,7 +932,12 @@ export const bridgeAbi: Abi = [
         internalType: "struct BridgeTypes.SendPayload",
         components: [
           {
-            name: "destChainId",
+            name: "chainFrom",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "chainTo",
             type: "uint256",
             internalType: "uint256",
           },

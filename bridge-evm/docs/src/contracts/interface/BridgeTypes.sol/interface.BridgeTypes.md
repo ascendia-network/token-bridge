@@ -1,5 +1,5 @@
 # BridgeTypes
-[Git Source](https://github.com/ambrosus/token-bridge/blob/c9e5c0649869e1d0d7d463cf7e74634fda87430d/contracts/interface/BridgeTypes.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/b8faea8dbabdd33f2dbbdda724404a71e4c5b492/contracts/interface/BridgeTypes.sol)
 
 
 ## Structs
@@ -75,7 +75,8 @@ Fee structure that is used for signing and validation
 
 ```solidity
 struct SendPayload {
-    uint256 destChainId;
+    uint256 chainFrom;
+    uint256 chainTo;
     bytes32 tokenAddress;
     bytes32 externalTokenAddress;
     uint256 amountToSend;
@@ -90,7 +91,8 @@ struct SendPayload {
 
 |Name|Type|Description|
 |----|----|-----------|
-|`destChainId`|`uint256`||
+|`chainFrom`|`uint256`||
+|`chainTo`|`uint256`||
 |`tokenAddress`|`bytes32`|address of the token contract|
 |`externalTokenAddress`|`bytes32`||
 |`amountToSend`|`uint256`|amount of the tokens to be sent|

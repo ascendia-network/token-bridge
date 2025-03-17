@@ -332,17 +332,18 @@ abstract contract BridgeUpgradeable is
     //  -- guards
 
     /// Guard for validate the send values
-    /// @param chainTo destination chain id
     /// @param payload send payload
     /// @param payloadSignature signature of the payload
     function _validateSendValues(
-        uint256 chainTo,
         SendPayload calldata payload,
         bytes calldata payloadSignature
     ) private view returns (uint256 amountToReceive) {
         validator().validatePayload(payload, payloadSignature);
         address srcToken = payload.tokenAddress.toAddress();
-        if (chainTo == block.chainid) {
+        if (payload.chainTo == block.chainid) {
+            revert InvalidChain();
+        }
+        if (payload.chainFrom != block.chainid) {
             revert InvalidChain();
         }
         if (pausedTokens(srcToken)) {
@@ -482,8 +483,8 @@ abstract contract BridgeUpgradeable is
             tokenAddressTo: externalToken_.externalTokenAddress,
             amountFrom: payload.amountToSend,
             amountTo: amountTo,
-            chainFrom: block.chainid,
-            chainTo: payload.destChainId,
+            chainFrom: payload.chainFrom,
+            chainTo: payload.chainTo,
             eventId: _useNonce(address(this)),
             flags: payload.flags >> 65, // remove sender flags
             data: ""
@@ -502,7 +503,7 @@ abstract contract BridgeUpgradeable is
         bytes calldata payloadSignature
     ) private returns (FullReceipt memory receipt) {
         uint256 amountTo =
-            _validateSendValues(payload.destChainId, payload, payloadSignature);
+            _validateSendValues(payload, payloadSignature);
         address sender = payload.flags & BridgeFlags.SENDER_IS_TXORIGIN != 0
             ? tx.origin
             : msg.sender;

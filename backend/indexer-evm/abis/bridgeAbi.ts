@@ -1,6 +1,6 @@
-import { type AbiItem } from "viem";
+import { type Abi } from "viem";
 
-export const bridgeAbi = [
+export const bridgeAbi: Abi = [
   {
     type: "receive",
     stateMutability: "payable",
@@ -799,7 +799,12 @@ export const bridgeAbi = [
         internalType: "struct BridgeTypes.SendPayload",
         components: [
           {
-            name: "destChainId",
+            name: "chainFrom",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "chainTo",
             type: "uint256",
             internalType: "uint256",
           },
@@ -927,7 +932,12 @@ export const bridgeAbi = [
         internalType: "struct BridgeTypes.SendPayload",
         components: [
           {
-            name: "destChainId",
+            name: "chainFrom",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "chainTo",
             type: "uint256",
             internalType: "uint256",
           },
@@ -1684,4 +1694,4 @@ export const bridgeAbi = [
     name: "TransferFailed",
     inputs: [],
   },
-] as const satisfies AbiItem[];
+];

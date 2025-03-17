@@ -104,8 +104,9 @@ export class SendSignatureController {
         signature = await this.signSvmSendPayload(sendPayload);
         break;
       default:
-        sendPayload = {
-          destChainId: networkTo,
+        sendPayload = SendPayloadEVM.parse({
+          chainFrom: networkFrom,
+          chainTo: networkTo,
           tokenAddress,
           externalTokenAddress,
           amountToSend,
@@ -113,7 +114,7 @@ export class SendSignatureController {
           timestamp,
           flags,
           flagData,
-        } as SendPayloadEVM;
+        });
         signature = await this.signEvmSendPayload(sendPayload);
         break;
     }
@@ -124,6 +125,7 @@ export class SendSignatureController {
     const payload = encodePacked(
       [
         "uint256",
+        "uint256",
         "bytes32",
         "bytes32",
         "uint256",
@@ -133,7 +135,8 @@ export class SendSignatureController {
         "bytes",
       ],
       [
-        sendPayload.destChainId,
+        sendPayload.chainFrom,
+        sendPayload.chainTo,
         sendPayload.tokenAddress as `0x${string}`,
         sendPayload.externalTokenAddress as `0x${string}`,
         sendPayload.amountToSend,

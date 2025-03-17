@@ -1,5 +1,5 @@
 # ReceiptUtils
-[Git Source](https://github.com/ambrosus/token-bridge/blob/c9e5c0649869e1d0d7d463cf7e74634fda87430d/contracts/utils/ReceiptUtils.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/b8faea8dbabdd33f2dbbdda724404a71e4c5b492/contracts/utils/ReceiptUtils.sol)
 
 
 ## Functions
@@ -9,10 +9,9 @@ Convert full receipt to mini receipt
 
 
 ```solidity
-function asMini(BridgeTypes.FullReceipt memory receipt)
-    internal
-    pure
-    returns (BridgeTypes.MiniReceipt memory mini);
+function asMini(
+    BridgeTypes.FullReceipt memory receipt
+) internal pure returns (BridgeTypes.MiniReceipt memory mini);
 ```
 **Parameters**
 
@@ -35,10 +34,9 @@ Shortcut to convert receipt to hash
 
 
 ```solidity
-function toHash(BridgeTypes.FullReceipt memory receipt)
-    internal
-    pure
-    returns (bytes32 hash);
+function toHash(
+    BridgeTypes.FullReceipt memory receipt
+) internal pure returns (bytes32 hash);
 ```
 **Parameters**
 
@@ -61,10 +59,9 @@ Shortcut to convert receipt to hash
 
 
 ```solidity
-function toHash(BridgeTypes.MiniReceipt memory receipt)
-    internal
-    pure
-    returns (bytes32 hash);
+function toHash(
+    BridgeTypes.MiniReceipt memory receipt
+) internal pure returns (bytes32 hash);
 ```
 **Parameters**
 
@@ -87,10 +84,9 @@ Convert receipt to hash via toEthSignedMessageHash
 
 
 ```solidity
-function toEthSignedMessageHash(BridgeTypes.MiniReceipt memory receipt)
-    internal
-    pure
-    returns (bytes32 hash);
+function toEthSignedMessageHash(
+    BridgeTypes.MiniReceipt memory receipt
+) internal pure returns (bytes32 hash);
 ```
 **Parameters**
 

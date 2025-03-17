@@ -1,5 +1,5 @@
 # Validator
-[Git Source](https://github.com/ambrosus/token-bridge/blob/c9e5c0649869e1d0d7d463cf7e74634fda87430d/contracts/Validator.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/b8faea8dbabdd33f2dbbdda724404a71e4c5b492/contracts/Validator.sol)
 
 **Inherits:**
 [ValidatorUpgradeable](/contracts/upgradeable/ValidatorUpgradeable.sol/abstract.ValidatorUpgradeable.md)
@@ -17,9 +17,7 @@ function initialize(
     address[] calldata validators_,
     address payloadSigner_,
     uint256 feeValidityWindow_
-)
-    public
-    initializer;
+) public initializer;
 ```
 **Parameters**
 

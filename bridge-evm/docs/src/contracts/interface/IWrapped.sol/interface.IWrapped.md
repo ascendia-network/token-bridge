@@ -1,5 +1,5 @@
 # IWrapped
-[Git Source](https://github.com/ambrosus/token-bridge/blob/c9e5c0649869e1d0d7d463cf7e74634fda87430d/contracts/interface/IWrapped.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/b8faea8dbabdd33f2dbbdda724404a71e4c5b492/contracts/interface/IWrapped.sol)
 
 **Inherits:**
 IERC20
@@ -25,7 +25,9 @@ Withdraw tokens from the contract (a.k.a unwrap tokens)
 
 
 ```solidity
-function withdraw(uint256 amount) external;
+function withdraw(
+    uint256 amount
+) external;
 ```
 **Parameters**
 

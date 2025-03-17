@@ -96,7 +96,8 @@ abstract contract BridgeSendTest is BridgeTestBase {
         )
     {
         payload = BridgeTypes.SendPayload({
-            destChainId: chainDest,
+            chainFrom: block.chainid,
+            chainTo: chainDest,
             tokenAddress: bytes32(uint256(uint160(token))),
             externalTokenAddress: token == address(wrappedToken)
                 ? bytes32("AMB_EXT")

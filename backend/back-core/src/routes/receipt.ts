@@ -171,6 +171,65 @@ receiptRoutes.get(
 );
 
 receiptRoutes.get(
+  "/transaction/:transactionHash",
+  describeRoute({
+    description: "Get receiptId by transactionHash",
+    responses: {
+      200: {
+        description: "Returns receiptId",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                receiptId: {
+                  type: "string",
+                  nullable: true
+                }
+              }
+            }
+          }
+        }
+      },
+      400: {
+        description: "Returns error message",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                message: {
+                  type: "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }),
+  zValidator(
+    "param",
+    z.object({
+      transactionHash: z.string()
+    })
+  ),
+  receiptControllerDep.middleware("receiptController"),
+  async (c) => {
+    const { transactionHash } = c.req.valid("param");
+    const { receiptController } = c.var;
+    try {
+      const receiptId = await receiptController.getReceiptIdByTransactionHash(transactionHash);
+      return c.json({ receiptId }, 200);
+    } catch (error) {
+      console.error(error);
+      return c.json({ message: (error as Error).message }, 400);
+    }
+  }
+);
+
+
+receiptRoutes.get(
   "/:receiptId",
   describeRoute({
     description: "Get receipt by id",

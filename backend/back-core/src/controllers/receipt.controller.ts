@@ -115,6 +115,42 @@ export class ReceiptController {
     }
   }
 
+  async getReceiptIdByTransactionHash(
+    transactionHash: string
+  ): Promise<string | null> {
+    try {
+      const metaEvm = await this.db
+        .select({ receiptId: receiptsMetaInIndexerEvm.receiptId })
+        .from(receiptsMetaInIndexerEvm)
+        .where(eq(receiptsMetaInIndexerEvm.transactionHash, transactionHash))
+        .limit(1);
+
+      if (metaEvm.length > 0) {
+        return metaEvm[0].receiptId;
+      }
+
+      const metaSolana = await this.db
+        .select({ receiptId: receiptsMetaInIndexerSolana.receiptId })
+        .from(receiptsMetaInIndexerSolana)
+        .where(eq(receiptsMetaInIndexerSolana.transactionHash, transactionHash))
+        .limit(1);
+
+      if (metaSolana.length > 0) {
+        return metaSolana[0].receiptId;
+      }
+
+      return null;
+    } catch (error) {
+      consoleLogger(
+        "Error retrieving receiptId by transactionHash",
+        (error as unknown as Error).toString()
+      );
+      consoleLogger((error as Error).stack as string);
+      throw error as Error;
+    }
+  }
+
+
   async getReceipt(receiptId: `${number}_${number}_${number}`): Promise<{
     receipt: typeof receipt.$inferSelect;
     receiptMeta: Array<

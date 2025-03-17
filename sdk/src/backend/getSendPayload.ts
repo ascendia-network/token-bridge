@@ -48,3 +48,14 @@ export async function getSendPayload(
     signature: data.signature,
   };
 }
+
+export interface SendPayload {
+  destChainId: bigint;
+  tokenAddress: string;
+  externalTokenAddress: string;
+  amountToSend: bigint;
+  feeAmount: bigint;
+  timestamp: bigint;
+  flags: bigint;
+  flagData: string;
+}

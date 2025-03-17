@@ -27,7 +27,11 @@
     "build": "pkgroll"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "^0.31.0",
+    "@solana/spl-token": "^0.4.13",
     "@solana/web3.js": "^1.98.0",
+    "borsh": "^2.0.0",
+    "bs58": "^4.0.1",
     "dotenv": "^16.4.7",
     "ox": "^0.6.10",
     "tsx": "^4.19.3",

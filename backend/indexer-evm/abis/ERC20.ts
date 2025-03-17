@@ -1,6 +1,6 @@
-import type { AbiItem } from "viem";
+import { type Abi } from "viem";
 
-export const ERC20Abi = [
+export const ERC20Abi: Abi = [
   {
     type: "function",
     name: "allowance",
@@ -309,4 +309,4 @@ export const ERC20Abi = [
       }
     ]
   }
-] as const satisfies AbiItem[];
+];

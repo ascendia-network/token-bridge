@@ -2,7 +2,8 @@ const { keccak256, encodePacked } = require('viem');
 const { full2mini } = require('../receipt');
 
 function payload2hash(
-  destChainId,
+  chainFrom,
+  chainTo,
   tokenAddress,
   externalTokenAddress,
   amountToSend,
@@ -12,8 +13,8 @@ function payload2hash(
   flagData
 ) {
   const encoded = encodePacked(
-    ['uint256', 'bytes32', 'bytes32', 'uint256', 'uint256', 'uint256', 'uint256', 'bytes'],
-    [destChainId, tokenAddress, externalTokenAddress, amountToSend, feeAmount, timestamp, flags, flagData]
+    ['uint256', 'uint256', 'bytes32', 'bytes32', 'uint256', 'uint256', 'uint256', 'uint256', 'bytes'],
+    [chainFrom, chainTo, tokenAddress, externalTokenAddress, amountToSend, feeAmount, timestamp, flags, flagData]
   );
   const messageHash = keccak256(encoded);
   return messageHash;

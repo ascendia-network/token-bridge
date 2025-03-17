@@ -31,18 +31,19 @@ contract PayloadUtilsTest is Test {
         string memory jsPath,
         BridgeTypes.SendPayload memory payload
     ) public {
-        string[] memory runJsInputs = new string[](10);
+        string[] memory runJsInputs = new string[](11);
         // Build ffi command string
         runJsInputs[0] = "node";
         runJsInputs[1] = jsPath;
-        runJsInputs[2] = Strings.toHexString(uint256(payload.destChainId), 32);
-        runJsInputs[3] = Strings.toHexString(uint256(payload.tokenAddress), 32);
-        runJsInputs[4] = Strings.toHexString(uint256(payload.externalTokenAddress), 32);
-        runJsInputs[5] = Strings.toHexString(payload.amountToSend, 32);
-        runJsInputs[6] = Strings.toHexString(payload.feeAmount, 32);
-        runJsInputs[7] = Strings.toHexString(payload.timestamp, 32);
-        runJsInputs[8] = Strings.toHexString(payload.flags, 32);
-        runJsInputs[9] = iToHex(payload.flagData);
+        runJsInputs[2] = Strings.toHexString(uint256(payload.chainFrom), 32);
+        runJsInputs[3] = Strings.toHexString(uint256(payload.chainTo), 32);
+        runJsInputs[4] = Strings.toHexString(uint256(payload.tokenAddress), 32);
+        runJsInputs[5] = Strings.toHexString(uint256(payload.externalTokenAddress), 32);
+        runJsInputs[6] = Strings.toHexString(payload.amountToSend, 32);
+        runJsInputs[7] = Strings.toHexString(payload.feeAmount, 32);
+        runJsInputs[8] = Strings.toHexString(payload.timestamp, 32);
+        runJsInputs[9] = Strings.toHexString(payload.flags, 32);
+        runJsInputs[10] = iToHex(payload.flagData);
 
         // Run command and capture output
         bytes memory jsResult = vm.ffi(runJsInputs);
@@ -55,7 +56,8 @@ contract PayloadUtilsTest is Test {
     string constant JS_PAYLOAD_HASH_ETHERS_PATH = "./test/differential_testing/payload2hashEthers.js";
 
     function test_fuzz_payload2hash_ethers(
-        uint256 destChainId, // destination chain id
+        uint256 chainFrom, // source chain id
+        uint256 chainTo, // destination chain id
         bytes32 tokenAddress, // address of the token contract
         bytes32 externalTokenAddress, // address of the external token contract
         uint256 amountToSend, // amount of the tokens to be sent
@@ -65,6 +67,9 @@ contract PayloadUtilsTest is Test {
         bytes memory flagData // additional data of the sending operation (unused for now)
     ) public {
         // Validate inputs
+        vm.assume(chainFrom != 0);
+        vm.assume(chainTo != 0);
+        vm.assume(chainFrom != chainTo);
         require(flagData.length <= 1024, "Data too large");
         require(amountToSend <= type(uint256).max, "Amount to send overflow");
         require(feeAmount <= type(uint256).max, "Fee amount overflow");
@@ -72,7 +77,8 @@ contract PayloadUtilsTest is Test {
         require(flags <= type(uint256).max, "Flags overflow");
 
         BridgeTypes.SendPayload memory payload = BridgeTypes.SendPayload({
-            destChainId: destChainId,
+            chainFrom: chainFrom,
+            chainTo: chainTo,
             tokenAddress: tokenAddress,
             externalTokenAddress: externalTokenAddress,
             amountToSend: amountToSend,
@@ -88,7 +94,8 @@ contract PayloadUtilsTest is Test {
     string constant JS_PAYLOAD_HASH_VIEM_PATH = "./test/differential_testing/payload2hashViem.js";
 
     function test_fuzz_payload2hash_viem(
-        uint256 destChainId, // destination chain id
+        uint256 chainFrom, // source chain id
+        uint256 chainTo, // destination chain id
         bytes32 tokenAddress, // address of the token contract
         bytes32 externalTokenAddress, // address of the external token contract
         uint256 amountToSend, // amount of the tokens to be sent
@@ -97,6 +104,9 @@ contract PayloadUtilsTest is Test {
         uint256 flags, // flags of the sending operation
         bytes memory flagData // additional data of the sending operation (unused for now)
     ) public {
+        vm.assume(chainFrom != 0);
+        vm.assume(chainTo != 0);
+        vm.assume(chainFrom != chainTo);
         // Validate inputs
         require(flagData.length <= 1024, "Data too large");
         require(amountToSend <= type(uint256).max, "Amount to send overflow");
@@ -105,7 +115,8 @@ contract PayloadUtilsTest is Test {
         require(flags <= type(uint256).max, "Flags overflow");
 
         BridgeTypes.SendPayload memory payload = BridgeTypes.SendPayload({
-            destChainId: destChainId,
+            chainFrom: chainFrom,
+            chainTo: chainTo,
             tokenAddress: tokenAddress,
             externalTokenAddress: externalTokenAddress,
             amountToSend: amountToSend,

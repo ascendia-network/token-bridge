@@ -1,5 +1,5 @@
 # NoncesUpgradeable
-[Git Source](https://github.com/ambrosus/token-bridge/blob/c9e5c0649869e1d0d7d463cf7e74634fda87430d/contracts/utils/NoncesUpgradeable.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/b8faea8dbabdd33f2dbbdda724404a71e4c5b492/contracts/utils/NoncesUpgradeable.sol)
 
 **Inherits:**
 Initializable
@@ -44,7 +44,9 @@ function __Nonces_init_unchained() internal onlyInitializing;
 
 
 ```solidity
-function nonces(uint256 key) public view virtual returns (uint256);
+function nonces(
+    uint256 key
+) public view virtual returns (uint256);
 ```
 
 ### nonces
@@ -53,7 +55,9 @@ function nonces(uint256 key) public view virtual returns (uint256);
 
 
 ```solidity
-function nonces(address owner) public view virtual returns (uint256);
+function nonces(
+    address owner
+) public view virtual returns (uint256);
 ```
 
 ### nonces
@@ -62,7 +66,9 @@ function nonces(address owner) public view virtual returns (uint256);
 
 
 ```solidity
-function nonces(bytes32 key) public view virtual returns (uint256);
+function nonces(
+    bytes32 key
+) public view virtual returns (uint256);
 ```
 
 ### _useNonce
@@ -72,7 +78,9 @@ Returns the current value and increments nonce.*
 
 
 ```solidity
-function _useNonce(uint256 key) internal virtual returns (uint256);
+function _useNonce(
+    uint256 key
+) internal virtual returns (uint256);
 ```
 
 ### _useNonce
@@ -82,7 +90,9 @@ Returns the current value and increments nonce.*
 
 
 ```solidity
-function _useNonce(address owner) internal virtual returns (uint256);
+function _useNonce(
+    address owner
+) internal virtual returns (uint256);
 ```
 
 ### _useNonce
@@ -92,7 +102,9 @@ Returns the current value and increments nonce.*
 
 
 ```solidity
-function _useNonce(bytes32 key) internal virtual returns (uint256);
+function _useNonce(
+    bytes32 key
+) internal virtual returns (uint256);
 ```
 
 ### _useCheckedNonce

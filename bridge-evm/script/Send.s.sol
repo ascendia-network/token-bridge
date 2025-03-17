@@ -16,7 +16,8 @@ contract SendTokens is DeployerBase {
 
     struct SendPayloadJson {
         uint256 amountToSend; // amount of the tokens to be sent
-        uint256 destChainId; // chain id of the destination chain
+        uint256 chainFrom; // chain id of the source chain
+        uint256 chainTo; // chain id of the destination chain
         bytes32 externalTokenAddress; // address of the external token contract (in destination chain)
         uint256 feeAmount; // amount of the fee
         bytes flagData; // additional data of the sending operation (unused for now)
@@ -34,7 +35,8 @@ contract SendTokens is DeployerBase {
                 abi.decode(data, (SendPayloadJson));
             BridgeTypes.SendPayload memory payload = BridgeTypes.SendPayload({
                 amountToSend: payloadJson.amountToSend,
-                destChainId: payloadJson.destChainId,
+                chainFrom: payloadJson.chainFrom,
+                chainTo: payloadJson.chainTo,
                 externalTokenAddress: payloadJson.externalTokenAddress,
                 feeAmount: payloadJson.feeAmount,
                 flags: payloadJson.flags,

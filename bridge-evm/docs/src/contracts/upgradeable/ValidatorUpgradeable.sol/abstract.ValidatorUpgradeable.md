@@ -1,5 +1,5 @@
 # ValidatorUpgradeable
-[Git Source](https://github.com/ambrosus/token-bridge/blob/c9e5c0649869e1d0d7d463cf7e74634fda87430d/contracts/upgradeable/ValidatorUpgradeable.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/b8faea8dbabdd33f2dbbdda724404a71e4c5b492/contracts/upgradeable/ValidatorUpgradeable.sol)
 
 **Inherits:**
 [IValidation](/contracts/interface/IValidation.sol/interface.IValidation.md), [IValidatorV1](/contracts/interface/IValidatorV1.sol/interface.IValidatorV1.md), Initializable, AccessManagedUpgradeable
@@ -34,9 +34,7 @@ function __Validator_init(
     address[] calldata validators_,
     address payloadSigner_,
     uint256 feeValidityWindow_
-)
-    internal
-    onlyInitializing;
+) internal onlyInitializing;
 ```
 
 ### __Validator_init_unchained
@@ -48,9 +46,7 @@ function __Validator_init_unchained(
     address[] calldata validators_,
     address payloadSigner_,
     uint256 feeValidityWindow_
-)
-    internal
-    onlyInitializing;
+) internal onlyInitializing;
 ```
 
 ### readyToValidate
@@ -66,11 +62,9 @@ Check if an address is a validator
 
 
 ```solidity
-function isValidator(address validator_)
-    public
-    view
-    override
-    returns (bool isValidator_);
+function isValidator(
+    address validator_
+) public view override returns (bool isValidator_);
 ```
 **Parameters**
 
@@ -91,11 +85,9 @@ Add a new validator to the list
 
 
 ```solidity
-function addValidator(address validator_)
-    public
-    override
-    restricted
-    returns (bool added);
+function addValidator(
+    address validator_
+) public override restricted returns (bool added);
 ```
 **Parameters**
 
@@ -116,11 +108,9 @@ Remove a validator from the list
 
 
 ```solidity
-function removeValidator(address validator_)
-    public
-    override
-    restricted
-    returns (bool removed);
+function removeValidator(
+    address validator_
+) public override restricted returns (bool removed);
 ```
 **Parameters**
 
@@ -141,11 +131,9 @@ Set the address of the payload signer
 
 
 ```solidity
-function setPayloadSigner(address payloadSigner_)
-    public
-    override
-    restricted
-    returns (bool success);
+function setPayloadSigner(
+    address payloadSigner_
+) public override restricted returns (bool success);
 ```
 **Parameters**
 
@@ -166,11 +154,9 @@ Set the fee validity window in seconds
 
 
 ```solidity
-function setFeeValidityWindow(uint256 feeValidityWindow_)
-    public
-    override
-    restricted
-    returns (bool success);
+function setFeeValidityWindow(
+    uint256 feeValidityWindow_
+) public override restricted returns (bool success);
 ```
 **Parameters**
 
@@ -222,10 +208,7 @@ function feeValidityWindow() public view override returns (uint256);
 function _validate(
     MiniReceipt memory receipt,
     bytes memory combinedSignatures
-)
-    internal
-    view
-    returns (bool isValid);
+) internal view returns (bool isValid);
 ```
 
 ### validate
@@ -237,12 +220,7 @@ Validate the transaction receipt
 function validate(
     FullReceipt calldata receipt,
     bytes calldata combinedSignatures
-)
-    public
-    view
-    override
-    readyToValidate
-    returns (bool isValid);
+) public view override readyToValidate returns (bool isValid);
 ```
 **Parameters**
 
@@ -267,12 +245,7 @@ Validate the transaction receipt
 function validate(
     MiniReceipt calldata receipt,
     bytes calldata combinedSignatures
-)
-    public
-    view
-    override
-    readyToValidate
-    returns (bool isValid);
+) public view override readyToValidate returns (bool isValid);
 ```
 **Parameters**
 
@@ -297,12 +270,7 @@ Validate the send payload
 function validatePayload(
     SendPayload calldata payload,
     bytes calldata signature
-)
-    public
-    view
-    override
-    readyToValidate
-    returns (bool isValid);
+) public view override readyToValidate returns (bool isValid);
 ```
 **Parameters**
 

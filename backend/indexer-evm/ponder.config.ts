@@ -69,7 +69,7 @@ export default createConfig({
         // },
         amb_test: {
           address: [
-            "0x48722498168d61bcCfc5CAA5F6082975EfD92d46", // bridgeAmbSolana
+            "0x5Bcb9233DfEbcec502C1aCce6fc94FefF8c037C3", // bridgeAmbSolana
           ],
           startBlock: Number(3531799),
         },

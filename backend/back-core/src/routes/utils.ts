@@ -405,7 +405,11 @@ export const signaturesResponseSchema = z.object({
 });
 
 export const SendPayloadEVM = z.object({
-  destChainId: z.coerce.bigint().min(1n, "destChainId is required").openapi({
+  chainFrom: z.coerce.bigint().min(1n, "chainFrom is required").openapi({
+    example: 22040n,
+    description: "Chain ID of the sender",
+  }),
+  chainTo: z.coerce.bigint().min(1n, "chainTo is required").openapi({
     example: SOLANA_DEV_CHAIN_ID,
     description: "Chain ID of the receiver",
   }),

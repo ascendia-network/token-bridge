@@ -28,7 +28,8 @@ contract SignatureDifferentialTest is Test {
 
     function setUp() public {
         payloadCommon = BridgeTypes.SendPayload({
-            destChainId: uint256(bytes32("SOLANA")),
+            chainFrom: block.chainid,
+            chainTo: uint256(bytes32("SOLANA")),
             tokenAddress: bytes32(uint256(uint160(fakeToken))),
             externalTokenAddress: bytes32("SOLANA_TOKEN"),
             amountToSend: 100 ether,
@@ -155,22 +156,23 @@ contract SignatureDifferentialTest is Test {
         BridgeTypes.SendPayload memory payload,
         Signer memory signer
     ) internal returns (bytes memory jsResult) {
-        string[] memory runJsInputs = new string[](11);
+        string[] memory runJsInputs = new string[](12);
         // Build ffi command string
         runJsInputs[0] = "node";
         runJsInputs[1] = jsPath;
-        runJsInputs[2] = Strings.toHexString(uint256(payload.destChainId), 32);
-        runJsInputs[3] = Strings.toHexString(uint256(payload.tokenAddress), 32);
-        runJsInputs[4] = Strings.toHexString(
+        runJsInputs[2] = Strings.toHexString(uint256(payload.chainFrom), 32);
+        runJsInputs[3] = Strings.toHexString(uint256(payload.chainTo), 32);
+        runJsInputs[4] = Strings.toHexString(uint256(payload.tokenAddress), 32);
+        runJsInputs[5] = Strings.toHexString(
             uint256(payload.externalTokenAddress),
             32
         );
-        runJsInputs[5] = Strings.toHexString(payload.amountToSend, 32);
-        runJsInputs[6] = Strings.toHexString(payload.feeAmount, 32);
-        runJsInputs[7] = Strings.toHexString(payload.timestamp, 32);
-        runJsInputs[8] = Strings.toHexString(payload.flags, 32);
-        runJsInputs[9] = iToHex(payload.flagData);
-        runJsInputs[10] = Strings.toHexString(signer.PK, 32);
+        runJsInputs[6] = Strings.toHexString(payload.amountToSend, 32);
+        runJsInputs[7] = Strings.toHexString(payload.feeAmount, 32);
+        runJsInputs[8] = Strings.toHexString(payload.timestamp, 32);
+        runJsInputs[9] = Strings.toHexString(payload.flags, 32);
+        runJsInputs[10] = iToHex(payload.flagData);
+        runJsInputs[11] = Strings.toHexString(signer.PK, 32);
         // Run command and capture output
         return vm.ffi(runJsInputs);
     }
@@ -258,7 +260,8 @@ contract SignatureDifferentialTest is Test {
     }
 
     function buildPayload(
-        uint256 destChainId, // destination chain id
+        uint256 chainFrom, // chain id of the source chain
+        uint256 chainTo, // destination chain id
         bytes32 tokenAddress, // address of the token contract
         bytes32 externalTokenAddress, // address of the external token contract
         uint256 amountToSend, // amount of the tokens to be sent
@@ -269,7 +272,8 @@ contract SignatureDifferentialTest is Test {
     ) internal pure returns (BridgeTypes.SendPayload memory) {
         return
             BridgeTypes.SendPayload({
-                destChainId: destChainId,
+                chainFrom: chainFrom,
+                chainTo: chainTo,
                 tokenAddress: tokenAddress,
                 externalTokenAddress: externalTokenAddress,
                 amountToSend: amountToSend,
@@ -450,7 +454,8 @@ contract SignatureDifferentialTest is Test {
     }
 
     function test_fuzz_payloadSign_ethers(
-        uint256 destChainId, // destination chain id
+        uint256 chainFrom, // chain id of the source chain
+        uint256 chainTo, // destination chain id
         bytes32 tokenAddress, // address of the token contract
         bytes32 externalTokenAddress, // address of the external token contract
         uint256 amountToSend, // amount of the tokens to be sent
@@ -463,7 +468,8 @@ contract SignatureDifferentialTest is Test {
         payloadCheck(
             JS_PAYLOAD_SIGN_ETHERS_PATH,
             buildPayload(
-                destChainId,
+                chainFrom,
+                chainTo,
                 tokenAddress,
                 externalTokenAddress,
                 amountToSend,
@@ -484,7 +490,8 @@ contract SignatureDifferentialTest is Test {
     }
 
     function test_fuzz_payloadSign_viem(
-        uint256 destChainId, // destination chain id
+        uint256 chainFrom, // chain id of the source chain
+        uint256 chainTo, // destination chain id
         bytes32 tokenAddress, // address of the token contract
         bytes32 externalTokenAddress, // address of the external token contract
         uint256 amountToSend, // amount of the tokens to be sent
@@ -497,7 +504,8 @@ contract SignatureDifferentialTest is Test {
         payloadCheck(
             JS_PAYLOAD_SIGN_VIEM_PATH,
             buildPayload(
-                destChainId,
+                chainFrom,
+                chainTo,
                 tokenAddress,
                 externalTokenAddress,
                 amountToSend,

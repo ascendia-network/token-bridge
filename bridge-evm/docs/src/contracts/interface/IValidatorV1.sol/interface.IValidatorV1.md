@@ -1,5 +1,5 @@
 # IValidatorV1
-[Git Source](https://github.com/ambrosus/token-bridge/blob/c9e5c0649869e1d0d7d463cf7e74634fda87430d/contracts/interface/IValidatorV1.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/b8faea8dbabdd33f2dbbdda724404a71e4c5b492/contracts/interface/IValidatorV1.sol)
 
 
 ## Functions
@@ -9,7 +9,9 @@ Add a new validator to the list
 
 
 ```solidity
-function addValidator(address validator) external returns (bool added);
+function addValidator(
+    address validator
+) external returns (bool added);
 ```
 **Parameters**
 
@@ -30,7 +32,9 @@ Remove a validator from the list
 
 
 ```solidity
-function removeValidator(address validator) external returns (bool removed);
+function removeValidator(
+    address validator
+) external returns (bool removed);
 ```
 **Parameters**
 
@@ -51,10 +55,9 @@ Check if an address is a validator
 
 
 ```solidity
-function isValidator(address validator)
-    external
-    view
-    returns (bool isValidator);
+function isValidator(
+    address validator
+) external view returns (bool isValidator);
 ```
 **Parameters**
 

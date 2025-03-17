@@ -50,8 +50,8 @@ contract BridgeSolana is BridgeUpgradeable {
             tokenAddressTo: externalToken_.externalTokenAddress,
             amountFrom: payload.amountToSend,
             amountTo: amountTo,
-            chainFrom: block.chainid,
-            chainTo: payload.destChainId,
+            chainFrom: payload.chainFrom,
+            chainTo: payload.chainTo,
             eventId: _useNonce(address(this)),
             flags: payload.flags >> 65, // remove sender flags
             data: abi.encodePacked(_useNonce(recipient).toUint64())

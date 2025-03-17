@@ -4,6 +4,9 @@ import { getAssociatedTokenAddressSync, getOrCreateAssociatedTokenAccount, } fro
 import { Program } from "@coral-xyz/anchor";
 import type { AmbSolBridge } from "../idl/idlType";
 
+export const SOLANA_CHAIN_ID = 0x534f4c414e41444en;  // "SOLANADN"
+export const AMB_CHAIN_ID = 22040;
+
 
 export function hexToUint8Array(hexString: string) {
   hexString = hexString.replace("0x", "");

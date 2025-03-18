@@ -433,7 +433,9 @@ async function waitForAnvil(retries = 0) {
     if (retries > 10) {
       throw new Error("Anvil is not ready");
     } else {
-      setTimeout(() => waitForAnvil(retries++), 1000);
+      return await new Promise((resolve) => {
+        setTimeout(() => resolve(waitForAnvil(retries++)), 1000);
+      });
     }
   }
 }

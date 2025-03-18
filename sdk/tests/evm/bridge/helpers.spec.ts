@@ -1,8 +1,8 @@
 import { describe, expect, test } from "@jest/globals";
 import { Address, Hex } from "viem";
-import * as helpers from "../../../src/evm/bridge/helpers";
-import type { FullReceipt, MiniReceipt } from "../../../src/evm/types";
+import { evm } from "../../../src";
 import { receipts } from "../../mocks/fixtures/receipt";
+import { SendPayload } from "../../../src/backend";
 
 describe("Test bridge helpers", () => {
   test.each<[Address, Hex]>([
@@ -33,8 +33,8 @@ describe("Test bridge helpers", () => {
   ])(
     "Should correctly convert evm address to bytes32 hex",
     (address, expectedHex) => {
-      expect(helpers.evmAddressToBytes32(address)).toBe(expectedHex);
-      expect(helpers.addressToBytes32(address)).toBe(expectedHex);
+      expect(evm.helpers.evmAddressToBytes32(address)).toBe(expectedHex);
+      expect(evm.helpers.addressToBytes32(address)).toBe(expectedHex);
     }
   );
 
@@ -58,8 +58,8 @@ describe("Test bridge helpers", () => {
   ])(
     "Should correctly convert solana address to bytes32 hex",
     (address, expectedHex) => {
-      expect(helpers.solanaAddressToBytes32(address)).toBe(expectedHex);
-      expect(helpers.base58AddressToBytes32(address)).toBe(expectedHex);
+      expect(evm.helpers.solanaAddressToBytes32(address)).toBe(expectedHex);
+      expect(evm.helpers.base58AddressToBytes32(address)).toBe(expectedHex);
     }
   );
 
@@ -91,45 +91,76 @@ describe("Test bridge helpers", () => {
   ])(
     "Should correctly gather signatures for claim",
     (signatures, expectedHex) => {
-      expect(helpers.gatherSignaturesForClaim(signatures)).toBe(expectedHex);
+      expect(evm.helpers.gatherSignaturesForClaim(signatures)).toBe(expectedHex);
     }
   );
 
-  test.each<[FullReceipt | MiniReceipt, Hex]>(
+  test.each<[evm.FullReceipt | evm.MiniReceipt, Hex]>(
     receipts
-      .map<[FullReceipt | MiniReceipt, Hex]>((entry) => [
+      .map<[evm.FullReceipt | evm.MiniReceipt, Hex]>((entry) => [
         entry.receipt,
         entry.hash,
       ])
       .concat(
-        receipts.map<[FullReceipt | MiniReceipt, Hex]>((entry) => [
-          helpers.full2miniReceipt(entry.receipt),
+        receipts.map<[evm.FullReceipt | evm.MiniReceipt, Hex]>((entry) => [
+          evm.helpers.full2miniReceipt(entry.receipt),
           entry.hash,
         ])
       )
   )(`Should correctly convert receipt to hash`, (receipt, expectedHash) => {
-    expect(helpers.hashReceipt(receipt)).toBe(expectedHash);
+    expect(evm.helpers.hashReceipt(receipt)).toBe(expectedHash);
   });
 
   test("Should throw an error when trying to convert invalid solana address", () => {
     expect(() =>
-      helpers.evmAddressToBytes32(
+      evm.helpers.evmAddressToBytes32(
         "0x56d78f233132a401208e5ba9b7959aa22719eeb4213283e299d57195399f648e"
       )
     ).toThrow("Possibly invalid evm address");
     expect(() =>
-      helpers.addressToBytes32(
+      evm.helpers.addressToBytes32(
         "0x56d78f233132a401208e5ba9b7959aa22719eeb4213283e299d57195399f648e"
       )
     ).toThrow("Possibly invalid evm address");
   });
 
   test("Should throw an error when trying to convert invalid solana address", () => {
-    expect(() => helpers.solanaAddressToBytes32("2NEpo7TZRRrLZSi2U")).toThrow(
-      "Possibly invalid solana address"
-    );
-    expect(() => helpers.base58AddressToBytes32("2NEpo7TZRRrLZSi2U")).toThrow(
-      "Possibly invalid solana address"
+    expect(() =>
+      evm.helpers.solanaAddressToBytes32("2NEpo7TZRRrLZSi2U")
+    ).toThrow("Possibly invalid solana address");
+    expect(() =>
+      evm.helpers.base58AddressToBytes32("2NEpo7TZRRrLZSi2U")
+    ).toThrow("Possibly invalid solana address");
+  });
+
+  test("Api Payload to Call Payload", () => {
+    const apiPayload: SendPayload = {
+      tokenAddressFrom:
+        "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
+      tokenAddressTo: "0x5b9e2bd997bc8f6ae97145ce0a8dee075653f1aa",
+      amountToSend: 1000000000000000000n,
+      feeAmount: 1000000000000000n,
+      chainFrom: 6003100671677645902n,
+      chainTo: 22040n,
+      timestamp: 1742256876n,
+      flags: 0n,
+      flagData: "0x",
+    };
+
+    const expectedCallPayload: evm.SendPayloadEVM = {
+      tokenAddress:
+        "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
+      externalTokenAddress: "0x5b9e2bd997bc8f6ae97145ce0a8dee075653f1aa",
+      amountToSend: 1000000000000000000n,
+      feeAmount: 1000000000000000n,
+      chainFrom: 6003100671677645902n,
+      chainTo: 22040n,
+      timestamp: 1742256876n,
+      flags: 0n,
+      flagData: "0x",
+    };
+    expect(evm.helpers.apiPayloadToCallPayload(apiPayload)).toStrictEqual(
+      expectedCallPayload
     );
   });
 });

@@ -8,7 +8,10 @@ export async function checkIsClaimed(
   bridgeAddress: Address,
   publicClient: PublicClient
 ): Promise<boolean> {
-  const hash = typeof receiptOrHash === "string" ? receiptOrHash : hashReceipt(receiptOrHash);
+  const hash =
+    typeof receiptOrHash === "string"
+      ? receiptOrHash
+      : hashReceipt(receiptOrHash);
   return publicClient.readContract({
     address: bridgeAddress,
     abi: bridgeAbi,

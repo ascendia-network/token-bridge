@@ -24,7 +24,32 @@ export function handleCustomError(error: Error): CustomError {
     const rpcError = error.walk((err) => err instanceof RpcRequestError);
     if (revertError instanceof ContractFunctionRevertedError) {
       if (revertError.data === undefined) {
-        throw error;
+        for (const abi of [ERC20Abi, validatorAbi, bridgeAbi]) {
+          try {
+            const decoded = decodeErrorResult({
+              data: revertError.raw as Hex,
+              abi,
+            });
+            console.error(`Error: ${decoded.errorName}, args: ${decoded.args}`);
+            processedError = {
+              ...revertError,
+              errorName: decoded.errorName,
+              errorArgs: Array.from(decoded.args ?? []),
+            };
+          } catch (decodeErr) {
+            if (decodeErr instanceof AbiErrorSignatureNotFoundError) {
+              continue;
+            }
+          }
+        }
+        if (processedError === undefined) {
+          processedError = {
+            ...revertError,
+            errorName: "Unknown",
+            errorArgs: [],
+          };
+        }
+        return processedError;
       }
       const errorName = revertError.data.errorName ?? "";
       console.error(`Error: ${errorName}, args: ${revertError.data.args}`);

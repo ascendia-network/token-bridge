@@ -38,7 +38,7 @@ export interface ReceiptSignatures {
   }>;
 }
 
-function parseReceiptWithMeta(receiptWithMeta: {
+export function parseReceiptWithMeta(receiptWithMeta: {
   receipt: any;
   receiptMeta: any[];
 }): ReceiptWithMeta {
@@ -83,7 +83,9 @@ export async function getAllReceipts(
   const response = await fetch(receiptsUrl);
   if (!response.ok) {
     throw new Error(
-      `Failed to get receipts: ${response.statusText}, ${await response.json()}`
+      `Failed to get receipts: ${response.status}, ${JSON.stringify(
+        await response.json()
+      )}`
     );
   }
   const data = await response.json();
@@ -106,9 +108,9 @@ export async function getReceiptsByAddress(
   const response = await fetch(receiptsByAddressUrl);
   if (!response.ok) {
     throw new Error(
-      `Failed to get receipts by address: ${
-        response.statusText
-      }, ${await response.json()}`
+      `Failed to get receipts by address: ${response.status}, ${JSON.stringify(
+        await response.json()
+      )}`
     );
   }
   const data = await response.json();
@@ -123,7 +125,9 @@ export async function getReceipt(receiptId: string): Promise<ReceiptWithMeta> {
   const response = await fetch(receiptByIdUrl);
   if (!response.ok) {
     throw new Error(
-      `Failed to get receipt: ${response.statusText}, ${await response.json()}`
+      `Failed to get receipt: ${response.status}, ${JSON.stringify(
+        await response.json()
+      )}`
     );
   }
   const data = await response.json();
@@ -140,7 +144,9 @@ export async function getReceiptSignature(
   const response = await fetch(receiptByIdUrl);
   if (!response.ok) {
     throw new Error(
-      `Failed to get receipt: ${response.statusText}, ${await response.json()}`
+      `Failed to get receipt: ${response.status}, ${JSON.stringify(
+        await response.json()
+      )}`
     );
   }
   const data = await response.json();

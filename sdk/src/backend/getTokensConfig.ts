@@ -6,8 +6,8 @@ export async function getTokensConfig() {
   if (!response.ok) {
     throw new Error(
       `Failed to get tokens config: ${
-        response.statusText
-      }, ${await response.json()}`
+        response.status
+      }, ${JSON.stringify(await response.json())}`
     );
   }
   const data = await response.json();

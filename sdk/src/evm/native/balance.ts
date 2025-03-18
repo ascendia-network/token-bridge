@@ -7,7 +7,7 @@ import { Address, PublicClient } from "viem";
  * @param client The public client instance to use for the query
  * @returns true if the balance is sufficient, throws error otherwise
  * @throws Error if the balance is insufficient
-*/
+ */
 export async function checkBalanceNative(
   owner: Address,
   amount: bigint,

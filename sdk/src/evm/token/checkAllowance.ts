@@ -9,7 +9,7 @@ import { Address, erc20Abi, PublicClient } from "viem";
  * @param client The public client instance to use for the query
  * @returns true if the allowance is enough, throws error otherwise
  * @throws Error if the allowance is not enough
-*/
+ */
 export async function checkAllowanceERC20(
   tokenAddress: Address,
   owner: Address,

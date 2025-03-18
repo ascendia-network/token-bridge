@@ -1,14 +1,9 @@
-import { afterAll, beforeEach, describe, expect, test } from "@jest/globals";
+import { beforeEach, describe, expect, test } from "@jest/globals";
 // @ts-ignore
 import { mock, resetMocks } from "@depay/web3-mock";
 import { Address, createPublicClient, custom, PublicClient } from "viem";
 import { mainnet } from "viem/chains";
-import { bridgeAbi } from "../../../src/evm/abi/bridgeAbi";
-import {
-  amountAdditionalNativeToSend,
-  checkIsClaimed,
-} from "../../../src/evm/bridge/views";
-import { full2miniReceipt } from "../../../src/evm/bridge/helpers";
+import { evm } from "../../../src/";
 import { accountsEvm, blockchainEvm as blockchain } from "../../mocks/contract";
 import { receipts } from "../../mocks/fixtures/receipt";
 
@@ -35,14 +30,14 @@ describe("Test bridge views requests", () => {
       blockchain,
       request: {
         to: mockedBridgeAddress,
-        api: bridgeAbi,
+        api: evm.abi.bridgeAbi,
         method: "nativeSendAmount",
         params: [],
         return: "1000000000000000000",
       },
     });
     await expect(
-      amountAdditionalNativeToSend(mockedBridgeAddress, mockedPublicClient)
+      evm.contract.views.amountAdditionalNativeToSend(mockedBridgeAddress, mockedPublicClient)
     ).resolves.toBe(1000000000000000000n);
     expect(nativeSendAmountMock).toHaveBeenCalled();
     expect(nativeSendAmountMock).toHaveBeenCalledTimes(1);
@@ -56,14 +51,14 @@ describe("Test bridge views requests", () => {
       blockchain,
       request: {
         to: mockedBridgeAddress,
-        api: bridgeAbi,
+        api: evm.abi.bridgeAbi,
         method: "isClaimed",
         params: [mockedClaimedReceipt.hash],
         return: true,
       },
     });
     await expect(
-      checkIsClaimed(
+      evm.contract.views.checkIsClaimed(
         mockedClaimedReceipt.hash,
         mockedBridgeAddress,
         mockedPublicClient
@@ -78,14 +73,14 @@ describe("Test bridge views requests", () => {
       blockchain,
       request: {
         to: mockedBridgeAddress,
-        api: bridgeAbi,
+        api: evm.abi.bridgeAbi,
         method: "isClaimed",
         params: [mockedNotClaimedReceipt.hash],
         return: false,
       },
     });
     await expect(
-      checkIsClaimed(
+      evm.contract.views.checkIsClaimed(
         mockedNotClaimedReceipt.hash,
         mockedBridgeAddress,
         mockedPublicClient
@@ -100,14 +95,14 @@ describe("Test bridge views requests", () => {
       blockchain,
       request: {
         to: mockedBridgeAddress,
-        api: bridgeAbi,
+        api: evm.abi.bridgeAbi,
         method: "isClaimed",
         params: [mockedClaimedReceipt.hash],
         return: true,
       },
     });
     await expect(
-      checkIsClaimed(
+      evm.contract.views.checkIsClaimed(
         mockedClaimedReceipt.receipt,
         mockedBridgeAddress,
         mockedPublicClient
@@ -122,14 +117,14 @@ describe("Test bridge views requests", () => {
       blockchain,
       request: {
         to: mockedBridgeAddress,
-        api: bridgeAbi,
+        api: evm.abi.bridgeAbi,
         method: "isClaimed",
         params: [mockedNotClaimedReceipt.hash],
         return: false,
       },
     });
     await expect(
-      checkIsClaimed(
+      evm.contract.views.checkIsClaimed(
         mockedNotClaimedReceipt.receipt,
         mockedBridgeAddress,
         mockedPublicClient
@@ -140,38 +135,50 @@ describe("Test bridge views requests", () => {
   });
 
   test("Should request isClaimed by MiniReceipt truly", async () => {
-    const miniReceipt = full2miniReceipt(mockedClaimedReceipt.receipt);
+    const miniReceipt = evm.helpers.full2miniReceipt(
+      mockedClaimedReceipt.receipt
+    );
     const isClaimedMock = mock({
       blockchain,
       request: {
         to: mockedBridgeAddress,
-        api: bridgeAbi,
+        api: evm.abi.bridgeAbi,
         method: "isClaimed",
         params: [mockedClaimedReceipt.hash],
         return: true,
       },
     });
     await expect(
-      checkIsClaimed(miniReceipt, mockedBridgeAddress, mockedPublicClient)
+      evm.contract.views.checkIsClaimed(
+        miniReceipt,
+        mockedBridgeAddress,
+        mockedPublicClient
+      )
     ).resolves.toBeTruthy();
     expect(isClaimedMock).toHaveBeenCalled();
     expect(isClaimedMock).toHaveBeenCalledTimes(1);
   });
 
   test("Should request isClaimed by MiniReceipt falsy", async () => {
-    const miniReceipt = full2miniReceipt(mockedNotClaimedReceipt.receipt);
+    const miniReceipt = evm.helpers.full2miniReceipt(
+      mockedNotClaimedReceipt.receipt
+    );
     const isClaimedMock = mock({
       blockchain,
       request: {
         to: mockedBridgeAddress,
-        api: bridgeAbi,
+        api: evm.abi.bridgeAbi,
         method: "isClaimed",
         params: [mockedNotClaimedReceipt.hash],
         return: false,
       },
     });
     await expect(
-      checkIsClaimed(miniReceipt, mockedBridgeAddress, mockedPublicClient)
+      evm.contract.views.checkIsClaimed(
+        miniReceipt,
+        mockedBridgeAddress,
+        mockedPublicClient
+      )
     ).resolves.toBeFalsy();
     expect(isClaimedMock).toHaveBeenCalled();
     expect(isClaimedMock).toHaveBeenCalledTimes(1);

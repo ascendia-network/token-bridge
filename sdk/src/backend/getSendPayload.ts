@@ -19,6 +19,12 @@ export async function getSendPayload(
   }
   sendPayloadUrl.searchParams.set("tokenAddress", tokenAddress);
   sendPayloadUrl.searchParams.set("amountToSend", amountToSend.toString());
+  if (
+    externalTokenAddress.length !== 66 &&
+    externalTokenAddress.startsWith("0x")
+  ) {
+    externalTokenAddress = helpers.addressToBytes32(externalTokenAddress);
+  }
   sendPayloadUrl.searchParams.set("externalTokenAddress", externalTokenAddress);
   sendPayloadUrl.searchParams.set("flags", flags.toString());
   sendPayloadUrl.searchParams.set("flagData", flagData);
@@ -26,8 +32,8 @@ export async function getSendPayload(
   if (!response.ok) {
     throw new Error(
       `Failed to get send payload: ${
-        response.statusText
-      }, ${await response.json()}`
+        response.status
+      }, ${JSON.stringify(await response.json())}`
     );
   }
   const data = await response.json();
@@ -36,9 +42,10 @@ export async function getSendPayload(
   }
   return {
     sendPayload: {
-      destChainId: BigInt(data.sendPayload.destChainId),
-      tokenAddress: data.sendPayload.tokenAddress,
-      externalTokenAddress: data.sendPayload.externalTokenAddress,
+      chainFrom: BigInt(data.sendPayload.chainFrom),
+      chainTo: BigInt(data.sendPayload.chainTo),
+      tokenAddressFrom: data.sendPayload.tokenAddressFrom,
+      tokenAddressTo: data.sendPayload.tokenAddressTo,
       amountToSend: BigInt(data.sendPayload.amountToSend),
       feeAmount: BigInt(data.sendPayload.feeAmount),
       timestamp: BigInt(data.sendPayload.timestamp),
@@ -50,9 +57,10 @@ export async function getSendPayload(
 }
 
 export interface SendPayload {
-  destChainId: bigint;
-  tokenAddress: string;
-  externalTokenAddress: string;
+  chainFrom: bigint;
+  chainTo: bigint;
+  tokenAddressFrom: string;
+  tokenAddressTo: string;
   amountToSend: bigint;
   feeAmount: bigint;
   timestamp: bigint;

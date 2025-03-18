@@ -8,7 +8,8 @@ import {
   hexToBigInt,
 } from "viem";
 import { Base58 } from "ox";
-import { FullReceipt, MiniReceipt } from "../types/calls";
+import { FullReceipt, MiniReceipt, SendPayloadEVM } from "../types/calls";
+import { SendPayload } from "../../backend";
 
 /**
  * Converts an EVM address to a bytes32 hex string
@@ -135,4 +136,18 @@ export function hashReceipt(receipt: FullReceipt | MiniReceipt) {
   const digest =
     "from" in receipt ? fullReceipt2hash(receipt) : miniReceipt2hash(receipt);
   return hashMessage({ raw: digest });
+}
+
+export function apiPayloadToCallPayload(payload: SendPayload): SendPayloadEVM {
+  return {
+    chainFrom: payload.chainFrom,
+    chainTo: payload.chainTo,
+    tokenAddress: payload.tokenAddressFrom as Hex,
+    externalTokenAddress: payload.tokenAddressTo as Hex,
+    amountToSend: payload.amountToSend,
+    feeAmount: payload.feeAmount,
+    timestamp: payload.timestamp,
+    flags: payload.flags,
+    flagData: payload.flagData as Hex,
+  };
 }

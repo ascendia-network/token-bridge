@@ -65,13 +65,13 @@ export const serializeReceivePayload = (value: ReceivePayloadSolana) => serializ
 
 export function convertSendPayload(sendPayload: SendPayload): SendPayloadSolana {
   return {
-    tokenAddressFrom: hexToUint8Array(sendPayload.tokenAddress),
-    tokenAddressTo: hexToUint8Array(sendPayload.externalTokenAddress),
+    tokenAddressFrom: hexToUint8Array(sendPayload.tokenAddressFrom),
+    tokenAddressTo: hexToUint8Array(sendPayload.tokenAddressTo),
     amountToSend: sendPayload.amountToSend,
     feeAmount: sendPayload.feeAmount,
-    // chainFrom: sendPayload.sourceChainId,  // todo
+    // chainFrom: sendPayload.chainFrom,  // todo
     chainFrom: SOLANA_CHAIN_ID,
-    chainTo: sendPayload.destChainId,
+    chainTo: sendPayload.chainTo,
     timestamp: Number(sendPayload.timestamp),
     flags: bignumberToUint8Array(sendPayload.flags, 32),
     flagData: hexToUint8Array(sendPayload.flagData),

@@ -52,7 +52,7 @@ async function waitForAnvil(retries = 0) {
     }
   }
 }
-describe("Test bridge send request", () => {
+describe("Test bridge claim request", () => {
   let testClient: TestClient;
   let anvil: child.ChildProcess;
   beforeAll(async () => {

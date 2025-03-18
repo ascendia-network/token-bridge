@@ -25,10 +25,35 @@ import { evm } from "../../../src/";
 import { AccountFixture } from "../../mocks/fixtures/privateKey";
 import { receipts } from "../../mocks/fixtures/receipt";
 
+async function waitForAnvil(retries = 0) {
+  try {
+    const url = `http://0.0.0.0:8545`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "eth_blockNumber",
+        params: [],
+      }),
+    });
+    return response.ok && (await response.json()) !== undefined;
+  } catch (error) {
+    console.log("Anvil is not ready yet");
+    if (retries > 10) {
+      throw new Error("Anvil is not ready");
+    } else {
+      setTimeout(() => waitForAnvil(retries++), 1000);
+    }
+  }
+}
 describe("Test bridge send request", () => {
   let testClient: TestClient;
   let anvil: child.ChildProcess;
-  beforeAll(() => {
+  beforeAll(async () => {
     anvil = child.spawn("anvil", [
       "-p",
       "8545",
@@ -36,6 +61,7 @@ describe("Test bridge send request", () => {
       "https://network.ambrosus-test.io",
       "--silent",
     ]);
+    await waitForAnvil();
   }, 10000);
   afterAll(() => {
     anvil.kill();
@@ -43,7 +69,7 @@ describe("Test bridge send request", () => {
   beforeEach(async () => {
     testClient = createTestClient({
       mode: "anvil",
-      transport: http("http://localhost:8545"),
+      transport: http("http://0.0.0.0:8545"),
       account: privateKeyToAccount(AccountFixture.privateKey),
     })
       .extend(publicActions)

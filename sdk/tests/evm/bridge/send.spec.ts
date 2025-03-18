@@ -414,7 +414,7 @@ const sAMBAbi: Abi = [
 
 async function waitForAnvil(retries = 0) {
   try {
-    const url = `http://0.0.0.0:8545`;
+    const url = `http://127.0.0.1:8545`;
     const response = await fetch(url, {
       method: "POST",
       headers: {
@@ -457,7 +457,7 @@ describe("Test bridge send request", () => {
   beforeEach(async () => {
     testClient = createTestClient({
       mode: "anvil",
-      transport: http("http://0.0.0.0:8545"),
+      transport: http(`http://127.0.0.1:8545`),
       account: privateKeyToAccount(AccountFixture.privateKey),
     })
       .extend(publicActions)

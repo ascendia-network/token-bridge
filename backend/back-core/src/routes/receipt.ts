@@ -183,8 +183,23 @@ receiptRoutes.get(
               type: "object",
               properties: {
                 receiptId: {
+                  type: "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      404: {
+        description: "Receipt not found",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                message: {
                   type: "string",
-                  nullable: true
+                  example: "Receipt not found"
                 }
               }
             }
@@ -220,6 +235,9 @@ receiptRoutes.get(
     const { receiptController } = c.var;
     try {
       const receiptId = await receiptController.getReceiptIdByTransactionHash(transactionHash);
+      if (!receiptId) {
+        return c.json({ message: "Receipt not found" }, 404);
+      }
       return c.json({ receiptId }, 200);
     } catch (error) {
       console.error(error);

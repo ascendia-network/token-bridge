@@ -138,7 +138,6 @@ export class ReceiptController {
       if (metaSolana.length > 0) {
         return metaSolana[0].receiptId;
       }
-
       return null;
     } catch (error) {
       consoleLogger(

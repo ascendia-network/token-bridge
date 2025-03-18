@@ -26,6 +26,7 @@ import {
 import { privateKeyToAccount } from "viem/accounts";
 import { evm } from "../../../src/";
 import { AccountFixture } from "../../mocks/fixtures/privateKey";
+import { error } from "console";
 
 const sAMBAbi: Abi = [
   {
@@ -517,4 +518,111 @@ describe("Test bridge send request", () => {
     );
     expect(tx).toBeDefined();
   }, 30000);
+
+  test("Should fail send with approve request with insufficient allowance", async () => {
+    await testClient.impersonateAccount({
+      address: AccountFixture.address,
+    });
+    const sendParams: evm.SendCall = {
+      recipient: mockedRecipient,
+      payload: mockedPayload,
+      payloadSignature: mockedSignature,
+    };
+    await testClient.setBalance({
+      address: testClient.account?.address!,
+      value:
+        mockedPayload.amountToSend +
+        mockedPayload.feeAmount +
+        parseEther("100"),
+    });
+    const sAmb = await getContract({
+      address: ("0x" + mockedPayload.tokenAddress.slice(-40)) as Address,
+      abi: sAMBAbi,
+      client: {
+        public: testClient as unknown as PublicClient,
+        wallet: testClient as unknown as WalletClient,
+      },
+    });
+    await sAmb.write.deposit([], { value: mockedPayload.amountToSend });
+    await expect(
+      evm.contract.calls.sendFromEVM(
+        sendParams,
+        mockedBridgeAddress,
+        testClient as unknown as PublicClient,
+        testClient as unknown as WalletClient
+      )
+    ).rejects.toThrow(
+      "Insufficient allowance"
+    );
+  });
+  test("Should fail send with approve request with insufficient balance", async () => {
+    await testClient.impersonateAccount({
+      address: AccountFixture.address,
+    });
+    const sendParams: evm.SendCall = {
+      recipient: mockedRecipient,
+      payload: mockedPayload,
+      payloadSignature: mockedSignature,
+    };
+    await testClient.setBalance({
+      address: testClient.account?.address!,
+      value: mockedPayload.amountToSend + parseEther("0.001"),
+    });
+    const sAmb = await getContract({
+      address: ("0x" + mockedPayload.tokenAddress.slice(-40)) as Address,
+      abi: sAMBAbi,
+      client: {
+        public: testClient as unknown as PublicClient,
+        wallet: testClient as unknown as WalletClient,
+      },
+    });
+    await sAmb.write.deposit([], { value: mockedPayload.amountToSend });
+    await sAmb.write.approve([mockedBridgeAddress, mockedPayload.amountToSend]);
+    await expect(
+      evm.contract.calls.sendFromEVM(
+        sendParams,
+        mockedBridgeAddress,
+        testClient as unknown as PublicClient,
+        testClient as unknown as WalletClient
+      )
+    ).rejects.toThrow("Insufficient balance");
+  });
+
+  test("Should fail send with approve request with RPC error", async () => {
+    await testClient.impersonateAccount({
+      address: AccountFixture.address,
+    });
+    const sendParams: evm.SendCall = {
+      recipient: mockedRecipient,
+      payload: mockedPayload,
+      payloadSignature: "0x".padEnd(132, "deadBeef") as Hex,
+    };
+    await testClient.setBalance({
+      address: testClient.account?.address!,
+      value: mockedPayload.amountToSend + mockedPayload.feeAmount + parseEther("100"),
+    });
+    const sAmb = await getContract({
+      address: ("0x" + mockedPayload.tokenAddress.slice(-40)) as Address,
+      abi: sAMBAbi,
+      client: {
+        public: testClient as unknown as PublicClient,
+        wallet: testClient as unknown as WalletClient,
+      },
+    });
+    await sAmb.write.deposit([], { value: mockedPayload.amountToSend });
+    await sAmb.write.approve([mockedBridgeAddress, mockedPayload.amountToSend]);
+    await expect(
+      evm.contract.calls.sendFromEVM(
+        sendParams,
+        mockedBridgeAddress,
+        testClient as unknown as PublicClient,
+        testClient as unknown as WalletClient
+      )
+    ).rejects.toMatchObject({
+      errorName: "ECDSAInvalidSignatureS",
+      errorArgs: [
+        "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+      ],
+    });
+  });
 });

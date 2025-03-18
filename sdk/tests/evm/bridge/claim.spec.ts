@@ -99,4 +99,29 @@ describe("Test bridge claim request", () => {
     );
     expect(tx).toBeDefined();
   }, 30000);
+
+  test("Should fail claim request with token not bridgable", async () => {
+    await testClient.impersonateAccount({
+      address: AccountFixture.address,
+    });
+    const claimParams: evm.ClaimCall = {
+      receipt: receipts[0].receipt,
+      signature: receipts[0].signature,
+    };
+    await testClient.setBalance({
+      address: testClient.account?.address!,
+      value: parseEther("100"),
+    });
+    await expect(
+      evm.contract.calls.claimInEVM(
+        claimParams,
+        mockedBridgeAddress,
+        testClient as unknown as PublicClient,
+        testClient as unknown as WalletClient
+      )
+    ).rejects.toMatchObject({
+      errorName: "TokenNotBridgable",
+      errorArgs: ["0x6deE265d22085F4c0BB1582BF0BAd8a6Af0309d9"],
+    });
+  }, 30000);
 });

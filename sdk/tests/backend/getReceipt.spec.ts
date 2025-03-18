@@ -461,4 +461,68 @@ describe("Test getting receipt from backend", () => {
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe("By txHash", () => {
+    const receiptByTxHashFetchMock = (input: URL | string | Request) => {
+      let txHash = input.toString().split("/").pop();
+      if (input instanceof URL) {
+        txHash = input.pathname.split("/").pop();
+      } else if (input instanceof Request) {
+        txHash = input.url.split("/").pop();
+      } else {
+        txHash = input.split("/").pop();
+      }
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          receiptId: receiptsArray.find(
+            (receipt) =>
+              receipt.receiptMeta.find(
+                (meta) => meta.transactionHash === txHash,
+              ) !== undefined,
+          )?.receipt.receiptId,
+        }),
+      } as Response);
+    };
+
+    beforeEach(() => {
+      fetchMock = jest
+        .spyOn(global, "fetch")
+        .mockImplementation(receiptByTxHashFetchMock);
+    });
+
+    test.each(
+      receiptsArray.map((entry) => [
+        entry.receiptMeta[0].transactionHash,
+        entry.receipt.receiptId,
+      ]),
+    )("Should get receiptId by txHash", async (hash, expectedId) => {
+      await expect(backend.getReceiptIdByTxHash(hash)).resolves.toEqual(
+        expectedId,
+      );
+      expect(fetchMock).toHaveBeenCalled();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    test("Should fail to get receiptId by txHash", async () => {
+      fetchMock.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: false,
+          status: 404,
+          statusText: "Not found",
+          json: async () => ({ error: "Not found" }),
+        } as Response),
+      );
+      await expect(
+        backend.getReceiptIdByTxHash(
+          "0x38fe209bc8fc4912880e8008fecf21f3248ea37c9e48f9b1af3061b334627f14",
+        ),
+      ).rejects.toThrowError(
+        'Failed to get receipt by tx hash: 404, {"error":"Not found"}',
+      );
+      expect(fetchMock).toHaveBeenCalled();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+  });
 });

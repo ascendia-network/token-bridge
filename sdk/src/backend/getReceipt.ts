@@ -78,6 +78,30 @@ export function parseReceiptWithMeta(receiptWithMeta: {
 }
 
 /**
+ * Fetches the receiptId for a specific transaction hash from the backend.
+ *
+ * @param {string} txHash - The transaction hash to retrieve the receiptId for.
+ * @returns {Promise<string>} A promise that resolves to the receiptId for the given transaction hash.
+ * @throws Will throw an error if the network request fails or the receipt is not found.
+ */
+export async function getReceiptIdByTxHash(txHash: string): Promise<string> {
+  const receiptIdByTxHashUrl: URL = URL.parse(
+    `/api/receipts/transaction/${txHash}`,
+    backendUrl,
+  )!;
+  const response = await fetch(receiptIdByTxHashUrl);
+  if (!response.ok) {
+    throw new Error(
+      `Failed to get receipt by tx hash: ${response.status}, ${JSON.stringify(
+        await response.json(),
+      )}`,
+    );
+  }
+  const data = await response.json();
+  return data.receiptId;
+}
+
+/**
  * Get all receipts from the backend.
  *
  * @param {number} [limit=50] - the number of receipts to return

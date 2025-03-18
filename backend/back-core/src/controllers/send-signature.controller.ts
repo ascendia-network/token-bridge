@@ -18,7 +18,7 @@ import {
 import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts";
 
 import { getFees } from "../fee";
-import { SendPayloadEVM, SendPayloadSolana } from "../routes/utils";
+import { SendPayload } from "../routes/utils";
 import {
   CHAIN_ID_TO_CHAIN_NAME,
   SOLANA_CHAIN_ID,
@@ -80,7 +80,7 @@ export class SendSignatureController {
     );
     const timestamp = Math.floor(Date.now() / 1000);
 
-    let signature, sendPayload: SendPayloadEVM | SendPayloadSolana;
+    let signature, sendPayload: SendPayload;
 
     switch (networkFrom) {
       case SOLANA_CHAIN_ID:
@@ -95,6 +95,7 @@ export class SendSignatureController {
           amountToSend: amountToSend,
           feeAmount: feeAmount,
           chainFrom: networkFrom,
+          chainTo: networkTo,
           timestamp: timestamp,
           flags: flags,
           flagData: flagData
@@ -104,7 +105,7 @@ export class SendSignatureController {
         signature = await this.signSvmSendPayload(sendPayload);
         break;
       default:
-        sendPayload = SendPayloadEVM.parse({
+        sendPayload = SendPayload.parse({
           chainFrom: networkFrom,
           chainTo: networkTo,
           tokenAddress,
@@ -121,7 +122,7 @@ export class SendSignatureController {
     return { sendPayload, signature };
   }
 
-  async signEvmSendPayload(sendPayload: SendPayloadEVM) {
+  async signEvmSendPayload(sendPayload: SendPayload) {
     const payload = encodePacked(
       [
         "uint256",
@@ -137,8 +138,8 @@ export class SendSignatureController {
       [
         sendPayload.chainFrom,
         sendPayload.chainTo,
-        sendPayload.tokenAddress as `0x${string}`,
-        sendPayload.externalTokenAddress as `0x${string}`,
+        sendPayload.tokenAddressFrom as `0x${string}`,
+        sendPayload.tokenAddressTo as `0x${string}`,
         sendPayload.amountToSend,
         sendPayload.feeAmount,
         BigInt(sendPayload.timestamp),
@@ -150,7 +151,7 @@ export class SendSignatureController {
     return await this.evmSigner.signMessage({ message: { raw: payloadHash } });
   }
 
-  async signSvmSendPayload(sendPayload: SendPayloadSolana) {
+  async signSvmSendPayload(sendPayload: SendPayload) {
     const sendPayloadToSerialize: SolanaSendPayloadSerialize =
       SolanaSendPayloadSerialize.parse({
         tokenAddressFrom: toBytes(sendPayload.tokenAddressFrom),

@@ -8,7 +8,6 @@ import {
 } from "@jest/globals";
 import { Address } from "viem";
 import { backend } from "../../src";
-import { parseReceiptWithMeta } from "../../src/backend";
 import {
   evmAddressToBytes32,
   solanaAddressToBytes32,
@@ -266,7 +265,7 @@ describe("Test getting receipt from backend", () => {
     test.each(receiptsArray.map((entry) => entry.receipt.receiptId))(
       "Should get receipt by receiptId",
       async (receiptId) => {
-        const expectedReceipt = parseReceiptWithMeta(
+        const expectedReceipt = backend.parseReceiptWithMeta(
           receiptsArray.find(
             (receipt) => receipt.receipt.receiptId === receiptId,
           )!,
@@ -340,7 +339,7 @@ describe("Test getting receipt from backend", () => {
           (receipt) =>
             receipt.receipt.from === B32 || receipt.receipt.to === B32,
         )
-        .map(parseReceiptWithMeta);
+        .map(backend.parseReceiptWithMeta);
       await expect(backend.getReceiptsByAddress(address)).resolves.toEqual(
         expectedReceipts,
       );
@@ -384,7 +383,7 @@ describe("Test getting receipt from backend", () => {
     });
 
     test("Should get all receipts", async () => {
-      const expectedReceipts = receiptsArray.map(parseReceiptWithMeta);
+      const expectedReceipts = receiptsArray.map(backend.parseReceiptWithMeta);
       await expect(backend.getAllReceipts()).resolves.toEqual(expectedReceipts);
       expect(fetchMock).toHaveBeenCalled();
       expect(fetchMock).toHaveBeenCalledTimes(1);

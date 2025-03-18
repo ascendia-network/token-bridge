@@ -3,7 +3,6 @@ import {
   test,
   expect,
   jest,
-  beforeAll,
   afterEach,
   beforeEach,
 } from "@jest/globals";
@@ -234,7 +233,7 @@ const signatures = [
 // #endregion mock
 
 describe("Test getting receipt from backend", () => {
-  let fetchMock: any = undefined;
+  let fetchMock: jest.SpiedFunction<typeof fetch>;
 
   afterEach(async () => jest.restoreAllMocks());
 
@@ -253,7 +252,7 @@ describe("Test getting receipt from backend", () => {
         status: 200,
         json: async () =>
           receiptsArray.find(
-            (receipt) => receipt.receipt.receiptId === receiptId
+            (receipt) => receipt.receipt.receiptId === receiptId,
           ),
       } as Response);
     };
@@ -269,15 +268,15 @@ describe("Test getting receipt from backend", () => {
       async (receiptId) => {
         const expectedReceipt = parseReceiptWithMeta(
           receiptsArray.find(
-            (receipt) => receipt.receipt.receiptId === receiptId
-          )!
+            (receipt) => receipt.receipt.receiptId === receiptId,
+          )!,
         );
         await expect(backend.getReceipt(receiptId)).resolves.toEqual(
-          expectedReceipt
+          expectedReceipt,
         );
         expect(fetchMock).toHaveBeenCalled();
         expect(fetchMock).toHaveBeenCalledTimes(1);
-      }
+      },
     );
 
     test("Should fail to get receipt by receiptId", async () => {
@@ -287,12 +286,12 @@ describe("Test getting receipt from backend", () => {
           status: 404,
           statusText: "Not found",
           json: async () => ({ error: "Not found" }),
-        } as Response)
+        } as Response),
       );
       await expect(
-        backend.getReceipt("22040_6003100671677645902_0")
+        backend.getReceipt("22040_6003100671677645902_0"),
       ).rejects.toThrowError(
-        'Failed to get receipt: 404, {"error":"Not found"}'
+        'Failed to get receipt: 404, {"error":"Not found"}',
       );
       expect(fetchMock).toHaveBeenCalled();
       expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -317,7 +316,7 @@ describe("Test getting receipt from backend", () => {
         json: async () =>
           receiptsArray.filter(
             (receipt) =>
-              receipt.receipt.from === B32 || receipt.receipt.to === B32
+              receipt.receipt.from === B32 || receipt.receipt.to === B32,
           ),
       } as Response);
     };
@@ -333,17 +332,17 @@ describe("Test getting receipt from backend", () => {
       "8vgWXnv9x7bYLvsrVodPG6QMU7V5yZDQMQ5DkA42pWVq",
       "FMYR5BFh3JapZS1cfwYViiBMYJxFGwKdchnghBnBtxkk",
     ])("Should get receipt by address", async (address) => {
-      let B32 = address.startsWith("0x")
+      const B32 = address.startsWith("0x")
         ? evmAddressToBytes32(address as Address)
         : solanaAddressToBytes32(address);
       const expectedReceipts = receiptsArray
         .filter(
           (receipt) =>
-            receipt.receipt.from === B32 || receipt.receipt.to === B32
+            receipt.receipt.from === B32 || receipt.receipt.to === B32,
         )
         .map(parseReceiptWithMeta);
       await expect(backend.getReceiptsByAddress(address)).resolves.toEqual(
-        expectedReceipts
+        expectedReceipts,
       );
       expect(fetchMock).toHaveBeenCalled();
       expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -356,21 +355,21 @@ describe("Test getting receipt from backend", () => {
           status: 404,
           statusText: "Not found",
           json: async () => ({ error: "Not found" }),
-        } as Response)
+        } as Response),
       );
       await expect(
         backend.getReceiptsByAddress(
-          "0x281dcd7124b1b6015b6c7953c9e4ae19d8d63a89"
-        )
+          "0x281dcd7124b1b6015b6c7953c9e4ae19d8d63a89",
+        ),
       ).rejects.toThrowError(
-        'Failed to get receipts by address: 404, {"error":"Not found"}'
+        'Failed to get receipts by address: 404, {"error":"Not found"}',
       );
       expect(fetchMock).toHaveBeenCalled();
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
   });
   describe("All receipts", () => {
-    const allReceiptsFetchMock = (input: URL | string | Request) => {
+    const allReceiptsFetchMock = () => {
       return Promise.resolve({
         ok: true,
         status: 200,
@@ -397,10 +396,10 @@ describe("Test getting receipt from backend", () => {
           status: 404,
           statusText: "Not found",
           json: async () => ({ error: "Not found" }),
-        } as Response)
+        } as Response),
       );
       await expect(backend.getAllReceipts()).rejects.toThrowError(
-        'Failed to get receipts: 404, {"error":"Not found"}'
+        'Failed to get receipts: 404, {"error":"Not found"}',
       );
       expect(fetchMock).toHaveBeenCalled();
       expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -434,14 +433,14 @@ describe("Test getting receipt from backend", () => {
       "Should get signatures for receipt",
       async (receiptId) => {
         const expectedSignatures = signatures.find(
-          (signature) => signature.receiptId === receiptId
+          (signature) => signature.receiptId === receiptId,
         );
         await expect(backend.getReceiptSignature(receiptId)).resolves.toEqual(
-          expectedSignatures
+          expectedSignatures,
         );
         expect(fetchMock).toHaveBeenCalled();
         expect(fetchMock).toHaveBeenCalledTimes(1);
-      }
+      },
     );
 
     test("Should fail to get signatures for receipt", async () => {
@@ -451,12 +450,12 @@ describe("Test getting receipt from backend", () => {
           status: 404,
           statusText: "Not found",
           json: async () => ({ error: "Not found" }),
-        } as Response)
+        } as Response),
       );
       await expect(
-        backend.getReceiptSignature("22040_6003100671677645902_0")
+        backend.getReceiptSignature("22040_6003100671677645902_0"),
       ).rejects.toThrowError(
-        'Failed to get receipt: 404, {"error":"Not found"}'
+        'Failed to get receipt: 404, {"error":"Not found"}',
       );
       expect(fetchMock).toHaveBeenCalled();
       expect(fetchMock).toHaveBeenCalledTimes(1);

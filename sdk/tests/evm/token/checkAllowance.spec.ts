@@ -1,12 +1,7 @@
 import { beforeEach, describe, expect, test } from "@jest/globals";
-// @ts-ignore
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module '@depay/web3-mock'.
 import { mock, resetMocks } from "@depay/web3-mock";
-import {
-  Address,
-  createPublicClient,
-  custom,
-  PublicClient,
-} from "viem";
+import { Address, createPublicClient, custom, PublicClient } from "viem";
 import { mainnet } from "viem/chains";
 import { evm } from "../../../src/";
 import { accountsEvm, blockchainEvm as blockchain } from "../../mocks/contract";
@@ -18,7 +13,7 @@ describe("Test token allowance request", () => {
       await mock({
         blockchain,
         accounts: { return: accountsEvm },
-      })
+      }),
   );
   let mockedPublicClient: PublicClient;
   beforeEach(() => {
@@ -48,8 +43,8 @@ describe("Test token allowance request", () => {
         accountsEvm[0],
         mockedSpender,
         10n,
-        mockedPublicClient
-      )
+        mockedPublicClient,
+      ),
     ).resolves.toBeTruthy();
     expect(allowanceMock).toHaveBeenCalled();
     expect(allowanceMock).toHaveBeenCalledTimes(1);
@@ -72,8 +67,8 @@ describe("Test token allowance request", () => {
         accountsEvm[0],
         mockedSpender,
         11n,
-        mockedPublicClient
-      )
+        mockedPublicClient,
+      ),
     ).rejects.toThrow("Insufficient allowance");
     expect(allowanceMock).toHaveBeenCalled();
     expect(allowanceMock).toHaveBeenCalledTimes(1);

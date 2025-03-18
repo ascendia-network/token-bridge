@@ -8,22 +8,22 @@ export const ERC20Abi: Abi = [
       {
         name: "owner",
         type: "address",
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "spender",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
     outputs: [
       {
         name: "",
         type: "uint256",
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -32,22 +32,22 @@ export const ERC20Abi: Abi = [
       {
         name: "spender",
         type: "address",
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "value",
         type: "uint256",
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
     outputs: [
       {
         name: "",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -56,17 +56,17 @@ export const ERC20Abi: Abi = [
       {
         name: "account",
         type: "address",
-        internalType: "address"
-      }
+        internalType: "address",
+      },
     ],
     outputs: [
       {
         name: "",
         type: "uint256",
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -76,10 +76,10 @@ export const ERC20Abi: Abi = [
       {
         name: "",
         type: "uint8",
-        internalType: "uint8"
-      }
+        internalType: "uint8",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -89,10 +89,10 @@ export const ERC20Abi: Abi = [
       {
         name: "",
         type: "string",
-        internalType: "string"
-      }
+        internalType: "string",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -102,10 +102,10 @@ export const ERC20Abi: Abi = [
       {
         name: "",
         type: "string",
-        internalType: "string"
-      }
+        internalType: "string",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -115,10 +115,10 @@ export const ERC20Abi: Abi = [
       {
         name: "",
         type: "uint256",
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
-    stateMutability: "view"
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -127,22 +127,22 @@ export const ERC20Abi: Abi = [
       {
         name: "to",
         type: "address",
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "value",
         type: "uint256",
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
     outputs: [
       {
         name: "",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -151,27 +151,27 @@ export const ERC20Abi: Abi = [
       {
         name: "from",
         type: "address",
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "to",
         type: "address",
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "value",
         type: "uint256",
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
     outputs: [
       {
         name: "",
         type: "bool",
-        internalType: "bool"
-      }
+        internalType: "bool",
+      },
     ],
-    stateMutability: "nonpayable"
+    stateMutability: "nonpayable",
   },
   {
     type: "event",
@@ -181,22 +181,22 @@ export const ERC20Abi: Abi = [
         name: "owner",
         type: "address",
         indexed: true,
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "spender",
         type: "address",
         indexed: true,
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "value",
         type: "uint256",
         indexed: false,
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "event",
@@ -206,22 +206,22 @@ export const ERC20Abi: Abi = [
         name: "from",
         type: "address",
         indexed: true,
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "to",
         type: "address",
         indexed: true,
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "value",
         type: "uint256",
         indexed: false,
-        internalType: "uint256"
-      }
+        internalType: "uint256",
+      },
     ],
-    anonymous: false
+    anonymous: false,
   },
   {
     type: "error",
@@ -230,19 +230,19 @@ export const ERC20Abi: Abi = [
       {
         name: "spender",
         type: "address",
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "allowance",
         type: "uint256",
-        internalType: "uint256"
+        internalType: "uint256",
       },
       {
         name: "needed",
         type: "uint256",
-        internalType: "uint256"
-      }
-    ]
+        internalType: "uint256",
+      },
+    ],
   },
   {
     type: "error",
@@ -251,19 +251,19 @@ export const ERC20Abi: Abi = [
       {
         name: "sender",
         type: "address",
-        internalType: "address"
+        internalType: "address",
       },
       {
         name: "balance",
         type: "uint256",
-        internalType: "uint256"
+        internalType: "uint256",
       },
       {
         name: "needed",
         type: "uint256",
-        internalType: "uint256"
-      }
-    ]
+        internalType: "uint256",
+      },
+    ],
   },
   {
     type: "error",
@@ -272,9 +272,9 @@ export const ERC20Abi: Abi = [
       {
         name: "approver",
         type: "address",
-        internalType: "address"
-      }
-    ]
+        internalType: "address",
+      },
+    ],
   },
   {
     type: "error",
@@ -283,9 +283,9 @@ export const ERC20Abi: Abi = [
       {
         name: "receiver",
         type: "address",
-        internalType: "address"
-      }
-    ]
+        internalType: "address",
+      },
+    ],
   },
   {
     type: "error",
@@ -294,9 +294,9 @@ export const ERC20Abi: Abi = [
       {
         name: "sender",
         type: "address",
-        internalType: "address"
-      }
-    ]
+        internalType: "address",
+      },
+    ],
   },
   {
     type: "error",
@@ -305,8 +305,8 @@ export const ERC20Abi: Abi = [
       {
         name: "spender",
         type: "address",
-        internalType: "address"
-      }
-    ]
-  }
+        internalType: "address",
+      },
+    ],
+  },
 ];

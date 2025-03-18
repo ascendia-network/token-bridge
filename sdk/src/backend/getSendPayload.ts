@@ -2,6 +2,22 @@ import { Hex } from "viem";
 import { backendUrl } from "../config";
 import { helpers } from "../evm";
 
+/**
+ * Fetches the signed send payload required for a cross-chain token transfer.
+ *
+ * @param {bigint} networkFrom - Chain ID of the sender as a bigint.
+ * @param {bigint} networkTo - Chain ID of the receiver as a bigint.
+ * @param {Hex} tokenAddress - Address of the token in bytes32 hex format.
+ * @param {bigint} amountToSend - Amount of tokens to send as a bigint.
+ * @param {Hex} externalTokenAddress - Address of the external token in bytes32 hex format.
+ * @param {bigint} [flags=0] - Optional flags for the transaction as a bigint. Defaults to 0n.
+ * @param {Hex} [flagData='0x'] - Optional extra data for flags in hex format. Defaults to "0x".
+ *
+ * @returns {Promise<{ sendPayload: SendPayload; signature: Hex }>} An object containing the send payload and its signature.
+ *
+ * @throws Will throw an error if the fetch request fails or the response is invalid.
+ */
+
 export async function getSendPayload(
   networkFrom: bigint,
   networkTo: bigint,
@@ -9,8 +25,8 @@ export async function getSendPayload(
   amountToSend: bigint,
   externalTokenAddress: Hex,
   flags: bigint = 0n,
-  flagData: Hex = "0x"
-) {
+  flagData: Hex = "0x",
+): Promise<{ sendPayload: SendPayload; signature: Hex }> {
   const sendPayloadUrl: URL = URL.parse("/api/send-payload", backendUrl)!;
   sendPayloadUrl.searchParams.set("networkFrom", networkFrom.toString());
   sendPayloadUrl.searchParams.set("networkTo", networkTo.toString());
@@ -31,9 +47,9 @@ export async function getSendPayload(
   const response = await fetch(sendPayloadUrl);
   if (!response.ok) {
     throw new Error(
-      `Failed to get send payload: ${
-        response.status
-      }, ${JSON.stringify(await response.json())}`
+      `Failed to get send payload: ${response.status}, ${JSON.stringify(
+        await response.json(),
+      )}`,
     );
   }
   const data = await response.json();
@@ -59,11 +75,11 @@ export async function getSendPayload(
 export interface SendPayload {
   chainFrom: bigint;
   chainTo: bigint;
-  tokenAddressFrom: string;
-  tokenAddressTo: string;
+  tokenAddressFrom: Hex;
+  tokenAddressTo: Hex;
   amountToSend: bigint;
   feeAmount: bigint;
   timestamp: bigint;
   flags: bigint;
-  flagData: string;
+  flagData: Hex;
 }

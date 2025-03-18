@@ -38,6 +38,12 @@ export interface ReceiptSignatures {
   }>;
 }
 
+/**
+ * Parse a receipt with meta returned from the backend into a ReceiptWithMeta.
+ *
+ * @param receiptWithMeta - the receipt with meta returned from the backend
+ * @returns {ReceiptWithMeta} Parsed receipt with meta
+ */
 export function parseReceiptWithMeta(receiptWithMeta: {
   receipt: any;
   receiptMeta: any[];
@@ -71,10 +77,18 @@ export function parseReceiptWithMeta(receiptWithMeta: {
   };
 }
 
+/**
+ * Get all receipts from the backend.
+ *
+ * @param {number} [limit=50] - the number of receipts to return
+ * @param {number} [offset=0] - the number of receipts to skip
+ * @param {"asc"|"desc"} [ordering="desc"] - the ordering of the receipts
+ * @returns {Promise<Array<ReceiptWithMeta>>} Promise that resolves to the receipts array
+ */
 export async function getAllReceipts(
   limit: number = 50,
   offset: number = 0,
-  ordering: "asc" | "desc" = "desc"
+  ordering: "asc" | "desc" = "desc",
 ): Promise<Array<ReceiptWithMeta>> {
   const receiptsUrl: URL = URL.parse("/api/receipts", backendUrl)!;
   receiptsUrl.searchParams.set("limit", limit.toString());
@@ -84,23 +98,34 @@ export async function getAllReceipts(
   if (!response.ok) {
     throw new Error(
       `Failed to get receipts: ${response.status}, ${JSON.stringify(
-        await response.json()
-      )}`
+        await response.json(),
+      )}`,
     );
   }
   const data = await response.json();
   return data.map(parseReceiptWithMeta);
 }
 
+/**
+ * Retrieve all receipts associated with a specific address from the backend.
+ *
+ * @param {string} address - The address to filter receipts by.
+ * @param {number} [limit=50] - The maximum number of receipts to return.
+ * @param {number} [offset=0] - The number of receipts to skip before starting to collect the result set.
+ * @param {"asc"|"desc"} [ordering="desc"] - The order in which to sort the receipts, either ascending or descending.
+ * @returns {Promise<Array<ReceiptWithMeta>>} A promise that resolves to an array of receipts with metadata.
+ * @throws Will throw an error if the network request fails.
+ */
+
 export async function getReceiptsByAddress(
   address: string,
   limit: number = 50,
   offset: number = 0,
-  ordering: "asc" | "desc" = "desc"
+  ordering: "asc" | "desc" = "desc",
 ): Promise<Array<ReceiptWithMeta>> {
   const receiptsByAddressUrl: URL = URL.parse(
     `/api/receipts/user/${address}`,
-    backendUrl
+    backendUrl,
   )!;
   receiptsByAddressUrl.searchParams.set("limit", limit.toString());
   receiptsByAddressUrl.searchParams.set("offset", offset.toString());
@@ -109,44 +134,59 @@ export async function getReceiptsByAddress(
   if (!response.ok) {
     throw new Error(
       `Failed to get receipts by address: ${response.status}, ${JSON.stringify(
-        await response.json()
-      )}`
+        await response.json(),
+      )}`,
     );
   }
   const data = await response.json();
   return data.map(parseReceiptWithMeta);
 }
 
+/**
+ * Fetches a specific receipt by its ID from the backend.
+ *
+ * @param {string} receiptId - The ID of the receipt to retrieve.
+ * @returns {Promise<ReceiptWithMeta>} A promise that resolves to the receipt with metadata.
+ * @throws Will throw an error if the network request fails or the receipt is not found.
+ */
+
 export async function getReceipt(receiptId: string): Promise<ReceiptWithMeta> {
   const receiptByIdUrl: URL = URL.parse(
     `/api/receipts/${receiptId}`,
-    backendUrl
+    backendUrl,
   )!;
   const response = await fetch(receiptByIdUrl);
   if (!response.ok) {
     throw new Error(
       `Failed to get receipt: ${response.status}, ${JSON.stringify(
-        await response.json()
-      )}`
+        await response.json(),
+      )}`,
     );
   }
   const data = await response.json();
   return parseReceiptWithMeta(data);
 }
 
+/**
+ * Fetches the signatures for a specific receipt by its ID from the backend.
+ *
+ * @param {string} receiptId - The ID of the receipt to retrieve the signatures for.
+ * @returns {Promise<ReceiptSignatures>} A promise that resolves to the signatures for the receipt with the given ID.
+ * @throws Will throw an error if the network request fails or the receipt is not found.
+ */
 export async function getReceiptSignature(
-  receiptId: string
+  receiptId: string,
 ): Promise<ReceiptSignatures> {
   const receiptByIdUrl: URL = URL.parse(
     `/api/receipts/signatures/${receiptId}`,
-    backendUrl
+    backendUrl,
   )!;
   const response = await fetch(receiptByIdUrl);
   if (!response.ok) {
     throw new Error(
       `Failed to get receipt: ${response.status}, ${JSON.stringify(
-        await response.json()
-      )}`
+        await response.json(),
+      )}`,
     );
   }
   const data = await response.json();

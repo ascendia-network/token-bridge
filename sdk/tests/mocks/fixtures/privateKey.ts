@@ -1,7 +1,6 @@
 import { Address, Hex, toHex } from "viem";
 import { mnemonicToAccount } from "viem/accounts";
 
-
 // WARNING: DO NOT USE THESE MNEMONICS IN PRODUCTION, ONLY FOR TESTING
 const FIXTURE_MNEMONIC =
   "meadow mean stadium reject enable leader decline palace knee hope bronze question able lottery multiply";

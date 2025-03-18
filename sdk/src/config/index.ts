@@ -6,10 +6,10 @@ config();
 export const backendUrl = process.env.BACKEND_URL || "http://localhost:3000";
 
 export const SOLANA_CHAIN_ID = bytesToBigInt(
-  stringToBytes("SOLANA", { size: 8 })
+  stringToBytes("SOLANA", { size: 8 }),
 );
 export const SOLANA_DEV_CHAIN_ID = bytesToBigInt(
-  stringToBytes("SOLANADN", { size: 8 })
+  stringToBytes("SOLANADN", { size: 8 }),
 );
 
 const EVMChains = {

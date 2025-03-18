@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "@jest/globals";
-// @ts-ignore
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module '@depay/web3-mock'.
 import { mock, resetMocks } from "@depay/web3-mock";
 import { Address, createPublicClient, custom, PublicClient } from "viem";
 import { mainnet } from "viem/chains";
@@ -14,7 +14,7 @@ describe("Test bridge views requests", () => {
       await mock({
         blockchain,
         accounts: { return: accountsEvm },
-      })
+      }),
   );
   let mockedPublicClient: PublicClient;
   beforeEach(() => {
@@ -37,7 +37,10 @@ describe("Test bridge views requests", () => {
       },
     });
     await expect(
-      evm.contract.views.amountAdditionalNativeToSend(mockedBridgeAddress, mockedPublicClient)
+      evm.contract.views.amountAdditionalNativeToSend(
+        mockedBridgeAddress,
+        mockedPublicClient,
+      ),
     ).resolves.toBe(1000000000000000000n);
     expect(nativeSendAmountMock).toHaveBeenCalled();
     expect(nativeSendAmountMock).toHaveBeenCalledTimes(1);
@@ -61,8 +64,8 @@ describe("Test bridge views requests", () => {
       evm.contract.views.checkIsClaimed(
         mockedClaimedReceipt.hash,
         mockedBridgeAddress,
-        mockedPublicClient
-      )
+        mockedPublicClient,
+      ),
     ).resolves.toBeTruthy();
     expect(isClaimedMock).toHaveBeenCalled();
     expect(isClaimedMock).toHaveBeenCalledTimes(1);
@@ -83,8 +86,8 @@ describe("Test bridge views requests", () => {
       evm.contract.views.checkIsClaimed(
         mockedNotClaimedReceipt.hash,
         mockedBridgeAddress,
-        mockedPublicClient
-      )
+        mockedPublicClient,
+      ),
     ).resolves.toBeFalsy();
     expect(isClaimedMock).toHaveBeenCalled();
     expect(isClaimedMock).toHaveBeenCalledTimes(1);
@@ -105,8 +108,8 @@ describe("Test bridge views requests", () => {
       evm.contract.views.checkIsClaimed(
         mockedClaimedReceipt.receipt,
         mockedBridgeAddress,
-        mockedPublicClient
-      )
+        mockedPublicClient,
+      ),
     ).resolves.toBeTruthy();
     expect(isClaimedMock).toHaveBeenCalled();
     expect(isClaimedMock).toHaveBeenCalledTimes(1);
@@ -127,8 +130,8 @@ describe("Test bridge views requests", () => {
       evm.contract.views.checkIsClaimed(
         mockedNotClaimedReceipt.receipt,
         mockedBridgeAddress,
-        mockedPublicClient
-      )
+        mockedPublicClient,
+      ),
     ).resolves.toBeFalsy();
     expect(isClaimedMock).toHaveBeenCalled();
     expect(isClaimedMock).toHaveBeenCalledTimes(1);
@@ -136,7 +139,7 @@ describe("Test bridge views requests", () => {
 
   test("Should request isClaimed by MiniReceipt truly", async () => {
     const miniReceipt = evm.helpers.full2miniReceipt(
-      mockedClaimedReceipt.receipt
+      mockedClaimedReceipt.receipt,
     );
     const isClaimedMock = mock({
       blockchain,
@@ -152,8 +155,8 @@ describe("Test bridge views requests", () => {
       evm.contract.views.checkIsClaimed(
         miniReceipt,
         mockedBridgeAddress,
-        mockedPublicClient
-      )
+        mockedPublicClient,
+      ),
     ).resolves.toBeTruthy();
     expect(isClaimedMock).toHaveBeenCalled();
     expect(isClaimedMock).toHaveBeenCalledTimes(1);
@@ -161,7 +164,7 @@ describe("Test bridge views requests", () => {
 
   test("Should request isClaimed by MiniReceipt falsy", async () => {
     const miniReceipt = evm.helpers.full2miniReceipt(
-      mockedNotClaimedReceipt.receipt
+      mockedNotClaimedReceipt.receipt,
     );
     const isClaimedMock = mock({
       blockchain,
@@ -177,8 +180,8 @@ describe("Test bridge views requests", () => {
       evm.contract.views.checkIsClaimed(
         miniReceipt,
         mockedBridgeAddress,
-        mockedPublicClient
-      )
+        mockedPublicClient,
+      ),
     ).resolves.toBeFalsy();
     expect(isClaimedMock).toHaveBeenCalled();
     expect(isClaimedMock).toHaveBeenCalledTimes(1);

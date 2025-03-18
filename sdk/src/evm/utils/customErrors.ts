@@ -12,14 +12,19 @@ import { ERC20Abi } from "../abi/ERC20";
 
 type CustomError = Error & {
   errorName: string;
-  errorArgs: Array<any>;
+  errorArgs: Array<unknown>;
 };
 
+/**
+ * Try to decode the error message thrown by the contract function
+ * @param {Error} error The error object to decode
+ * @returns {CustomError} The decoded error object (adds errorName and errorArgs fields)
+ */
 export function handleCustomError(error: Error): CustomError {
   let processedError: CustomError | undefined = undefined;
   if (error instanceof BaseError) {
     const revertError = error.walk(
-      (err) => err instanceof ContractFunctionRevertedError
+      (err) => err instanceof ContractFunctionRevertedError,
     );
     const rpcError = error.walk((err) => err instanceof RpcRequestError);
     if (revertError instanceof ContractFunctionRevertedError) {
@@ -76,7 +81,7 @@ export function handleCustomError(error: Error): CustomError {
       }
       const reason = (rpcError.data as `Reverted 0x${string}`).replace(
         "Reverted ",
-        ""
+        "",
       ) as Hex;
       for (const abi of [ERC20Abi, validatorAbi, bridgeAbi]) {
         try {

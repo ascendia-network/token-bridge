@@ -35,7 +35,7 @@ describe("Test bridge helpers", () => {
     (address, expectedHex) => {
       expect(evm.helpers.evmAddressToBytes32(address)).toBe(expectedHex);
       expect(evm.helpers.addressToBytes32(address)).toBe(expectedHex);
-    }
+    },
   );
 
   test.each<[string, Hex]>([
@@ -60,7 +60,7 @@ describe("Test bridge helpers", () => {
     (address, expectedHex) => {
       expect(evm.helpers.solanaAddressToBytes32(address)).toBe(expectedHex);
       expect(evm.helpers.base58AddressToBytes32(address)).toBe(expectedHex);
-    }
+    },
   );
 
   test.each<[Hex[], Hex]>([
@@ -91,22 +91,23 @@ describe("Test bridge helpers", () => {
   ])(
     "Should correctly gather signatures for claim",
     (signatures, expectedHex) => {
-      expect(evm.helpers.gatherSignaturesForClaim(signatures)).toBe(expectedHex);
-    }
+      expect(evm.helpers.gatherSignaturesForClaim(signatures)).toBe(
+        expectedHex,
+      );
+    },
   );
 
   test.each<[evm.FullReceipt | evm.MiniReceipt, Hex]>(
     receipts
-      .map<[evm.FullReceipt | evm.MiniReceipt, Hex]>((entry) => [
-        entry.receipt,
-        entry.hash,
-      ])
+      .map<
+        [evm.FullReceipt | evm.MiniReceipt, Hex]
+      >((entry) => [entry.receipt, entry.hash])
       .concat(
         receipts.map<[evm.FullReceipt | evm.MiniReceipt, Hex]>((entry) => [
           evm.helpers.full2miniReceipt(entry.receipt),
           entry.hash,
-        ])
-      )
+        ]),
+      ),
   )(`Should correctly convert receipt to hash`, (receipt, expectedHash) => {
     expect(evm.helpers.hashReceipt(receipt)).toBe(expectedHash);
   });
@@ -114,22 +115,22 @@ describe("Test bridge helpers", () => {
   test("Should throw an error when trying to convert invalid solana address", () => {
     expect(() =>
       evm.helpers.evmAddressToBytes32(
-        "0x56d78f233132a401208e5ba9b7959aa22719eeb4213283e299d57195399f648e"
-      )
+        "0x56d78f233132a401208e5ba9b7959aa22719eeb4213283e299d57195399f648e",
+      ),
     ).toThrow("Possibly invalid evm address");
     expect(() =>
       evm.helpers.addressToBytes32(
-        "0x56d78f233132a401208e5ba9b7959aa22719eeb4213283e299d57195399f648e"
-      )
+        "0x56d78f233132a401208e5ba9b7959aa22719eeb4213283e299d57195399f648e",
+      ),
     ).toThrow("Possibly invalid evm address");
   });
 
   test("Should throw an error when trying to convert invalid solana address", () => {
     expect(() =>
-      evm.helpers.solanaAddressToBytes32("2NEpo7TZRRrLZSi2U")
+      evm.helpers.solanaAddressToBytes32("2NEpo7TZRRrLZSi2U"),
     ).toThrow("Possibly invalid solana address");
     expect(() =>
-      evm.helpers.base58AddressToBytes32("2NEpo7TZRRrLZSi2U")
+      evm.helpers.base58AddressToBytes32("2NEpo7TZRRrLZSi2U"),
     ).toThrow("Possibly invalid solana address");
   });
 
@@ -160,7 +161,7 @@ describe("Test bridge helpers", () => {
       flagData: "0x",
     };
     expect(evm.helpers.apiPayloadToCallPayload(apiPayload)).toStrictEqual(
-      expectedCallPayload
+      expectedCallPayload,
     );
   });
 });

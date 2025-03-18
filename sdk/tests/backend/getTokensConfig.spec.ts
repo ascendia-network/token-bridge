@@ -3,17 +3,10 @@ import {
   test,
   expect,
   jest,
-  beforeAll,
   afterEach,
   beforeEach,
 } from "@jest/globals";
-import { Address } from "viem";
 import { backend } from "../../src";
-import { parseReceiptWithMeta } from "../../src/backend";
-import {
-  evmAddressToBytes32,
-  solanaAddressToBytes32,
-} from "../../src/evm/bridge/helpers";
 
 // #region mock
 const tokenConfig = {
@@ -50,7 +43,7 @@ const tokenConfig = {
 // #endregion mock
 
 describe("Test getting token config from backend", () => {
-  let fetchMock: any = undefined;
+  let fetchMock: jest.SpiedFunction<typeof fetch>;
 
   const tokenConfigFetchMock = (input: URL | string | Request) =>
     Promise.resolve({
@@ -81,10 +74,10 @@ describe("Test getting token config from backend", () => {
         status: 404,
         statusText: "Not found",
         json: async () => ({ error: "Not found" }),
-      } as Response)
+      } as Response),
     );
     await expect(backend.getTokensConfig()).rejects.toThrowError(
-      "Failed to get tokens config: 404, {\"error\":\"Not found\"}"
+      'Failed to get tokens config: 404, {"error":"Not found"}',
     );
     expect(fetchMock).toHaveBeenCalled();
     expect(fetchMock).toHaveBeenCalledTimes(1);

@@ -14,8 +14,8 @@ import { SendPayload } from "../../backend";
 /**
  * Converts an EVM address to a bytes32 hex string
  * @alias evmAddressToBytes32
- * @param address The EVM address to convert
- * @returns The bytes32 hex string
+ * @param {Address} address The EVM address to convert
+ * @returns {Hex} The bytes32 hex string
  * @throws Error if the address is invalid
  */
 export function addressToBytes32(address: Address): Hex {
@@ -27,8 +27,8 @@ export function addressToBytes32(address: Address): Hex {
 /**
  * Converts an EVM address to a bytes32 hex string
  * @alias addressToBytes32
- * @param address The EVM address to convert
- * @returns The bytes32 hex string
+ * @param {Address} address The EVM address to convert
+ * @returns {Hex} The bytes32 hex string
  * @throws Error if the address is invalid
  */
 export const evmAddressToBytes32 = addressToBytes32;
@@ -36,8 +36,8 @@ export const evmAddressToBytes32 = addressToBytes32;
 /**
  * Converts an Solana base58 address to a bytes32 hex string
  * @alias solanaAddressToBytes32
- * @param address The EVM address to convert
- * @returns The bytes32 hex string
+ * @param {string} address The EVM address to convert
+ * @returns {Hex} The bytes32 hex string
  * @throws Error if the address is invalid
  */
 export function base58AddressToBytes32(address: string): Hex {
@@ -51,16 +51,16 @@ export function base58AddressToBytes32(address: string): Hex {
 /**
  * Converts an Solana base58 address to a bytes32 hex string
  * @alias base58AddressToBytes32
- * @param address The EVM address to convert
- * @returns The bytes32 hex string
+ * @param {string} address The EVM address to convert
+ * @returns {Hex} The bytes32 hex string
  * @throws Error if the address is invalid
  */
 export const solanaAddressToBytes32 = base58AddressToBytes32;
 
 /**
  * Gathers all signatures for a claim into a single `Hex` string
- * @param signatures The signatures to gather
- * @returns The concatenated signatures
+ * @param {Array<Hex>} signatures The signatures to gather
+ * @returns {Hex} The concatenated signatures
  */
 export function gatherSignaturesForClaim(signatures: Array<Hex>): Hex {
   return signatures.reduce((acc, sig) => (acc + sig.slice(2)) as Hex, "0x");
@@ -68,8 +68,8 @@ export function gatherSignaturesForClaim(signatures: Array<Hex>): Hex {
 
 /**
  * Converts a full receipt to a mini receipt
- * @param receipt The full receipt to convert
- * @returns The mini receipt
+ * @param {FullReceipt} receipt The full receipt to convert
+ * @returns {MiniReceipt} The mini receipt
  */
 export function full2miniReceipt(receipt: FullReceipt): MiniReceipt {
   return {
@@ -86,20 +86,20 @@ export function full2miniReceipt(receipt: FullReceipt): MiniReceipt {
 
 /**
  * Creates a keccak256 hash of a full receipt
- * @param receipt The full receipt to hash
- * @returns The keccak256 hash of the receipt
+ * @param {FullReceipt} receipt The full receipt to hash
+ * @returns {Hex} The keccak256 hash of the receipt
  */
-function fullReceipt2hash(receipt: FullReceipt) {
+function fullReceipt2hash(receipt: FullReceipt): Hex {
   const mini = full2miniReceipt(receipt);
   return miniReceipt2hash(mini);
 }
 
 /**
  * Creates a keccak256 hash of a mini receipt
- * @param receipt The mini receipt to hash
- * @returns The keccak256 hash of the receipt
+ * @param {MiniReceipt} receipt The mini receipt to hash
+ * @returns {Hex} The keccak256 hash of the receipt
  */
-function miniReceipt2hash(receipt: MiniReceipt) {
+function miniReceipt2hash(receipt: MiniReceipt): Hex {
   const encoded = encodePacked(
     [
       "bytes32",
@@ -120,7 +120,7 @@ function miniReceipt2hash(receipt: MiniReceipt) {
       receipt.eventId,
       receipt.flags,
       receipt.data,
-    ]
+    ],
   );
   const messageHash = keccak256(encoded);
   return messageHash;
@@ -129,14 +129,24 @@ function miniReceipt2hash(receipt: MiniReceipt) {
 /**
  * Creates a hash of a prefixed message of a receipt
  * It useful when you want to check if a receipt is already claimed by its hash
- * @param receipt The receipt to hash
- * @returns The hash of the receipt
-*/
+ * @param {FullReceipt | MiniReceipt} receipt The receipt to hash
+ * @returns {Hex} The hash of the receipt
+ */
 export function hashReceipt(receipt: FullReceipt | MiniReceipt) {
   const digest =
     "from" in receipt ? fullReceipt2hash(receipt) : miniReceipt2hash(receipt);
   return hashMessage({ raw: digest });
 }
+
+/**
+ * Converts an API payload to a call payload for EVM.
+ *
+ * This function transforms a SendPayload object, typically retrieved from an API,
+ * into a SendPayloadEVM object which is suitable for use within the EVM context.
+ *
+ * @param {SendPayload} payload - The SendPayload object containing transaction details.
+ * @returns {SendPayloadEVM} A SendPayloadEVM object with the corresponding transaction information.
+ */
 
 export function apiPayloadToCallPayload(payload: SendPayload): SendPayloadEVM {
   return {

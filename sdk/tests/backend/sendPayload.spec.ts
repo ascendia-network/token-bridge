@@ -3,17 +3,10 @@ import {
   test,
   expect,
   jest,
-  beforeAll,
   afterEach,
   beforeEach,
 } from "@jest/globals";
-import { Address } from "viem";
 import { backend } from "../../src";
-import { parseReceiptWithMeta } from "../../src/backend";
-import {
-  evmAddressToBytes32,
-  solanaAddressToBytes32,
-} from "../../src/evm/bridge/helpers";
 
 // #region mock
 const sendPayloadResponse = {
@@ -53,9 +46,9 @@ const sendPayloadResponse_to_svm = {
 // #endregion mock
 
 describe("Test getting send payload from backend", () => {
-  let fetchMock: any = undefined;
+  let fetchMock: jest.SpiedFunction<typeof fetch>;
 
-  const sendPayloadFetchMock = (input: URL | string | Request) =>
+  const sendPayloadFetchMock = () =>
     Promise.resolve({
       ok: true,
       status: 200,
@@ -81,8 +74,8 @@ describe("Test getting send payload from backend", () => {
         chainFrom: BigInt(sendPayloadResponse.sendPayload.chainFrom),
         chainTo: BigInt(sendPayloadResponse.sendPayload.chainTo),
         timestamp: BigInt(sendPayloadResponse.sendPayload.timestamp),
-      }
-     };
+      },
+    };
     await expect(
       backend.getSendPayload(
         6003100671677645902n,
@@ -92,7 +85,7 @@ describe("Test getting send payload from backend", () => {
         "0x0000000000000000000000005B9E2BD997bc8f6aE97145cE0a8dEE075653f1AA",
         0n,
         "0x",
-      )
+      ),
     ).resolves.toEqual(expectedResult);
     expect(fetchMock).toHaveBeenCalled();
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -119,8 +112,8 @@ describe("Test getting send payload from backend", () => {
         1000000000000000000n,
         "0x5B9E2BD997bc8f6aE97145cE0a8dEE075653f1AA",
         0n,
-        "0x"
-      )
+        "0x",
+      ),
     ).resolves.toEqual(expectedResult);
     expect(fetchMock).toHaveBeenCalled();
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -133,7 +126,7 @@ describe("Test getting send payload from backend", () => {
         ...sendPayloadResponse_to_svm.sendPayload,
         flags: BigInt(sendPayloadResponse_to_svm.sendPayload.flags),
         amountToSend: BigInt(
-          sendPayloadResponse_to_svm.sendPayload.amountToSend
+          sendPayloadResponse_to_svm.sendPayload.amountToSend,
         ),
         feeAmount: BigInt(sendPayloadResponse_to_svm.sendPayload.feeAmount),
         chainFrom: BigInt(sendPayloadResponse_to_svm.sendPayload.chainFrom),
@@ -146,7 +139,7 @@ describe("Test getting send payload from backend", () => {
         ok: true,
         status: 200,
         json: async () => sendPayloadResponse_to_svm,
-      } as Response)
+      } as Response),
     );
     await expect(
       backend.getSendPayload(
@@ -156,8 +149,8 @@ describe("Test getting send payload from backend", () => {
         1000000000000000000n,
         "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
         0n,
-        "0x"
-      )
+        "0x",
+      ),
     ).resolves.toEqual(expectedResult);
     expect(fetchMock).toHaveBeenCalled();
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -170,7 +163,7 @@ describe("Test getting send payload from backend", () => {
         status: 404,
         statusText: "Not found",
         json: async () => ({ error: "Not found" }),
-      } as Response)
+      } as Response),
     );
     await expect(
       backend.getSendPayload(
@@ -180,10 +173,10 @@ describe("Test getting send payload from backend", () => {
         1000000000000000000n,
         "0x0000000000000000000000005B9E2BD997bc8f6aE97145cE0a8dEE075653f1AA",
         0n,
-        "0x"
-      )
+        "0x",
+      ),
     ).rejects.toThrowError(
-      'Failed to get send payload: 404, {"error":"Not found"}'
+      'Failed to get send payload: 404, {"error":"Not found"}',
     );
     expect(fetchMock).toHaveBeenCalled();
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -195,7 +188,7 @@ describe("Test getting send payload from backend", () => {
         ok: true,
         status: 200,
         json: async () => ({ sendPayload: null, signature: null }),
-      } as Response)
+      } as Response),
     );
     await expect(
       backend.getSendPayload(
@@ -204,12 +197,9 @@ describe("Test getting send payload from backend", () => {
         "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
         1000000000000000000n,
         "0x0000000000000000000000005B9E2BD997bc8f6aE97145cE0a8dEE075653f1AA",
-      )
-    ).rejects.toThrowError(
-      'Invalid response from backend'
-    );
+      ),
+    ).rejects.toThrowError("Invalid response from backend");
     expect(fetchMock).toHaveBeenCalled();
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
-

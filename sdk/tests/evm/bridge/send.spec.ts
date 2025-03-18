@@ -6,7 +6,6 @@ import {
   expect,
   test,
 } from "@jest/globals";
-// @ts-ignore
 import * as child from "child_process";
 import {
   Address,
@@ -26,8 +25,8 @@ import {
 import { privateKeyToAccount } from "viem/accounts";
 import { evm } from "../../../src/";
 import { AccountFixture } from "../../mocks/fixtures/privateKey";
-import { error } from "console";
-
+import { waitForAnvil } from "../../mocks/anvil";
+// #region SAMB ABI
 const sAMBAbi: Abi = [
   {
     type: "constructor",
@@ -412,34 +411,7 @@ const sAMBAbi: Abi = [
     ],
   },
 ];
-
-async function waitForAnvil(retries = 0) {
-  try {
-    const url = `http://127.0.0.1:8545`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "eth_blockNumber",
-        params: [],
-      }),
-    });
-    return response.ok && (await response.json()) !== undefined;
-  } catch (error) {
-    console.log("Anvil is not ready yet");
-    if (retries > 10) {
-      throw new Error("Anvil is not ready");
-    } else {
-      return await new Promise((resolve) => {
-        setTimeout(() => resolve(waitForAnvil(retries++)), 1000);
-      });
-    }
-  }
-}
+// #endregion
 
 describe("Test bridge send request", () => {
   let testClient: TestClient;
@@ -494,7 +466,7 @@ describe("Test bridge send request", () => {
       payloadSignature: mockedSignature,
     };
     await testClient.setBalance({
-      address: testClient.account?.address!,
+      address: AccountFixture.address,
       value:
         mockedPayload.amountToSend +
         mockedPayload.feeAmount +
@@ -514,7 +486,7 @@ describe("Test bridge send request", () => {
       sendParams,
       mockedBridgeAddress,
       testClient as unknown as PublicClient,
-      testClient as unknown as WalletClient
+      testClient as unknown as WalletClient,
     );
     expect(tx).toBeDefined();
   }, 30000);
@@ -529,7 +501,7 @@ describe("Test bridge send request", () => {
       payloadSignature: mockedSignature,
     };
     await testClient.setBalance({
-      address: testClient.account?.address!,
+      address: AccountFixture.address,
       value:
         mockedPayload.amountToSend +
         mockedPayload.feeAmount +
@@ -549,11 +521,9 @@ describe("Test bridge send request", () => {
         sendParams,
         mockedBridgeAddress,
         testClient as unknown as PublicClient,
-        testClient as unknown as WalletClient
-      )
-    ).rejects.toThrow(
-      "Insufficient allowance"
-    );
+        testClient as unknown as WalletClient,
+      ),
+    ).rejects.toThrow("Insufficient allowance");
   });
   test("Should fail send with approve request with insufficient balance", async () => {
     await testClient.impersonateAccount({
@@ -565,7 +535,7 @@ describe("Test bridge send request", () => {
       payloadSignature: mockedSignature,
     };
     await testClient.setBalance({
-      address: testClient.account?.address!,
+      address: AccountFixture.address,
       value: mockedPayload.amountToSend + parseEther("0.001"),
     });
     const sAmb = await getContract({
@@ -583,8 +553,8 @@ describe("Test bridge send request", () => {
         sendParams,
         mockedBridgeAddress,
         testClient as unknown as PublicClient,
-        testClient as unknown as WalletClient
-      )
+        testClient as unknown as WalletClient,
+      ),
     ).rejects.toThrow("Insufficient balance");
   });
 
@@ -598,8 +568,11 @@ describe("Test bridge send request", () => {
       payloadSignature: "0x".padEnd(132, "deadBeef") as Hex,
     };
     await testClient.setBalance({
-      address: testClient.account?.address!,
-      value: mockedPayload.amountToSend + mockedPayload.feeAmount + parseEther("100"),
+      address: AccountFixture.address,
+      value:
+        mockedPayload.amountToSend +
+        mockedPayload.feeAmount +
+        parseEther("100"),
     });
     const sAmb = await getContract({
       address: ("0x" + mockedPayload.tokenAddress.slice(-40)) as Address,
@@ -616,8 +589,8 @@ describe("Test bridge send request", () => {
         sendParams,
         mockedBridgeAddress,
         testClient as unknown as PublicClient,
-        testClient as unknown as WalletClient
-      )
+        testClient as unknown as WalletClient,
+      ),
     ).rejects.toMatchObject({
       errorName: "ECDSAInvalidSignatureS",
       errorArgs: [

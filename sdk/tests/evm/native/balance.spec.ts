@@ -1,13 +1,7 @@
 import { beforeEach, describe, expect, test } from "@jest/globals";
-// @ts-ignore
+// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module '@depay/web3-mock'.
 import { mock, resetMocks } from "@depay/web3-mock";
-import {
-  Address,
-  createPublicClient,
-  custom,
-  PublicClient,
-  WalletClient,
-} from "viem";
+import { createPublicClient, custom, PublicClient } from "viem";
 import { mainnet } from "viem/chains";
 import { evm } from "../../../src/";
 import { accountsEvm, blockchainEvm as blockchain } from "../../mocks/contract";
@@ -19,7 +13,7 @@ describe("Test token allowance request", () => {
       await mock({
         blockchain,
         accounts: { return: accountsEvm },
-      })
+      }),
   );
   let mockedPublicClient: PublicClient;
   const mockedBalance = 10000000000000000000000n;
@@ -37,16 +31,13 @@ describe("Test token allowance request", () => {
       },
     });
   });
-  const mockedTokenAddress: Address =
-    "0xa0ca672481ECBCea7d4067e13F594B1426f593Ed";
-  const mockedSpender: Address = "0xa5cc3c03994DB5b0d9A5eEdD10CabaB0813678AC";
   test("Should request enough balance successfully", async () => {
     await expect(
       evm.helpers.checkBalanceNative(
         accountsEvm[0],
         mockedBalance,
-        mockedPublicClient
-      )
+        mockedPublicClient,
+      ),
     ).resolves.toBeTruthy();
     expect(balanceMock).toHaveBeenCalled();
     expect(balanceMock).toHaveBeenCalledTimes(1);
@@ -56,8 +47,8 @@ describe("Test token allowance request", () => {
       evm.helpers.checkBalanceNative(
         accountsEvm[0],
         mockedBalance + 1n,
-        mockedPublicClient
-      )
+        mockedPublicClient,
+      ),
     ).rejects.toThrow("Insufficient balance");
     expect(balanceMock).toHaveBeenCalled();
     expect(balanceMock).toHaveBeenCalledTimes(1);

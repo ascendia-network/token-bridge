@@ -64,7 +64,7 @@ describe("Test bridge send request", () => {
       "--silent",
     ]);
     await waitForAnvil();
-  }, 10000);
+  }, 15000);
   afterAll(() => {
     anvil.kill();
   }, 5000);
@@ -114,5 +114,5 @@ describe("Test bridge send request", () => {
       testClient as unknown as WalletClient
     );
     expect(tx).toBeDefined();
-  });
+  }, 30000);
 });

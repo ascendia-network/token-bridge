@@ -1,7 +1,7 @@
 import { Buffer } from "buffer";
 import * as borsh from "borsh";
 import { ReceiptSignatures, ReceiptWithMeta, SendPayload } from "../../backend";
-import { bignumberToUint8Array, hexToUint8Array, SOLANA_CHAIN_ID } from "./utils";
+import { bignumberToUint8Array, hexToUint8Array } from "./utils";
 import { Base58 } from "ox";
 
 
@@ -69,8 +69,7 @@ export function convertSendPayload(sendPayload: SendPayload): SendPayloadSolana 
     tokenAddressTo: hexToUint8Array(sendPayload.tokenAddressTo),
     amountToSend: sendPayload.amountToSend,
     feeAmount: sendPayload.feeAmount,
-    // chainFrom: sendPayload.chainFrom,  // todo
-    chainFrom: SOLANA_CHAIN_ID,
+    chainFrom: sendPayload.chainFrom,
     chainTo: sendPayload.chainTo,
     timestamp: Number(sendPayload.timestamp),
     flags: bignumberToUint8Array(sendPayload.flags, 32),

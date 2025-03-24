@@ -9,6 +9,7 @@ export default {
   coveragePathIgnorePatterns: [
     "node_modules",
     "tests/mocks",
+    "src/svm",
     "interfaces",
     "\\.mock\\.ts",
   ],

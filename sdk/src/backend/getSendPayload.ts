@@ -26,7 +26,7 @@ export async function getSendPayload(
   externalTokenAddress: Hex,
   flags: bigint = 0n,
   flagData: Hex = "0x",
-): Promise<{ sendPayload: SendPayload; signature: Hex }> {
+): Promise<{ sendPayload: SendPayload; signedBy: string; signature: Hex }> {
   const sendPayloadUrl: URL = URL.parse("/api/send-payload", backendUrl)!;
   sendPayloadUrl.searchParams.set("networkFrom", networkFrom.toString());
   sendPayloadUrl.searchParams.set("networkTo", networkTo.toString());
@@ -53,7 +53,7 @@ export async function getSendPayload(
     );
   }
   const data = await response.json();
-  if (!data.sendPayload || !data.signature) {
+  if (!data.sendPayload || !data.signature || !data.signedBy) {
     throw new Error("Invalid response from backend");
   }
   return {
@@ -68,6 +68,7 @@ export async function getSendPayload(
       flags: BigInt(data.sendPayload.flags),
       flagData,
     },
+    signedBy: data.signedBy,
     signature: data.signature,
   };
 }

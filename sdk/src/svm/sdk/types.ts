@@ -94,8 +94,8 @@ export function convertReceivePayload(receipt: ReceiptWithMeta): ReceivePayloadS
 
 
 export function convertSignatures(receiptSignatures: ReceiptSignatures) {
-  const signatures = receiptSignatures.signatures.map((sig) => Base58.toBytes(sig.signature));
-  const signers = receiptSignatures.signatures.map((sig) => hexToUint8Array(sig.signedBy));
+  const signatures = receiptSignatures.signatures.map((sig) => hexToUint8Array(sig.signature));
+  const signers = receiptSignatures.signatures.map((sig) => Base58.toBytes(sig.signedBy));
   return { signatures, signers };
 }
 

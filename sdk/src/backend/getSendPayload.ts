@@ -2,6 +2,24 @@ import { Hex } from "viem";
 import { backendUrl } from "../config";
 import { helpers } from "../evm";
 
+export interface SendPayload {
+  chainFrom: bigint;
+  chainTo: bigint;
+  tokenAddressFrom: Hex;
+  tokenAddressTo: Hex;
+  amountToSend: bigint;
+  feeAmount: bigint;
+  timestamp: bigint;
+  flags: bigint;
+  flagData: Hex;
+}
+
+export interface SendPayloadResponse {
+  sendPayload: SendPayload;
+  signedBy: string;
+  signature: Hex;
+}
+
 /**
  * Fetches the signed send payload required for a cross-chain token transfer.
  *
@@ -26,7 +44,7 @@ export async function getSendPayload(
   externalTokenAddress: Hex,
   flags: bigint = 0n,
   flagData: Hex = "0x",
-): Promise<{ sendPayload: SendPayload; signedBy: string; signature: Hex }> {
+): Promise<SendPayloadResponse> {
   const sendPayloadUrl: URL = URL.parse("/api/send-payload", backendUrl)!;
   sendPayloadUrl.searchParams.set("networkFrom", networkFrom.toString());
   sendPayloadUrl.searchParams.set("networkTo", networkTo.toString());
@@ -71,16 +89,4 @@ export async function getSendPayload(
     signedBy: data.signedBy,
     signature: data.signature,
   };
-}
-
-export interface SendPayload {
-  chainFrom: bigint;
-  chainTo: bigint;
-  tokenAddressFrom: Hex;
-  tokenAddressTo: Hex;
-  amountToSend: bigint;
-  feeAmount: bigint;
-  timestamp: bigint;
-  flags: bigint;
-  flagData: Hex;
 }

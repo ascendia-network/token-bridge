@@ -5,22 +5,23 @@ import { verifySignatureInstruction } from "./ed25519_ix";
 import type { AmbSolBridge } from "../idl/idlType";
 import { wrapSolInstructions } from "./wsol_ix";
 import { NATIVE_MINT } from "@solana/spl-token";
-import { SendPayload } from "../../backend";
+import { SendPayloadResponse } from "../../backend";
 import { convertSendPayload, serializeSendPayload } from "./types";
 import { keccak_256 } from "@noble/hashes/sha3";
+import { Base58 } from "ox";
 
 export async function send(
   connection: Connection,
   bridgeProgram: Program<AmbSolBridge>,
   userFrom: Signer,
   userTo: string,
-  sendPayload: SendPayload,
-  signature: string,
+  sendPayloadResponse: SendPayloadResponse
 ) {
+  const { sendPayload, signedBy, signature } = sendPayloadResponse;
   const payload = convertSendPayload(sendPayload);
   const serializedPayload = serializeSendPayload(payload);
 
-  const signer = hexToUint8Array("0x028dfd50cd64a4e6b0a2c28032f05196de880d3985164b2542270a006bdf2038ea");  // todo
+  const signer = Base58.toBytes(signedBy); // convert Base58 encoded public key to bytes
   const signatureMessage = keccak_256(serializedPayload)
   const verifyInstruction = verifySignatureInstruction(signatureMessage, [signer], [hexToUint8Array(signature)]);
 

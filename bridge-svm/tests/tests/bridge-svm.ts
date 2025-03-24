@@ -51,8 +51,8 @@ describe("my-project", () => {
   // mint - a.k.a. token
 
 
-  let tokenMint1;        // some token (bridge CAN'T mint)
-  let tokenMint2;        // some token (bridge CAN mint)
+  let tokenMint1: Keypair;        // some token (bridge CAN'T mint)
+  let tokenMint2: Keypair;        // some token (bridge CAN mint)
 
 
   const ambTokenAddress1_ = "0x0000000000000000000000000000000000001111";
@@ -117,12 +117,12 @@ describe("my-project", () => {
 
 
     // initialize token 1 - primary (non-mintable)
+    await initializeToken(program, admin, tokenMint1.publicKey, ambTokenAddress2_, 18, false);
     await initializeToken(program, admin, tokenMint1.publicKey, ambTokenAddress1_, 18, false);
     // initialize token 2 - synthetic (mintable)
     await initializeToken(program, admin, tokenMint2.publicKey, ambTokenAddress2_, 18, true);
     // initialize token 3 - wrapped native
     await initializeToken(program, admin, NATIVE_MINT, ambTokenAddress3_, 18, false);
-
 
 
     const checkToken = async (pubkey: PublicKey, ambAddress: Uint8Array, isMintable: boolean) => {
@@ -164,7 +164,7 @@ describe("my-project", () => {
 
     // mint some tokens to user
     const userATA = await getOrCreateUserATA(connection, userFrom, tokenFrom);
-    await mintTo(connection, userFrom, tokenFrom, userATA, admin, 10 * 10 ** 6);
+    await mintTokens(tokenFrom, userATA, 10 * 10 ** 6);
     expect((await connection.getTokenAccountBalance(userATA)).value.amount).to.eq('10000000');
 
     const before = await getStateSnapshot(tokenFrom, userFrom.publicKey);
@@ -254,15 +254,15 @@ describe("my-project", () => {
 
     const before = await getStateSnapshot(tokenFrom, userFrom.publicKey);
 
-    const transferNativeInstructions = await wrapSolInstructions(connection, userFrom, 5_000);
-    await commonSend(userFrom, tokenFrom, userTo, tokenTo, 5_000, false, transferNativeInstructions);
+    const transferNativeInstructions = await wrapSolInstructions(connection, userFrom, 1000 * 10 ** 9);
+    await commonSend(userFrom, tokenFrom, userTo, tokenTo, 1000 * 10 ** 9, false, transferNativeInstructions);
 
     const after = await getStateSnapshot(tokenFrom, userFrom.publicKey);
 
     expect(before.token.user).to.eq(undefined);
     expect(after.token.user).to.eq(0);
-    expect(after.token.bridge).to.eq(before.token.bridge + 5000);
-    expect(after.native.user).to.be.lessThan(before.native.user - 5000 - 20);  // rent for wsol ATA
+    expect(after.token.bridge).to.eq(before.token.bridge + 1000 * 10 ** 9);
+    expect(after.native.user).to.be.lessThan(before.native.user - 1000 * 10 ** 9 - 20);  // rent for wsol ATA
     expect(after.native.bridge).to.eq(before.native.bridge + 20);
 
 
@@ -278,12 +278,12 @@ describe("my-project", () => {
 
     const before = await getStateSnapshot(tokenTo, userTo.publicKey);
 
-    await commonReceive(userTo, tokenTo, 50, before.receiverNonce);
+    await commonReceive(userTo, tokenTo, 500 * 10 ** 9, before.receiverNonce);
 
     const after = await getStateSnapshot(tokenTo, userTo.publicKey);
 
-    expect(after.token.user).to.eq(before.token.user + 50);
-    expect(after.token.bridge).to.eq(before.token.bridge - 50);
+    expect(after.token.user).to.eq(before.token.user + 500 * 10 ** 9);
+    expect(after.token.bridge).to.eq(before.token.bridge - 500 * 10 ** 9);
     expect(after.native.user).to.be.eq(before.native.user);
     expect(after.native.bridge).to.eq(before.native.bridge);
     expect(after.receiverNonce).to.eq(before.receiverNonce + 1);
@@ -296,35 +296,344 @@ describe("my-project", () => {
 
     const before = await getStateSnapshot(tokenTo, userTo.publicKey);
 
-    await commonReceive(userTo, tokenTo, 50, before.receiverNonce, false, true);
+    await commonReceive(userTo, tokenTo, 500 * 10 ** 9, before.receiverNonce, false, true);
 
     const after = await getStateSnapshot(tokenTo, userTo.publicKey);
 
-    expect(after.token.user).to.eq(before.token.user);
-    expect(after.token.bridge).to.eq(before.token.bridge - 50);
-    expect(after.native.user).to.be.eq(before.native.user + 50);
+    expect(after.token.user).to.eq(undefined);
+    expect(after.token.bridge).to.eq(before.token.bridge - 500 * 10 ** 9);
+    expect(after.native.user - before.native.user).to.be.greaterThanOrEqual(450 * 10 ** 9);
     expect(after.native.bridge).to.eq(before.native.bridge);
     expect(after.receiverNonce).to.eq(before.receiverNonce + 1);
   });
 
+  it("receive native to non-existing ata", async () => {
 
-  it('todo', async () => {
-    // todo pause
-    // todo call admin methods with non-admin account
+    const userFrom = user;
+    const tokenFrom = NATIVE_MINT;
+    const userToAmb = ambUserAddress;
+    const tokenToAmb = ambTokenAddress3;
 
-    // todo initialize mintable token with non-null bridge token account
-    // todo initialize mintable token with mint authority != bridge token pda
+    const transferNativeInstructions = await wrapSolInstructions(connection, userFrom, 500 * 10 ** 9);
+    await commonSend(userFrom, tokenFrom, userToAmb, tokenToAmb, 500 * 10 ** 9, false, transferNativeInstructions);
 
-    // todo send/receive with non registered token
-    // todo send when user don't have tokens
-    // todo receive when bridge doesn't have tokens
-    // todo receive to non-existing native ata
-    // todo send when not enough sol for fees
-    // todo send/receive with pause
 
-    // todo send/receive without signature
-    // todo send/receive with wrong signature
-    // todo wrong chainid / user / tokenFrom / tokenTo / amount / fee / receiveNonce / sendTimestamp  in signature
+    const tokenTo = NATIVE_MINT;
+    const userTo = Keypair.generate();
+    await requestSol(userTo, connection, 10 ** 9);
+
+    await commonReceive(userTo, tokenTo, 500 * 10 ** 9, 0, false, true);
+    const after = await getStateSnapshot(tokenTo, userTo.publicKey);
+    expect(after.token.user).to.eq(undefined);
+    expect(after.native.user).to.be.greaterThanOrEqual(500 * 10 ** 9);
+  });
+
+  it("pause", async () => {
+    let state = await program.account.globalState.fetch(getBridgeStateAccount(program.programId));
+    expect(state.pause).to.eq(false);
+
+    await bridgeProgram.methods.setPause(true).accountsPartial({ admin: admin.publicKey, }).signers([admin]).rpc();
+    state = await program.account.globalState.fetch(getBridgeStateAccount(program.programId));
+    expect(state.pause).to.eq(true);
+
+    // dunno why, error message not parsed well, so "6005" instead of "Bridge is paused"
+
+    await expect(
+      commonSend(user, tokenMint1.publicKey, ambUserAddress, ambTokenAddress1, 50)
+    ).to.be.rejectedWith("6005");
+
+    await expect(
+      commonReceive(user, tokenMint1.publicKey, 50, 0)
+    ).to.be.rejectedWith("6005");
+
+    await bridgeProgram.methods.setPause(false).accountsPartial({ admin: admin.publicKey, }).signers([admin]).rpc()
+    state = await program.account.globalState.fetch(getBridgeStateAccount(program.programId));
+    expect(state.pause).to.eq(false);
+
+  });
+
+
+  it("withdraw fees", async () => {
+    const before = await getStateSnapshot(tokenMint1.publicKey, admin.publicKey);
+    await program.methods.withdrawFees(new BN(50)).accounts({ admin: admin.publicKey, }).signers([admin]).rpc();
+    const after = await getStateSnapshot(tokenMint1.publicKey, admin.publicKey);
+    expect(after.native.bridge).to.eq(before.native.bridge - 50);
+    expect(after.native.user).to.eq(before.native.user + 50);
+
+
+  });
+
+
+  describe('should fail', () => {
+
+
+    it('receive with wrong nonce', async () => {
+      await expect(
+        commonReceive(user, tokenMint1.publicKey, 50, 123456)
+      ).to.be.rejectedWith("Invalid nonce");
+    });
+
+    describe('call admin methods with non-admin account', () => {
+
+      it("initialize token", async () => {
+        await expect(
+          initializeToken(program, user, tokenMint1.publicKey, ambTokenAddress1_, 18, true)
+        ).to.be.rejectedWith("Not an admin");
+      });
+
+      it("pause", async () => {
+        await expect(
+          bridgeProgram.methods.setPause(true).accountsPartial({ admin: user.publicKey, }).signers([user]).rpc()
+        ).to.be.rejectedWith("Not an admin");
+      });
+
+      it("withdraw fees", async () => {
+        await expect(
+          bridgeProgram.methods.withdrawFees(new BN(50)).accountsPartial({ admin: user.publicKey, }).signers([user]).rpc()
+        ).to.be.rejectedWith("Not an admin");
+      });
+
+
+    });
+
+
+    it("initialize mintable token with non-null bridge token account", async () => {
+      const mint = Keypair.generate();
+      const [bridgeTokenPDA] = getBridgeTokenAccounts(mint.publicKey, program.programId);
+      await createMint(connection, admin, bridgeTokenPDA, null, 6, mint);  // mint authority is token PDA
+      await expect(
+        bridgeProgram.methods.initializeToken([...ambTokenAddress1], 18, true).accountsPartial({
+          admin: admin.publicKey,
+          mint: mint.publicKey,
+        }).signers([admin]).rpc()
+      ).to.be.rejectedWith("A require expression was violated.");
+    });
+
+
+    it("initialize mintable token with mint authority != bridge token pda", async () => {
+      const mint = Keypair.generate();
+      await createMint(connection, admin, admin.publicKey, null, 6, mint);  // mint authority is NOT token PDA
+      await expect(
+        initializeToken(program, admin, mint.publicKey, ambTokenAddress1_, 18, true)
+      ).to.be.rejectedWith("A require expression was violated.");
+    })
+
+    it("send/receive with non registered token", async () => {
+      const mint = Keypair.generate();
+      await createMint(connection, admin, admin.publicKey, null, 6, mint);  // mint authority is NOT token PDA
+
+      await expect(
+        commonSend(user, mint.publicKey, ambUserAddress, ambTokenAddress1, 50)
+      ).to.be.rejectedWith("The program expected this account to be already initialized.");
+      await expect(
+        commonReceive(user, mint.publicKey, 50, 0)
+      ).to.be.rejectedWith("The program expected this account to be already initialized.");
+    })
+
+
+    it("send when user don't have tokens", async () => {
+      const mint = Keypair.generate();
+      await createMint(connection, admin, admin.publicKey, null, 6, mint);
+      await initializeToken(program, admin, mint.publicKey, ambTokenAddress1_, 18, false);
+      // mint some tokens to user
+      const userATA = await getOrCreateUserATA(connection, user, mint.publicKey);
+      await mintTokens(mint.publicKey, userATA, 1);
+
+      await expect(
+        commonSend(user, mint.publicKey, ambUserAddress, ambTokenAddress1, 50)
+      ).to.be.rejectedWith("insufficient funds");
+    })
+
+    it("receive when bridge doesn't have tokens", async () => {
+      const mint = Keypair.generate();
+      await createMint(connection, admin, admin.publicKey, null, 6, mint);
+      await initializeToken(program, admin, mint.publicKey, ambTokenAddress1_, 18, false);
+      // mint some tokens to user and send them to bridge to initialize bridge ATA
+      const userATA = await getOrCreateUserATA(connection, user, mint.publicKey);
+      await mintTokens(mint.publicKey, userATA, 10);
+      await commonSend(user, mint.publicKey, ambUserAddress, ambTokenAddress1, 10)
+
+
+      const expectedNonce = +(await program.account.nonceAccount.fetch(getUserNoncePda(user.publicKey, program.programId))).nonceCounter;
+      await expect(
+        commonReceive(user, mint.publicKey, 50, expectedNonce)
+      ).to.be.rejectedWith("insufficient funds");
+    })
+
+
+    it("send when not enough sol for fees", async () => {
+      const userFrom = Keypair.generate();
+      await requestSol(userFrom, connection, 10 ** 9);
+
+      const mint = Keypair.generate();
+      await createMint(connection, admin, admin.publicKey, null, 6, mint, { commitment: 'confirmed' });
+      await initializeToken(program, admin, mint.publicKey, ambTokenAddress1_, 18, false);
+      const userATA = await getOrCreateUserATA(connection, userFrom, mint.publicKey);
+      await mintTokens(mint.publicKey, userATA, 10);
+
+      await expect(
+        commonSend(userFrom, mint.publicKey, ambUserAddress, ambTokenAddress1, 10, false, [], 10 ** 10)
+      ).to.be.rejectedWith("insufficient lamports");
+    })
+
+
+    describe("wrong signature", () => {
+
+
+      it("send", async () => {
+        const tokenFrom = tokenMint1.publicKey;
+        const userFrom = user;
+        const userTo = ambUserAddress;
+        const tokenTo = ambTokenAddress1;
+        const amountToSend = 50;
+
+        const value: SendPayload = {
+          tokenAddressFrom: tokenFrom.toBytes(),
+          tokenAddressTo: tokenTo,
+          amountToSend,
+          feeAmount: 20,
+          chainFrom: SOLANA_CHAIN_ID,
+          chainTo: AMB_CHAIN_ID,
+          timestamp: Date.now(),
+          flags: new Uint8Array(32),
+          flagData: new Uint8Array(0),
+        };
+
+        const payload = serializeSendPayload(value);
+
+        const sendInstruction = await bridgeProgram.methods.send(payload, [...userTo]).accountsPartial({
+          sender: userFrom.publicKey,
+          mint: tokenFrom,
+        }).signers([userFrom]).instruction();
+
+        // send without signature
+        await expect(
+          (async () => {
+            const tx = new Transaction().add(sendInstruction);
+            tx.feePayer = userFrom.publicKey;
+            await sendAndConfirmTransaction(connection, tx, [userFrom], { commitment: 'confirmed' });
+          })()
+        ).to.be.rejectedWith("The arguments provided to a program instruction were invalid");
+
+        // send with wrong instruction
+        await expect(
+          (async () => {
+            const tx = new Transaction().add(unwrapWSolInstruction(userFrom.publicKey), sendInstruction);
+            tx.feePayer = userFrom.publicKey;
+            await sendAndConfirmTransaction(connection, tx, [userFrom], { commitment: 'confirmed' });
+          })()
+        ).to.be.rejectedWith("Signature invalid");
+
+        // send with wrong signature
+        await expect(
+          (async () => {
+            const signature = signMessage(serializeSendPayload({ ...value, chainTo: 123 }), [sendSigner]);
+            const verifyInstruction = verifySignatureInstruction(signature);
+            const tx = new Transaction().add(verifyInstruction, sendInstruction);
+            tx.feePayer = userFrom.publicKey;
+            await sendAndConfirmTransaction(connection, tx, [userFrom], { commitment: 'confirmed' });
+          })()
+        ).to.be.rejectedWith("Signature invalid");
+
+        // send with wrong mint account
+        await expect(
+          (async () => {
+            const signature = signMessage(serializeSendPayload(value), [sendSigner]);
+            const verifyInstruction = verifySignatureInstruction(signature);
+            const sendInstruction = await bridgeProgram.methods.send(payload, [...userTo]).accountsPartial({
+              sender: userFrom.publicKey,
+              mint: NATIVE_MINT,
+            }).signers([userFrom]).instruction();
+            const tx = new Transaction().add(verifyInstruction, sendInstruction);
+            tx.feePayer = userFrom.publicKey;
+            await sendAndConfirmTransaction(connection, tx, [userFrom], { commitment: 'confirmed' });
+          })()
+        ).to.be.rejectedWith("Invalid input arguments");
+
+      });
+    });
+
+
+    it("receive", async () => {
+
+      const userTo = user;
+      const token = tokenMint1.publicKey;
+      const amountToReceive = 50;
+      const receiveNonce = 0;
+
+      const value: ReceivePayload = {
+        to: userTo.publicKey.toBytes(),
+        tokenAddressTo: token.toBytes(),
+        amountTo: amountToReceive,
+        chainTo: SOLANA_CHAIN_ID,
+        chainFrom: AMB_CHAIN_ID,
+        eventId: 1,
+        flags: new Uint8Array(32),
+        flagData: numberToUint8Array(receiveNonce, 8)
+      };
+
+      const receiveInstruction = await bridgeProgram.methods.receive(
+        new BN(value.amountTo),
+        new BN(value.eventId),
+        [...value.flags],
+        Buffer.from(value.flagData)
+      ).accountsPartial({
+        receiver: userTo.publicKey,
+        mint: token,
+      }).signers([userTo]).instruction()
+
+
+      // receive without signature
+      await expect(
+        (async () => {
+          const tx = new Transaction().add(receiveInstruction);
+          tx.feePayer = userTo.publicKey;
+          await sendAndConfirmTransaction(connection, tx, [userTo], { commitment: 'confirmed' }); // wait for transaction to be confirmed
+        })()
+      ).to.be.rejectedWith("The arguments provided to a program instruction were invalid");
+
+      // send with wrong instruction
+      await expect(
+        (async () => {
+          const tx = new Transaction().add(unwrapWSolInstruction(userTo.publicKey), receiveInstruction);
+          tx.feePayer = userTo.publicKey;
+          await sendAndConfirmTransaction(connection, tx, [userTo], { commitment: 'confirmed' }); // wait for transaction to be confirmed
+        })()
+      ).to.be.rejectedWith("Signature invalid");
+
+      // send with wrong signature
+      await expect(
+        (async () => {
+          const signature = signMessage(serializeReceivePayload({ ...value, chainTo: 123 }), receiveSigners);
+          const verifyInstruction = verifySignatureInstruction(signature);
+          const tx = new Transaction().add(verifyInstruction, receiveInstruction);
+          tx.feePayer = userTo.publicKey;
+          await sendAndConfirmTransaction(connection, tx, [userTo], { commitment: 'confirmed' }); // wait for transaction to be confirmed
+        })()
+      ).to.be.rejectedWith("Signature invalid");
+
+
+      // send with wrong mint account
+      await expect(
+        (async () => {
+          const signature = signMessage(serializeReceivePayload(value), [sendSigner]);
+          const verifyInstruction = verifySignatureInstruction(signature);
+          const receiveInstruction = await bridgeProgram.methods.receive(
+            new BN(value.amountTo),
+            new BN(value.eventId),
+            [...value.flags],
+            Buffer.from(value.flagData)
+          ).accountsPartial({
+            receiver: userTo.publicKey,
+            mint: NATIVE_MINT,
+          }).signers([userTo]).instruction()
+          const tx = new Transaction().add(verifyInstruction, receiveInstruction);
+          tx.feePayer = userTo.publicKey;
+          await sendAndConfirmTransaction(connection, tx, [userTo], { commitment: 'confirmed' }); // wait for transaction to be confirmed
+        })()
+      ).to.be.rejectedWith("Signature invalid");
+
+    });
   });
 
 
@@ -333,7 +642,7 @@ describe("my-project", () => {
   async function commonSend(
     userFrom: Keypair, tokenFrom: PublicKey, userTo: Uint8Array, tokenTo: Uint8Array,
     amountToSend: number,
-    isMintable = false, additionalInstructions = []
+    isMintable = false, additionalInstructions = [], feeAmount = 20
   ) {
 
 
@@ -341,7 +650,7 @@ describe("my-project", () => {
       tokenAddressFrom: tokenFrom.toBytes(),
       tokenAddressTo: tokenTo,
       amountToSend,
-      feeAmount: 20,
+      feeAmount: feeAmount,
       chainFrom: SOLANA_CHAIN_ID,
       chainTo: AMB_CHAIN_ID,
       timestamp: Date.now(),
@@ -363,7 +672,7 @@ describe("my-project", () => {
 
     const tx = new Transaction().add(...additionalInstructions, verifyInstruction, sendInstruction);
     tx.feePayer = userFrom.publicKey;
-    const txSignature = await sendAndConfirmTransaction(connection, tx, [user], { commitment: 'confirmed' }); // wait for transaction to be confirmed
+    const txSignature = await sendAndConfirmTransaction(connection, tx, [userFrom], { commitment: 'confirmed' }); // wait for transaction to be confirmed
     const txParsed = await connection.getParsedTransaction(txSignature, { commitment: 'confirmed' });
 
     return txParsed;
@@ -372,7 +681,7 @@ describe("my-project", () => {
 
   async function commonReceive(
     userTo: Keypair, token: PublicKey, amountToReceive: number,
-    receiveNonce: number, isMintable = false, shouldUnwrap=false
+    receiveNonce: number, isMintable = false, shouldUnwrap = false
   ) {
 
     const value: ReceivePayload = {
@@ -390,7 +699,7 @@ describe("my-project", () => {
     const signature = signMessage(payload, receiveSigners);
 
     const verifyInstruction = verifySignatureInstruction(signature);
-    const unwrapInstructions = shouldUnwrap ? [unwrapWSolInstruction(user.publicKey)] : [];
+    const unwrapInstructions = shouldUnwrap ? [unwrapWSolInstruction(userTo.publicKey)] : [];
 
     const receiveInstruction = await bridgeProgram.methods.receive(
       new BN(value.amountTo),
@@ -398,14 +707,14 @@ describe("my-project", () => {
       [...value.flags],
       Buffer.from(value.flagData)
     ).accountsPartial({
-      receiver: user.publicKey,
+      receiver: userTo.publicKey,
       mint: token,
       bridgeTokenAccount: isMintable ? null : undefined,  // pass null to not use bridge token account
-    }).signers([user]).instruction()
+    }).signers([userTo]).instruction()
 
-    const tx = new Transaction().add(...unwrapInstructions, verifyInstruction, receiveInstruction);
-    tx.feePayer = user.publicKey;
-    const txSignature = await sendAndConfirmTransaction(connection, tx, [user], { commitment: 'confirmed' }); // wait for transaction to be confirmed
+    const tx = new Transaction().add(verifyInstruction, receiveInstruction, ...unwrapInstructions);
+    tx.feePayer = userTo.publicKey;
+    const txSignature = await sendAndConfirmTransaction(connection, tx, [userTo], { commitment: 'confirmed' }); // wait for transaction to be confirmed
     const txParsed = await connection.getParsedTransaction(txSignature, { commitment: 'confirmed' });
 
     return txParsed;
@@ -451,13 +760,15 @@ describe("my-project", () => {
   }
 
 
+  async function mintTokens(mint: PublicKey, to: PublicKey, amount: number) {
+    await mintTo(connection, admin, mint, to, admin, amount, [], { commitment: 'confirmed' });
+  }
+
 })
 
 
-
-
-async function requestSol(account, connection, amount = 500) {
-  const signature = await connection.requestAirdrop(account.publicKey, amount * 10 ** 9);
+async function requestSol(account, connection, amount = 5000 * 10 ** 9) {
+  const signature = await connection.requestAirdrop(account.publicKey, amount);
   const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
   await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature }, 'confirmed');
 }

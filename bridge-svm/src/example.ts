@@ -13,9 +13,9 @@ import { send } from "./sdk/send";
 import {
   getBridgeTokenAccounts,
   getOrCreateUserATA,
-  getUserNoncePda,
+  getUserNoncePda, initializeToken,
 } from "./sdk/utils";
-import { createMint, mintTo } from "@solana/spl-token";
+import { createMint, mintTo, NATIVE_MINT } from "@solana/spl-token";
 import { Buffer } from "buffer";
 import { backendMock, receiveSigners, sendSigner } from "./backend/signs";
 import { keccak_256 } from "@noble/hashes/sha3";
@@ -76,8 +76,8 @@ export async function main() {
   // await createToken(usdcKeypair);
 
   const sambAmb = "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b";
-  const wsolAmb = "0xC6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7";
-  const usdcAmb = "0x8132928B8F4c0d278cc849b9b98Dffb28aE0B685";
+  const wsolAmb = "0x335d175e096d3aEF99646C81B825E956513667D6";
+  const usdcAmb = "0x835DAbB66f894720Ef4E81f7F43A76D392E46e64";
 
   // await initializeToken(program, admin, sambKeypair.publicKey, sambAmb, 18, true);
   // await initializeToken(program, admin, NATIVE_MINT, wsolAmb, 18, false);
@@ -88,7 +88,7 @@ export async function main() {
   // console.log(globalState);
   // console.log(sendSigner.publicKey.toBase58());
   // await makeSendTx(usdcKeypair.publicKey, usdcAmb);
-  await makeReceiveTx();
+  // await makeReceiveTx();
 }
 
 /**

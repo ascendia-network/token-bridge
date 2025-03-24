@@ -847,6 +847,7 @@ export type AmbSolBridge = {
       "accounts": [
         {
           "name": "state",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -882,6 +883,60 @@ export type AmbSolBridge = {
         {
           "name": "pause",
           "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "withdrawFees",
+      "discriminator": [
+        198,
+        212,
+        171,
+        109,
+        144,
+        215,
+        174,
+        89
+      ],
+      "accounts": [
+        {
+          "name": "state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "state"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
         }
       ]
     }
@@ -980,6 +1035,11 @@ export type AmbSolBridge = {
       "code": 6004,
       "name": "invalidArgs",
       "msg": "Invalid input arguments"
+    },
+    {
+      "code": 6005,
+      "name": "paused",
+      "msg": "Bridge is paused"
     }
   ],
   "types": [

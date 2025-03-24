@@ -23,7 +23,7 @@ pub struct Initialize<'info> {
 #[derive(Accounts)]
 pub struct CreateToken<'info> {
     #[account(
-        has_one = admin,
+        has_one = admin @ CustomError::NotAdmin,
         seeds = [GlobalState::SEED_PREFIX], bump
     )]
     pub state: Account<'info, GlobalState>,
@@ -32,7 +32,7 @@ pub struct CreateToken<'info> {
     pub admin: Signer<'info>,
 
     #[account(
-        init,
+        init_if_needed,
         payer = admin,
         space = TokenConfig::ACCOUNT_SIZE,
         seeds = [TokenConfig::SEED_PREFIX, mint.key().as_ref()], bump
@@ -40,7 +40,7 @@ pub struct CreateToken<'info> {
     pub bridge_token: Account<'info, TokenConfig>,
 
     #[account(
-        init,
+        init_if_needed,
         payer = admin,
         associated_token::mint = mint,
         associated_token::authority = bridge_token,
@@ -60,7 +60,8 @@ pub struct CreateToken<'info> {
 #[derive(Accounts)]
 pub struct UpdateState<'info> {
     #[account(
-        has_one = admin,
+        mut,
+        has_one = admin @ CustomError::NotAdmin,
         seeds = [GlobalState::SEED_PREFIX], bump
     )]
     pub state: Account<'info, GlobalState>,

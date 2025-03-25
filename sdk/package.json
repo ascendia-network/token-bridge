@@ -26,7 +26,7 @@
     "test": "jest",
     "lint": "eslint --ext .js,.ts .",
     "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\"",
-    "build": "pkgroll"
+    "build": "pkgroll --minify"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.0",

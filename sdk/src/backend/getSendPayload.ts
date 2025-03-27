@@ -45,14 +45,14 @@ export async function getSendPayload(
   flags: bigint = 0n,
   flagData: Hex = "0x",
 ): Promise<SendPayloadResponse> {
-  const sendPayloadUrl: URL = URL.parse("/api/send-payload", backendUrl)!;
+  const sendPayloadUrl: URL = URL.parse("/api/send", backendUrl)!;
   sendPayloadUrl.searchParams.set("networkFrom", networkFrom.toString());
   sendPayloadUrl.searchParams.set("networkTo", networkTo.toString());
   if (tokenAddress.length !== 66 && tokenAddress.startsWith("0x")) {
     tokenAddress = helpers.addressToBytes32(tokenAddress);
   }
   sendPayloadUrl.searchParams.set("tokenAddress", tokenAddress);
-  sendPayloadUrl.searchParams.set("amountToSend", amountToSend.toString());
+  sendPayloadUrl.searchParams.set("amount", amountToSend.toString());
   if (
     externalTokenAddress.length !== 66 &&
     externalTokenAddress.startsWith("0x")
@@ -84,7 +84,7 @@ export async function getSendPayload(
       feeAmount: BigInt(data.sendPayload.feeAmount),
       timestamp: BigInt(data.sendPayload.timestamp),
       flags: BigInt(data.sendPayload.flags),
-      flagData,
+      flagData: data.sendPayload.flagData,
     },
     signedBy: data.signedBy,
     signature: data.signature,

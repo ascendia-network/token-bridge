@@ -30,8 +30,10 @@ describe("Test bridge claim request", () => {
     anvil = child.spawn("anvil", [
       "-p",
       "8545",
+      "--fork-block-number",
+      "4000000",
       "-f",
-      "https://network.ambrosus-test.io",
+      "https://network-archive.ambrosus-test.io",
       "--silent",
     ]);
     await waitForAnvil();

@@ -7,6 +7,22 @@ import { createSelectSchema } from "drizzle-zod";
 import { Base58 } from "ox";
 import { SOLANA_DEV_CHAIN_ID } from "../../config";
 import { toHex } from "viem";
+import type { Context } from "hono";
+import { cors } from "hono/cors";
+
+
+export const corsMiddleware = cors({
+  origin: (origin: string, c: Context) => {
+    return c.env.ALLOWED_ORIGINS ? c.env.ALLOWED_ORIGINS.split(",") : "*";
+  },
+  allowMethods: ["GET", "POST"],
+  allowHeaders: ["Content-Type"]
+})
+
+
+
+
+
 
 export const EvmAddressRegex = /^0x[a-fA-F0-9]{40}$/;
 export const SvmAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
@@ -288,6 +304,11 @@ export const receiptMetaEvmSchema = createSelectSchema(
         example: "6003100671677646000_22040_3",
         description: "Receipt ID as 'chainFrom_chainTo_eventId'",
       }),
+    eventChain: (schema: z.ZodSchema) =>
+      schema.openapi({
+        example: "22040",
+        description: "Chain ID of the event",
+      }),
     blockHash: (schema: z.ZodSchema) =>
       schema.openapi({
         example:
@@ -325,6 +346,11 @@ export const receiptMetaSolanaSchema = createSelectSchema(
       schema.regex(receiptIdRegex).openapi({
         example: "6003100671677646000_22040_3",
         description: "Receipt ID as 'chainFrom_chainTo_eventId'",
+      }),
+    eventChain: (schema: z.ZodSchema) =>
+      schema.openapi({
+        example: "22040",
+        description: "Chain ID of the event",
       }),
     blockHash: (schema: z.ZodSchema) =>
       schema.nullable().openapi({

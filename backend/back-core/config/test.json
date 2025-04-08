@@ -69,22 +69,22 @@
   "tokensConfigUrl": "https://raw.githubusercontent.com/ambrosus/token-bridge/refs/heads/backend/backend/back-core/config/tokens/test.json",
   "fees": {
     "networks": {
-      "amb": {
+      "16718": {
         "minBridgeFeeUSD": 0.01
       },
-      "amb-test": {
+      "22040": {
         "minBridgeFeeUSD": 0.01
       },
-      "sol": {
+      "6003100671677628416": {
         "minBridgeFeeUSD": 0.01
       },
-      "sol-dev": {
+      "6003100671677645902": {
         "minBridgeFeeUSD": 0.01
       },
-      "base": {
+      "8453": {
         "minBridgeFeeUSD": 0.01
       },
-      "base-test": {
+      "84532": {
         "minBridgeFeeUSD": 0.01
       }
     }

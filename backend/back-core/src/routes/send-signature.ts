@@ -14,8 +14,6 @@ import { describeRoute } from "hono-openapi";
 import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { sendPayloadResponseSchema, sendSignatureQuerySchema } from "./utils";
 import { env } from "hono/adapter";
-import { CORS_CONFIG } from "../../config";
-import { cors } from "hono/cors";
 
 const sendSignatureControllerDep = new Dependency((c) => {
   const { SEND_SIGNER_MNEMONIC } = env<{
@@ -25,7 +23,6 @@ const sendSignatureControllerDep = new Dependency((c) => {
 });
 
 export const sendSignatureRoutes = new Hono();
-sendSignatureRoutes.use("*", cors(CORS_CONFIG));
 
 sendSignatureRoutes.get(
   "/",

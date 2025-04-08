@@ -10,9 +10,7 @@
 import { env } from "process";
 import * as dotenv from "dotenv";
 
-import { clusterApiUrl } from "@solana/web3.js";
 import { bytesToBigInt, stringToBytes } from "viem";
-import type { Context } from "hono";
 // Require trick to import JSON files
 import { createRequire } from "module";
 
@@ -20,54 +18,8 @@ const require = createRequire(import.meta.url);
 
 dotenv.config();
 
-type CORSOptions = {
-  origin:
-    | string
-    | string[]
-    | ((origin: string, c: Context) => string | undefined | null);
-  allowMethods?: string[];
-  allowHeaders?: string[];
-  maxAge?: number;
-  credentials?: boolean;
-  exposeHeaders?: string[];
-};
 
-export const CORS_CONFIG: CORSOptions = {
-  origin: (origin: string, c: Context) => {
-    return c.env.ALLOWED_ORIGINS ? c.env.ALLOWED_ORIGINS.split(",") : "*";
-  },
-  allowMethods: ["GET", "POST"],
-  allowHeaders: ["Content-Type"]
-};
 
-export const RELAY_CORS_CONFIG: CORSOptions = {
-  ...CORS_CONFIG,
-  origin: (origin: string, c: Context) => {
-    return c.env.RELAY_ALLOWED_ORIGINS ? c.env.RELAY_ALLOWED_ORIGINS.split(",") : "*";
-  }
-};
-
-export const CHAIN_ID_TO_CHAIN_NAME: Record<string, string> = {
-  "1": "eth",
-  "56": "bsc",
-  "8453": "base",
-  "16718": "amb",
-  "6003100671677628416": "sol",
-  // testnets
-  "22040": "amb-test",
-  "84532": "base-test",
-  "6003100671677645902": "sol-dev"
-};
-
-const networkMappping: Record<string, string> = Object.entries(
-  CHAIN_ID_TO_CHAIN_NAME
-).reduce(
-  (acc: Record<string, string>, [key, value]: [string, string]) => ({
-    ...acc,
-    [value]: key
-  }),
-  {} as Record<string, string>
-);
 
 export interface Config {
   networks: { [net: string]: string };
@@ -76,9 +28,7 @@ export interface Config {
   validators: { [net: string]: string[] };
   fees: {
     networks: {
-      [net: string]: {
-        minBridgeFeeUSD: number;
-      };
+      [net: string]: { minBridgeFeeUSD: number; };
     };
   };
 }
@@ -86,6 +36,7 @@ export interface Config {
 export const stage = env.STAGE || "test";
 
 export const stageConfig: Config = require(`../config/${stage}.json`);
+export const tokensConfig = require(`../config/tokens/${stage}.json`);
 
 export const bridgeValidators = stageConfig.validators;
 
@@ -96,30 +47,3 @@ export const SOLANA_DEV_CHAIN_ID = bytesToBigInt(
   stringToBytes("SOLANADN", { size: 8 })
 );
 
-const solanaRPCs = {
-  [`RPC_URL_${SOLANA_CHAIN_ID}`]: clusterApiUrl("mainnet-beta"),
-  [`RPC_URL_${SOLANA_DEV_CHAIN_ID}`]: clusterApiUrl("devnet")
-};
-
-/**
- * Combines predefined Solana RPC endpoints with additional network RPC URLs from the configuration.
- *
- * This function merges the Solana-specific RPC endpoints with URLs provided in the configuration. For each network entry that matches a known chain in the network mapping, it adds an RPC URL keyed as "RPC_URL_" followed by the corresponding chain identifier.
- *
- * @param config - The application configuration that includes network RPC endpoints.
- * @returns A consolidated mapping of RPC URL identifiers to their URL strings.
- */
-export function buildRPCs(config: Config) {
-  return {
-    ...solanaRPCs,
-    ...Object.entries(config.networks).reduce(
-      (acc: Record<string, string>, [key, value]: [string, string]) => {
-        if (networkMappping[key]) {
-          acc[`RPC_URL_${networkMappping[key]}`] = value;
-        }
-        return acc;
-      },
-      {} as Record<string, string>
-    )
-  };
-}

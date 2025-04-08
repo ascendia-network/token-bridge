@@ -8,10 +8,9 @@ import { consoleLogger } from "./utils";
 import { config } from "dotenv";
 import { openAPISpecs } from "hono-openapi";
 import { Hono } from "hono";
-import { buildRPCs, stageConfig } from "../config";
 
 config();
-process.env = { ...process.env, ...buildRPCs(stageConfig) };
+process.env = { ...process.env };
 export type Env = {
   Bindings: {
     DATABASE_URL: string;

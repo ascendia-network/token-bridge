@@ -13,8 +13,7 @@ import {
 import { Hono } from "hono";
 import { type ContentfulStatusCode } from "hono/utils/http-status";
 import { env } from "hono/adapter";
-import { RELAY_CORS_CONFIG } from "../../config";
-import { cors } from "hono/cors";
+
 
 const receiptControllerDep = new Dependency((c) => {
   const vars = env<{
@@ -24,7 +23,6 @@ const receiptControllerDep = new Dependency((c) => {
 });
 
 export const relayRoutes = new Hono();
-relayRoutes.use("*", cors(RELAY_CORS_CONFIG));
 
 /* The code `routes.get("/relay", async (c) => { ... })` is defining a route for handling GET requests
 to the "/receipts" endpoint. When a GET request is made to this endpoint, the code inside the callback
@@ -210,12 +208,8 @@ relayRoutes.post(
       const receiptId = c.req.valid("param").receiptId;
       const signature = c.req.valid("json").signature as `0x${string}`;
       const signer = c.req.valid("json").signer;
-      const data = await receiptController.addSignature(
-        receiptId,
-        signer,
-        signature
-      );
-      return c.json({ signed: data }, 201);
+      const signed = await receiptController.addSignature(receiptId, signer, signature);
+      return c.json({ signed }, 201);
     } catch (error) {
       let status: ContentfulStatusCode = 400;
       if ((error as Error).message === "Receipt not found") {

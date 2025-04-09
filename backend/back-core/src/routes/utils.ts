@@ -423,7 +423,7 @@ export const SendPayload = z.object({
     }),
   tokenAddressTo: z
     .string()
-    .regex(/^(0x)?[a-fA-F0-9]{64}$/, "Invalid external token address")
+    .regex(/^(0x)?[a-fA-F0-9]{40,64}$/, "Invalid external token address")
     .openapi({
       example:
         "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
@@ -459,6 +459,21 @@ export type SendPayload = z.infer<typeof SendPayload>;
 
 export const sendPayloadResponseSchema = z.object({
   sendPayload: SendPayload,
+  signedBy: z
+    .string()
+    .regex(
+      new RegExp(
+        "(" + EvmAddressRegex.source + ")|(" + SvmAddressRegex.source + ")"
+      )
+    )
+    .openapi({
+      type: "string",
+      description: "Address of the relayer",
+      examples: [
+        "0xC6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
+        "FMYR5BFh3JapZS1cfwYViiBMYJxFGwKdchnghBnBtxkk",
+      ],
+    }),
   signature: z.string().regex(signatureRegex).openapi({
     type: "string",
     description: "Signature of the transaction",

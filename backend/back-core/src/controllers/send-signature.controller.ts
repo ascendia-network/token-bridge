@@ -13,6 +13,7 @@ import {
   encodePacked,
   keccak256,
   toBytes,
+  type Hex,
   type PrivateKeyAccount,
 } from "viem";
 import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts";
@@ -80,7 +81,8 @@ export class SendSignatureController {
     );
     const timestamp = Math.floor(Date.now() / 1000);
 
-    let signature, sendPayload: SendPayload;
+    let signResult: { signature: Hex; signedBy: string },
+      sendPayload: SendPayload;
 
     switch (networkFrom) {
       case SOLANA_CHAIN_ID:
@@ -102,27 +104,32 @@ export class SendSignatureController {
             ? bytesToHex(Buffer.from(flagData.slice(2), "hex"))
             : "",
         };
-        signature = await this.signSvmSendPayload(sendPayload);
+        signResult = await this.signSvmSendPayload(sendPayload);
         break;
       default:
         sendPayload = SendPayload.parse({
           chainFrom: networkFrom,
           chainTo: networkTo,
-          tokenAddress,
-          externalTokenAddress,
+          tokenAddressFrom: tokenAddress,
+          tokenAddressTo: externalTokenAddress,
           amountToSend,
           feeAmount,
           timestamp,
           flags,
           flagData,
         });
-        signature = await this.signEvmSendPayload(sendPayload);
+        signResult = await this.signEvmSendPayload(sendPayload);
         break;
     }
-    return { sendPayload, signature };
+    return {
+      sendPayload,
+      ...signResult,
+    };
   }
 
-  async signEvmSendPayload(sendPayload: SendPayload) {
+  async signEvmSendPayload(
+    sendPayload: SendPayload
+  ): Promise<{ signature: Hex; signedBy: string }> {
     const payload = encodePacked(
       [
         "uint256",
@@ -148,10 +155,17 @@ export class SendSignatureController {
       ]
     );
     const payloadHash = keccak256(payload);
-    return await this.evmSigner.signMessage({ message: { raw: payloadHash } });
+    return {
+      signature: await this.evmSigner.signMessage({
+        message: { raw: payloadHash },
+      }),
+      signedBy: this.evmSigner.address,
+    };
   }
 
-  async signSvmSendPayload(sendPayload: SendPayload) {
+  async signSvmSendPayload(
+    sendPayload: SendPayload
+  ): Promise<{ signature: Hex; signedBy: string }> {
     const sendPayloadToSerialize: SolanaSendPayloadSerialize =
       SolanaSendPayloadSerialize.parse({
         tokenAddressFrom: toBytes(sendPayload.tokenAddressFrom),
@@ -171,6 +185,9 @@ export class SendSignatureController {
       serializedPayload,
       this.solanaSigner.secretKey
     );
-    return bytesToHex(signature);
+    return {
+      signature: bytesToHex(signature),
+      signedBy: this.solanaSigner.publicKey.toBase58(),
+    };
   }
 }

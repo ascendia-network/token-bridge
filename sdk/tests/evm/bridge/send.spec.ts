@@ -427,7 +427,7 @@ describe("Test bridge send request", () => {
       "--silent",
     ]);
     await waitForAnvil();
-  }, 15000);
+  }, 30000);
   afterAll(() => {
     anvil.kill();
   }, 5000);

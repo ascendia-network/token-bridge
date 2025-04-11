@@ -40,10 +40,10 @@ export async function sendFromEVM(
   // TODO: check if token can be wrapped on this chain
   if (checkFlag(sendParams.payload.flags, BridgeFlags.SHOULD_WRAP)) {
     if (
-      !wrappedStatus(
+      !(await wrappedStatus(
         sendParams.payload.tokenAddress,
         sendParams.payload.chainFrom,
-      )
+      ))
     ) {
       throw new Error("Token cannot be wrapped in source chain");
     }
@@ -66,10 +66,10 @@ export async function sendFromEVM(
   await checkBalanceNative(walletClient.account?.address!, value, publicClient);
   if (checkFlag(sendParams.payload.flags, BridgeFlags.SHOULD_UNWRAP)) {
     if (
-      !wrappedStatus(
+      !(await wrappedStatus(
         sendParams.payload.externalTokenAddress,
         sendParams.payload.chainTo,
-      )
+      ))
     ) {
       throw new Error("Token cannot be unwrapped in destination chain");
     }

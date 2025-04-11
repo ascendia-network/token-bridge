@@ -42,7 +42,7 @@ export const evmAddressFromBytes32 = (address: Hex): Address.Address => {
   if (address.length !== 66) {
     throw new Error("Possibly invalid hex bytes32 address");
   }
-  return Address.from("0x" + address.slice(-40));
+  return Address.from("0x" + address.slice(-40), { checksum: true });
 };
 
 /**

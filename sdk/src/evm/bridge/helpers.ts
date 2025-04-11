@@ -7,11 +7,11 @@ import {
   hexToBigInt,
 } from "viem";
 import { Address, Base58 } from "ox";
+import { BridgeFlags } from "../constants";
 import {
-  BridgeFlags,
-  FullReceipt,
-  MiniReceipt,
-  SendPayloadEVM,
+  type FullReceipt,
+  type MiniReceipt,
+  type SendPayloadEVM,
 } from "../types/calls";
 import { getTokensConfig, SendPayload } from "../../backend";
 import { EVMChains, SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID } from "../../config";

@@ -9,12 +9,12 @@ import { getBridgeContract } from "./contract";
 import {
   type SendPayloadEVM,
   type SendCall,
-  BridgeFlags,
 } from "../types/calls";
 import { checkAllowanceERC20 } from "../token/checkAllowance";
 import { checkBalanceNative } from "../native/balance";
 import { handleCustomError } from "../utils/customErrors";
 import { wrappedStatus, checkFlag } from "./helpers";
+import { BridgeFlags } from "../constants";
 
 /**
  * Send bridge transaction from the EVM chain contract

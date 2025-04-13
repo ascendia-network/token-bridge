@@ -14,6 +14,7 @@ config();
 process.env = { ...process.env, ...buildRPCs(stageConfig) };
 export type Env = {
   Bindings: {
+    SIGNATURES_REQUIRED: number;
     DATABASE_URL: string;
     SEND_SIGNER_MNEMONIC: string;
     RELAY_ALLOWED_ORIGINS: string;

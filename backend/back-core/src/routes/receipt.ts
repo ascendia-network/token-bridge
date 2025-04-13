@@ -22,7 +22,12 @@ const receiptControllerDep = new Dependency((c) => {
   return new ReceiptController(vars.DATABASE_URL);
 });
 
-export const receiptRoutes = new Hono();
+export const receiptRoutes = new Hono<{
+  Bindings: {
+    SIGNATURES_REQUIRED: number;
+    DATABASE_URL: string;
+  };
+}>();
 receiptRoutes.use("*", cors(CORS_CONFIG));
 
 /* The code `routes.get("/receipts", async (c) => { ... })` is defining a route for handling GET requests
@@ -352,6 +357,7 @@ receiptRoutes.get(
       return c.json(
         signaturesResponseSchema.parse({
           receiptId,
+          readyForClaim: data.length >= c.env.SIGNATURES_REQUIRED,
           signatures: data
         }),
         200

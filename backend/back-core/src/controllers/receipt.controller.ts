@@ -36,7 +36,9 @@ export class ReceiptController {
     userAddress?: string
   ): Promise<
     Array<{
-      receipt: typeof receipt.$inferSelect;
+      receipt: typeof receipt.$inferSelect & {
+        signaturesRequired: number;
+      };
       receiptMeta: Array<
         | typeof receiptsMetaInIndexerEvm.$inferSelect
         | typeof receiptsMetaInIndexerSolana.$inferSelect
@@ -101,8 +103,11 @@ export class ReceiptController {
           (m) => m.receiptId === r.receiptId
         );
         return {
-          receipt: r,
-          receiptMeta: [...metaEvm, ...metaSolana]
+          receipt: {
+            ...r,
+            signaturesRequired: bridgeValidators[r.chainTo].length,
+          },
+          receiptMeta: [...metaEvm, ...metaSolana],
         };
       });
     } catch (error) {
@@ -151,7 +156,9 @@ export class ReceiptController {
 
 
   async getReceipt(receiptId: `${number}_${number}_${number}`): Promise<{
-    receipt: typeof receipt.$inferSelect;
+    receipt: typeof receipt.$inferSelect & {
+        signaturesRequired: number;
+      };
     receiptMeta: Array<
       | typeof receiptsMetaInIndexerEvm.$inferSelect
       | typeof receiptsMetaInIndexerSolana.$inferSelect
@@ -187,8 +194,11 @@ export class ReceiptController {
         .where(eq(receipt.receiptId, receiptId));
 
       return {
-        receipt: result,
-        receiptMeta: [...metaEvm, ...metaSolana]
+        receipt: {
+          ...result,
+          signaturesRequired: bridgeValidators[result.chainTo].length,
+        },
+        receiptMeta: [...metaEvm, ...metaSolana],
       };
     } catch (error) {
       consoleLogger(

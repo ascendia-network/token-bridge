@@ -278,6 +278,15 @@ const ReceiptSchema = createSelectSchema(receipt, {
       example: false,
       description: "If receipt has been claimed",
     }),
+  signaturesCount: (schema: z.ZodSchema) =>
+    schema.openapi({
+      example: 0,
+      description: "Number of signatures",
+    }),
+  signaturesRequired: z.number().optional().openapi({
+    example: 5,
+    description: "Number of signatures required",
+  }),
 });
 
 export const receiptMetaEvmSchema = createSelectSchema(
@@ -398,6 +407,10 @@ export const signaturesResponseSchema = z.object({
   receiptId: z.string().regex(receiptIdRegex).openapi({
     example: "6003100671677646000_22040_3",
     description: "Receipt ID as 'chainFrom_chainTo_eventId",
+  }),
+  readyForClaim: z.boolean().openapi({
+    example: true,
+    description: "If the receipt is ready to be claimed and has enough signatures",
   }),
   signatures: z.array(signaturesSchema).openapi({
     description: "Signatures of the transaction",

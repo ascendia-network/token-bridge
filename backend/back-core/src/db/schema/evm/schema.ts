@@ -12,6 +12,7 @@ export const reorgBridgeToTokenOperationIdSeqInIndexerEvm = indexerEvm.sequence(
 
 export const receiptsMetaInIndexerEvm = indexerEvm.table("receiptsMeta", {
 	receiptId: text("receipt_id").primaryKey().notNull(),
+	eventChain: numeric("event_chain", { precision: 78, scale:  0 }),
 	blockHash: text("block_hash"),
 	blockNumber: numeric("block_number", { precision: 78, scale:  0 }),
 	timestamp: numeric({ precision: 78, scale:  0 }),

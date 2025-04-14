@@ -5,10 +5,7 @@ import db from "../db/db";
 
 
 export async function serve() {
-  await migrate(db, {
-    migrationsFolder: "drizzle",
-  });
-  
+
   const server: FastifyInstance = fastify({logger: true})
   server.post('/webhook', webhookHandler)
 

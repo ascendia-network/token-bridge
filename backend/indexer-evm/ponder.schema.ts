@@ -58,6 +58,7 @@ export const receiptsClaimed = onchainTable(
 export const receiptMeta = onchainTable("receiptsMeta", (t) => ({
   receiptId: t.text("receipt_id").primaryKey(),
   // .references(() => receipt.receiptId), // Not supported in ponder
+  eventChain: t.bigint(),
   blockHash: t.hex(),
   blockNumber: t.bigint(),
   timestamp: t.bigint(),

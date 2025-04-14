@@ -16,6 +16,8 @@
     }
   },
   "scripts": {
+    "push": "drizzle-kit push",
+    "pull": "drizzle-kit pull",
     "build": "pkgroll",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "tsx dist/main.cjs",

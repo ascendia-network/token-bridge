@@ -4,16 +4,14 @@ import { describeRoute } from "hono-openapi";
 import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { ReceiptController } from "../controllers/receipt.controller";
 import {
-  receiptIdValidatorSchema,
-  svmAddressBytes32Hex,
   evmAddressBytes32Hex,
+  receiptIdValidatorSchema,
   receiptResponseSchema,
-  signaturesResponseSchema
+  signaturesResponseSchema,
+  svmAddressBytes32Hex,
 } from "./utils";
 import { Hono } from "hono";
 import { env } from "hono/adapter";
-import { CORS_CONFIG } from "../../config";
-import { cors } from "hono/cors";
 
 const receiptControllerDep = new Dependency((c) => {
   const vars = env<{
@@ -28,7 +26,6 @@ export const receiptRoutes = new Hono<{
     DATABASE_URL: string;
   };
 }>();
-receiptRoutes.use("*", cors(CORS_CONFIG));
 
 /* The code `routes.get("/receipts", async (c) => { ... })` is defining a route for handling GET requests
 to the "/receipts" endpoint. When a GET request is made to this endpoint, the code inside the callback

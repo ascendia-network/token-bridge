@@ -1,12 +1,3 @@
-/*
- *  Copyright: Ambrosus Inc.
- *  Email: tech@ambrosus.io
- *
- *  This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- *  This Source Code Form is “Incompatible With Secondary Licenses”, as defined by the Mozilla Public License, v. 2.0.
- */
-
 import { Dependency } from "hono-simple-di";
 import { Hono } from "hono";
 import { SendSignatureController } from "../controllers/send-signature.controller";
@@ -14,8 +5,6 @@ import { describeRoute } from "hono-openapi";
 import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { sendPayloadResponseSchema, sendSignatureQuerySchema } from "./utils";
 import { env } from "hono/adapter";
-import { CORS_CONFIG } from "../../config";
-import { cors } from "hono/cors";
 
 const sendSignatureControllerDep = new Dependency((c) => {
   const { SEND_SIGNER_MNEMONIC } = env<{
@@ -25,7 +14,6 @@ const sendSignatureControllerDep = new Dependency((c) => {
 });
 
 export const sendSignatureRoutes = new Hono();
-sendSignatureRoutes.use("*", cors(CORS_CONFIG));
 
 sendSignatureRoutes.get(
   "/",

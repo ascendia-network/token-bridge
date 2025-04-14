@@ -3,12 +3,7 @@ import { receipt, signatures } from "../db/schema/core.schema";
 import { receiptsMetaInIndexerEvm } from "../db/schema/evm.schema";
 import { receiptsMetaInIndexerSolana } from "../db/schema/solana.schema";
 import { eq, or, asc, desc, ne, and, notInArray, inArray } from "drizzle-orm";
-import {
-  toBytes,
-  keccak256,
-  recoverMessageAddress,
-  encodePacked
-} from "viem";
+import { toBytes, keccak256, recoverMessageAddress, encodePacked } from "viem";
 import { consoleLogger } from "../utils";
 import { serializeReceivePayload, ReceivePayload } from "../utils/solana";
 import {
@@ -47,16 +42,20 @@ export class ReceiptController {
   > {
     try {
       await this.db.refreshMaterializedView(receipt);
-      let baseQuery = this.db.select().from(receipt);
-      if (userAddress)
-        baseQuery = baseQuery.where(or(eq(receipt.to, userAddress), eq(receipt.from, userAddress)));
-      if (chainFrom)
-        baseQuery = baseQuery.where(eq(receipt.chainFrom, chainFrom));
-      if (chainTo)
-        baseQuery = baseQuery.where(eq(receipt.chainTo, chainTo));
+      const filterUser = userAddress
+        ? or(eq(receipt.to, userAddress), eq(receipt.from, userAddress))
+        : undefined;
+      const filterChainFrom = chainFrom
+        ? eq(receipt.chainFrom, chainFrom.toString())
+        : undefined;
+      const filterChainTo = chainTo
+        ? eq(receipt.chainTo, chainTo.toString())
+        : undefined;
 
-
-      const result = await baseQuery
+      const result = await this.db
+        .select()
+        .from(receipt)
+        .where(and(filterUser, filterChainFrom, filterChainTo))
         .orderBy(
           ordering === "asc" ? asc(receipt.timestamp) : desc(receipt.timestamp)
         )
@@ -70,7 +69,7 @@ export class ReceiptController {
           blockNumber: receiptsMetaInIndexerEvm.blockNumber,
           timestamp: receiptsMetaInIndexerEvm.timestamp,
           transactionHash: receiptsMetaInIndexerEvm.transactionHash,
-          transactionIndex: receiptsMetaInIndexerEvm.transactionIndex
+          transactionIndex: receiptsMetaInIndexerEvm.transactionIndex,
         })
         .from(receiptsMetaInIndexerEvm)
         .where(
@@ -87,7 +86,7 @@ export class ReceiptController {
           blockNumber: receiptsMetaInIndexerSolana.blockNumber,
           timestamp: receiptsMetaInIndexerSolana.timestamp,
           transactionHash: receiptsMetaInIndexerSolana.transactionHash,
-          transactionIndex: receiptsMetaInIndexerSolana.transactionIndex
+          transactionIndex: receiptsMetaInIndexerSolana.transactionIndex,
         })
         .from(receiptsMetaInIndexerSolana)
         .where(
@@ -153,11 +152,10 @@ export class ReceiptController {
     }
   }
 
-
   async getReceipt(receiptId: `${number}_${number}_${number}`): Promise<{
     receipt: typeof receipt.$inferSelect & {
-        signaturesRequired: number;
-      };
+      signaturesRequired: number;
+    };
     receiptMeta: Array<
       | typeof receiptsMetaInIndexerEvm.$inferSelect
       | typeof receiptsMetaInIndexerSolana.$inferSelect
@@ -173,7 +171,7 @@ export class ReceiptController {
           blockNumber: receiptsMetaInIndexerEvm.blockNumber,
           timestamp: receiptsMetaInIndexerEvm.timestamp,
           transactionHash: receiptsMetaInIndexerEvm.transactionHash,
-          transactionIndex: receiptsMetaInIndexerEvm.transactionIndex
+          transactionIndex: receiptsMetaInIndexerEvm.transactionIndex,
         })
         .from(receiptsMetaInIndexerEvm)
         .where(eq(receiptsMetaInIndexerEvm.receiptId, receiptId));
@@ -185,7 +183,7 @@ export class ReceiptController {
           blockNumber: receiptsMetaInIndexerSolana.blockNumber,
           timestamp: receiptsMetaInIndexerSolana.timestamp,
           transactionHash: receiptsMetaInIndexerSolana.transactionHash,
-          transactionIndex: receiptsMetaInIndexerSolana.transactionIndex
+          transactionIndex: receiptsMetaInIndexerSolana.transactionIndex,
         })
         .from(receiptsMetaInIndexerSolana)
         .where(eq(receiptsMetaInIndexerSolana.receiptId, receiptId));
@@ -220,7 +218,7 @@ export class ReceiptController {
         .select({
           receiptId: signatures.receiptId,
           signedBy: signatures.signedBy,
-          signature: signatures.signature
+          signature: signatures.signature,
         })
         .from(signatures)
         .where(eq(signatures.receiptId, receiptId))
@@ -261,13 +259,13 @@ export class ReceiptController {
           eq(receipt.claimed, false),
           chainEnum === "svm"
             ? or(
-              eq(receipt.chainTo, SOLANA_CHAIN_ID.toString()),
-              eq(receipt.chainTo, SOLANA_DEV_CHAIN_ID.toString())
-            )
+                eq(receipt.chainTo, SOLANA_CHAIN_ID.toString()),
+                eq(receipt.chainTo, SOLANA_DEV_CHAIN_ID.toString())
+              )
             : and(
-              ne(receipt.chainTo, SOLANA_CHAIN_ID.toString()),
-              ne(receipt.chainTo, SOLANA_DEV_CHAIN_ID.toString())
-            ),
+                ne(receipt.chainTo, SOLANA_CHAIN_ID.toString()),
+                ne(receipt.chainTo, SOLANA_DEV_CHAIN_ID.toString())
+              ),
           notInArray(
             receipt.receiptId,
             this.db
@@ -295,7 +293,7 @@ export class ReceiptController {
         "uint256",
         "uint256",
         "uint256",
-        "bytes"
+        "bytes",
       ],
       [
         receiptToSign.to as `0x${string}`,
@@ -305,11 +303,14 @@ export class ReceiptController {
         BigInt(receiptToSign.chainTo),
         BigInt(receiptToSign.eventId),
         BigInt(receiptToSign.flags),
-        receiptToSign.data as `0x${string}`
+        receiptToSign.data as `0x${string}`,
       ]
     );
     const messageHash = keccak256(message);
-    const signerRecovered = await recoverMessageAddress({ message: { raw: messageHash }, signature });
+    const signerRecovered = await recoverMessageAddress({
+      message: { raw: messageHash },
+      signature,
+    });
 
     if (signerRecovered !== signer) throw new Error("Invalid signature");
     const validators = bridgeValidators[receiptToSign.chainTo];
@@ -329,12 +330,16 @@ export class ReceiptController {
       amountTo: BigInt(receiptToSign.amountTo),
       chainTo: BigInt(receiptToSign.chainTo),
       flags: toBytes(BigInt(receiptToSign.flags), { size: 32 }),
-      flagData: toBytes(receiptToSign.data)
+      flagData: toBytes(receiptToSign.data),
     });
     const payload = serializeReceivePayload(value);
     const signatureBytes = toBytes(signature);
 
-    const isValid = nacl.sign.detached.verify(payload, signatureBytes, new PublicKey(signer).toBytes());
+    const isValid = nacl.sign.detached.verify(
+      payload,
+      signatureBytes,
+      new PublicKey(signer).toBytes()
+    );
     if (!isValid) throw new Error("Invalid signature");
 
     const validators = bridgeValidators[receiptToSign.chainTo];
@@ -355,17 +360,18 @@ export class ReceiptController {
       .from(receipt)
       .where(eq(receipt.receiptId, receiptId));
 
-    if (!receiptToSign)
-      throw new Error("Receipt not found");
-    if (receiptToSign.claimed)
-      throw new Error("Receipt already claimed");
-
+    if (!receiptToSign) throw new Error("Receipt not found");
+    if (receiptToSign.claimed) throw new Error("Receipt already claimed");
 
     let signedBy: string;
     if (Networks.isSolana(BigInt(receiptToSign.chainTo))) {
       signedBy = await this.checkSignerSolana(receiptToSign, signer, signature);
     } else {
-      signedBy = await this.checkSignerEVM(receiptToSign, signer as `0x${string}`, signature);
+      signedBy = await this.checkSignerEVM(
+        receiptToSign,
+        signer as `0x${string}`,
+        signature
+      );
     }
 
     await this.db.insert(signatures).values({ receiptId, signedBy, signature });

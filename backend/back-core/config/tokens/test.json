@@ -62,7 +62,8 @@
         "6003100671677645902": {
           "address": "So11111111111111111111111111111111111111112",
           "denomination": 6,
-          "isPrimary": true
+          "isPrimary": true,
+          "nativeCoin": "SOL"
         }
       }
     }

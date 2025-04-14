@@ -46,7 +46,7 @@ backofficeRoutes.get(
         const tokenFrom = getToken(receipt.chainFrom, receipt.tokenAddressFrom);
         const tokenTo = tokens.getToken(receipt.chainTo, receipt.tokenAddressTo);
 
-        const metaMap = {};
+        const metaMap: Record<string, typeof receiptMeta[number]> = {};
         receiptMeta.forEach((meta) => metaMap[meta.eventChain] = meta);
 
         // status 5 if claimed

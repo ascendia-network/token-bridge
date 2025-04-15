@@ -1,5 +1,5 @@
 import { Hex } from "viem";
-import { FullReceipt } from "../../../src/evm/types";
+import { FullReceipt } from "../../../src/types";
 
 export const receipts: Array<{
   receipt: FullReceipt;

@@ -4,6 +4,5 @@ export * as svm from "./svm";
 export {
   SOLANA_CHAIN_ID,
   SOLANA_DEV_CHAIN_ID,
-  rpcs,
-  backendUrl,
+  setBackendUrl,
 } from "./config";

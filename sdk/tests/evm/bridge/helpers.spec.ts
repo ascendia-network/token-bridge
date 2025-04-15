@@ -2,7 +2,7 @@ import { describe, expect, test } from "@jest/globals";
 import { Address, Hex } from "viem";
 import { evm } from "../../../src";
 import { receipts } from "../../mocks/fixtures/receipt";
-import { SendPayload } from "../../../src/types";
+import { SendPayload, FullReceipt, MiniReceipt, SendPayloadEVM } from "../../../src/types";
 
 describe("Test bridge helpers", () => {
   describe("Address conversion", () => {
@@ -129,13 +129,13 @@ describe("Test bridge helpers", () => {
     },
   );
 
-  test.each<[evm.FullReceipt | evm.MiniReceipt, Hex]>(
+  test.each<[FullReceipt | MiniReceipt, Hex]>(
     receipts
       .map<
-        [evm.FullReceipt | evm.MiniReceipt, Hex]
+        [FullReceipt | MiniReceipt, Hex]
       >((entry) => [entry.receipt, entry.hash])
       .concat(
-        receipts.map<[evm.FullReceipt | evm.MiniReceipt, Hex]>((entry) => [
+        receipts.map<[FullReceipt | MiniReceipt, Hex]>((entry) => [
           evm.helpers.full2miniReceipt(entry.receipt),
           entry.hash,
         ]),
@@ -180,7 +180,7 @@ describe("Test bridge helpers", () => {
       flagData: "0x",
     };
 
-    const expectedCallPayload: evm.SendPayloadEVM = {
+    const expectedCallPayload: SendPayloadEVM = {
       tokenAddress:
         "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
       externalTokenAddress: "0x5b9e2bd997bc8f6ae97145ce0a8dee075653f1aa",

@@ -77,6 +77,10 @@ pub enum CustomError {
     InvalidSerialization,
     #[msg("Invalid input arguments")]
     InvalidArgs,
+    #[msg("Bridge is paused")]
+    Paused,
+    #[msg("Not an admin")]
+    NotAdmin,
 }
 
 

@@ -33,6 +33,13 @@ pub mod amb_sol_bridge {
         instructions::set_pause(ctx, pause)
     }
 
+    pub fn withdraw_fees(ctx: Context<UpdateState>, amount: u64) -> Result<()> {
+        instructions::withdraw(ctx, amount)
+    }
+
+
+
+
     pub fn send(ctx: Context<Send>, serialized_args: Vec<u8>, recipient: [u8; 20]) -> Result<()> {
         instructions::send(ctx, serialized_args, recipient)
     }

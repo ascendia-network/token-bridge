@@ -1,19 +1,23 @@
 use crate::structs::*;
-use crate::utils::transfer::{burn_spl_from_user, transfer_spl_from_user, transfer_native_from_user};
 use crate::utils::scale_amount;
+use crate::utils::transfer::{
+    burn_spl_from_user, transfer_native_from_user, transfer_spl_from_user,
+};
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{
     keccak::hash,
     sysvar::instructions::{get_instruction_relative, ID as SYSVAR_INSTRUCTIONS_ID},
+    ed25519_program::ID as ED25519_ID
 };
 use anchor_spl::token::Token;
 use anchor_spl::token_interface::{Mint, TokenAccount};
+
 
 #[derive(Accounts)]
 pub struct Send<'info> {
     #[account(
         mut,
-        constraint = !state.pause,
+        constraint = !state.pause @ CustomError::Paused,
         seeds = [GlobalState::SEED_PREFIX], bump
     )]
     pub state: Account<'info, GlobalState>,
@@ -60,6 +64,7 @@ pub fn send(ctx: Context<Send>, serialized_args: Vec<u8>, recipient: [u8; 20]) -
 
     // check signature
     let ix = get_instruction_relative(-1, &ctx.accounts.ix_sysvar.to_account_info())?;
+    require!(ix.program_id == ED25519_ID, CustomError::InvalidSignature);
     let signed_message = &ix.data[ix.data.len().saturating_sub(32)..];
     let signer_pubkey = Pubkey::try_from_slice(
         &ix.data[ix.data.len().saturating_sub(32 + 32)..ix.data.len().saturating_sub(32)],
@@ -74,14 +79,8 @@ pub fn send(ctx: Context<Send>, serialized_args: Vec<u8>, recipient: [u8; 20]) -
         CustomError::InvalidSignature
     );
 
-    require!(
-        args.chain_from == SOLANA_CHAIN_ID,
-        CustomError::InvalidArgs
-    );
-    require!(
-        args.chain_to == AMB_CHAIN_ID,
-        CustomError::InvalidArgs
-    );
+    require!(args.chain_from == SOLANA_CHAIN_ID, CustomError::InvalidArgs);
+    require!(args.chain_to == AMB_CHAIN_ID, CustomError::InvalidArgs);
     require!(
         (Clock::get()?.unix_timestamp as u64) < args.timestamp + SIGNATURE_VALIDITY_TIME,
         CustomError::InvalidArgs
@@ -119,7 +118,11 @@ pub fn send(ctx: Context<Send>, serialized_args: Vec<u8>, recipient: [u8; 20]) -
         transfer_spl_from_user(
             ctx.accounts.sender.to_account_info(),
             ctx.accounts.sender_token_account.to_account_info(),
-            ctx.accounts.bridge_token_account.clone().expect("no bridge ata").to_account_info(),
+            ctx.accounts
+                .bridge_token_account
+                .clone()
+                .expect("no bridge ata")
+                .to_account_info(),
             args.amount_to_send,
             ctx.accounts.token_program.to_account_info(),
         )?;

@@ -35,7 +35,7 @@ export async function receive(
       bridgeTokenAccount: isMintable ? null : undefined,  // pass null to not use bridge token account
     }).signers([user]).instruction()
 
-  const tx = new Transaction().add(...unwrapInstructions, verifyInstruction, receiveInstruction);
+  const tx = new Transaction().add(verifyInstruction, receiveInstruction, ...unwrapInstructions);
   tx.feePayer = user.publicKey;
   // wait for transaction to be confirmed
   return await sendAndConfirmTransaction(connection, tx, [user], { commitment: 'confirmed' });

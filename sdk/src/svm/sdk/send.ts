@@ -5,7 +5,7 @@ import { verifySignatureInstruction } from "./ed25519_ix";
 import type { AmbSolBridge } from "../idl/idlType";
 import { wrapSolInstructions } from "./wsol_ix";
 import { NATIVE_MINT } from "@solana/spl-token";
-import { SendPayloadResponse } from "../../backend";
+import type { SendPayloadResponse } from "../../types";
 import { convertSendPayload, serializeSendPayload } from "./types";
 import { keccak_256 } from "@noble/hashes/sha3";
 import { Base58 } from "ox";

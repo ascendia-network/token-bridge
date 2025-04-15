@@ -31,6 +31,3 @@ export const contract = {
     amountAdditionalNativeToSend,
   },
 };
-
-export type { BridgeFlags } from "./constants";
-export type * from "./types";

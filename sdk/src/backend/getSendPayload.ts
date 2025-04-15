@@ -1,7 +1,7 @@
 import { Hex } from "viem";
 import { backendUrl } from "../config";
-import { helpers } from "../evm";
-import { SendPayloadResponse } from "./types";
+import { SendPayloadResponse } from "../types/payload";
+import { addressToBytes32 } from "../evm/bridge/helpers";
 
 /**
  * Fetches the signed send payload required for a cross-chain token transfer.
@@ -32,7 +32,7 @@ export async function getSendPayload(
   sendPayloadUrl.searchParams.set("networkFrom", networkFrom.toString());
   sendPayloadUrl.searchParams.set("networkTo", networkTo.toString());
   if (tokenAddress.length !== 66 && tokenAddress.startsWith("0x")) {
-    tokenAddress = helpers.addressToBytes32(tokenAddress);
+    tokenAddress = addressToBytes32(tokenAddress);
   }
   sendPayloadUrl.searchParams.set("tokenAddress", tokenAddress);
   sendPayloadUrl.searchParams.set("amount", amountToSend.toString());
@@ -40,7 +40,7 @@ export async function getSendPayload(
     externalTokenAddress.length !== 66 &&
     externalTokenAddress.startsWith("0x")
   ) {
-    externalTokenAddress = helpers.addressToBytes32(externalTokenAddress);
+    externalTokenAddress = addressToBytes32(externalTokenAddress);
   }
   sendPayloadUrl.searchParams.set("externalTokenAddress", externalTokenAddress);
   sendPayloadUrl.searchParams.set("flags", flags.toString());

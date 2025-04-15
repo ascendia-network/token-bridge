@@ -1,5 +1,5 @@
 import { backendUrl } from "../config";
-import { ReceiptSignatures, ReceiptWithMeta } from "./types";
+import { ReceiptSignatures, ReceiptWithMeta } from "../types/receipt";
 
 /**
  * Parse a receipt with meta returned from the backend into a ReceiptWithMeta.

@@ -1,6 +1,6 @@
 import { Buffer } from "buffer";
 import * as borsh from "borsh";
-import { ReceiptSignatures, ReceiptWithMeta, SendPayload } from "../../backend";
+import type { ReceiptSignatures, ReceiptWithMeta, SendPayload } from "../../types";
 import { bignumberToUint8Array, hexToUint8Array } from "./utils";
 import { Base58 } from "ox";
 

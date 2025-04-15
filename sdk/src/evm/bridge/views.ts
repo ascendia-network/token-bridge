@@ -1,6 +1,6 @@
 import { Address, Hex, PublicClient } from "viem";
 import { bridgeAbi } from "../abi/bridgeAbi";
-import { FullReceipt, MiniReceipt } from "../types/calls";
+import { FullReceipt, MiniReceipt } from "../../types";
 import { hashReceipt } from "./helpers";
 
 /**

@@ -5,7 +5,7 @@ import {
   WriteContractReturnType,
 } from "viem";
 import { getBridgeContract } from "./contract";
-import { type ClaimCall } from "../types/calls";
+import { type ClaimCall } from "../../types";
 import { handleCustomError } from "../utils/customErrors";
 
 /**

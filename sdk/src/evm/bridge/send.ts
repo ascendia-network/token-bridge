@@ -9,7 +9,7 @@ import { getBridgeContract } from "./contract";
 import {
   type SendPayloadEVM,
   type SendCall,
-} from "../types/calls";
+} from "../../types";
 import { checkAllowanceERC20 } from "../token/checkAllowance";
 import { checkBalanceNative } from "../native/balance";
 import { handleCustomError } from "../utils/customErrors";

@@ -7,7 +7,7 @@ import { unwrapWSolInstruction } from "./wsol_ix";
 import { checkFlags, Flags, getBridgeTokenInfo } from "./utils";
 import { NATIVE_MINT } from "@solana/spl-token";
 import { convertReceivePayload, convertSignatures, serializeReceivePayload } from "./types";
-import { ReceiptSignatures, ReceiptWithMeta } from "../../backend";
+import type { ReceiptSignatures, ReceiptWithMeta } from "../../types";
 import { keccak_256 } from "@noble/hashes/sha3";
 
 

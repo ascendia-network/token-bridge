@@ -12,9 +12,10 @@ import {
   type FullReceipt,
   type MiniReceipt,
   type SendPayloadEVM,
-} from "../types/calls";
-import { getTokensConfig, SendPayload } from "../../backend";
+} from "../../types";
+import { getTokensConfig } from "../../backend/getTokensConfig";
 import { SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID } from "../../config";
+import { type SendPayload } from "../../types/payload";
 
 /**
  * Converts an EVM address to a bytes32 hex string

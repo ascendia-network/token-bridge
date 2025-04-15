@@ -1,5 +1,5 @@
 import { backendUrl } from "../config";
-import { TokenConfig } from "./types";
+import { TokenConfig } from "../types/tokenConfig";
 
 /**
  * Fetches the tokens configuration from the backend API.

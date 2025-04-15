@@ -2,7 +2,7 @@ import { describe, expect, test } from "@jest/globals";
 import { Address, Hex } from "viem";
 import { evm } from "../../../src";
 import { receipts } from "../../mocks/fixtures/receipt";
-import { SendPayload } from "../../../src/backend";
+import { SendPayload } from "../../../src/types";
 
 describe("Test bridge helpers", () => {
   describe("Address conversion", () => {

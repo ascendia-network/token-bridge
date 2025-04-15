@@ -24,6 +24,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { evm } from "../../../src/";
+import type { SendPayloadEVM, SendCall } from "../../../src/types";
 import { AccountFixture } from "../../mocks/fixtures/privateKey";
 import { waitForAnvil } from "../../mocks/anvil";
 // #region SAMB ABI
@@ -445,7 +446,7 @@ describe("Test bridge send request", () => {
   const mockedRecipient: Hex = toHex("Bob", { size: 32 });
   const mockedSignature: Hex =
     "0x4c5908107ce8fe51ac8c09188bb817c070ffed724b52bc8b29baf9905b76efe314392dbf9ace7e23aa3be2113ffb97fe9af438c4ff393d5a0de37b1ba2a28e211b";
-  const mockedPayload: evm.SendPayloadEVM = {
+  const mockedPayload: SendPayloadEVM = {
     amountToSend: 1000000000000000000n,
     chainFrom: 22040n,
     chainTo: 6003100671677645902n,
@@ -462,7 +463,7 @@ describe("Test bridge send request", () => {
     await testClient.impersonateAccount({
       address: AccountFixture.address,
     });
-    const sendParams: evm.SendCall = {
+    const sendParams: SendCall = {
       recipient: mockedRecipient,
       payload: mockedPayload,
       payloadSignature: mockedSignature,
@@ -497,7 +498,7 @@ describe("Test bridge send request", () => {
     await testClient.impersonateAccount({
       address: AccountFixture.address,
     });
-    const sendParams: evm.SendCall = {
+    const sendParams: SendCall = {
       recipient: mockedRecipient,
       payload: mockedPayload,
       payloadSignature: mockedSignature,
@@ -531,7 +532,7 @@ describe("Test bridge send request", () => {
     await testClient.impersonateAccount({
       address: AccountFixture.address,
     });
-    const sendParams: evm.SendCall = {
+    const sendParams: SendCall = {
       recipient: mockedRecipient,
       payload: mockedPayload,
       payloadSignature: mockedSignature,
@@ -564,7 +565,7 @@ describe("Test bridge send request", () => {
     await testClient.impersonateAccount({
       address: AccountFixture.address,
     });
-    const sendParams: evm.SendCall = {
+    const sendParams: SendCall = {
       recipient: mockedRecipient,
       payload: mockedPayload,
       payloadSignature: "0x".padEnd(132, "deadBeef") as Hex,

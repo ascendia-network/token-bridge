@@ -20,6 +20,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { evm } from "../../../src/";
+import type { ClaimCall } from "../../../src/types";
 import { AccountFixture } from "../../mocks/fixtures/privateKey";
 import { receipts } from "../../mocks/fixtures/receipt";
 import { waitForAnvil } from "../../mocks/anvil";
@@ -56,7 +57,7 @@ describe("Test bridge claim request", () => {
     await testClient.impersonateAccount({
       address: AccountFixture.address,
     });
-    const claimParams: evm.ClaimCall = {
+    const claimParams: ClaimCall = {
       receipt: receipts[1].receipt,
       signature: receipts[1].signature,
     };
@@ -77,7 +78,7 @@ describe("Test bridge claim request", () => {
     await testClient.impersonateAccount({
       address: AccountFixture.address,
     });
-    const claimParams: evm.ClaimCall = {
+    const claimParams: ClaimCall = {
       receipt: receipts[0].receipt,
       signature: receipts[0].signature,
     };

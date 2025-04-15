@@ -1,42 +1,5 @@
-import { Hex } from "viem";
 import { backendUrl } from "../config";
-
-export interface ReceiptWithMeta {
-  receipt: {
-    receiptId: string;
-    timestamp: bigint;
-    bridgeAddress: string;
-    from: Hex;
-    to: Hex;
-    tokenAddressFrom: Hex;
-    tokenAddressTo: Hex;
-    amountFrom: bigint;
-    amountTo: bigint;
-    chainFrom: bigint;
-    chainTo: bigint;
-    eventId: bigint;
-    flags: bigint;
-    data: Hex;
-    claimed: boolean;
-  };
-  receiptMeta: Array<{
-    receiptId: string;
-    blockHash: Hex | null;
-    blockNumber: bigint;
-    timestamp: bigint;
-    transactionHash: string;
-    transactionIndex: number;
-  }>;
-}
-
-export interface ReceiptSignatures {
-  receiptId: string;
-  signatures: Array<{
-    receiptId: string;
-    signedBy: string;
-    signature: Hex;
-  }>;
-}
+import { ReceiptSignatures, ReceiptWithMeta } from "./types";
 
 /**
  * Parse a receipt with meta returned from the backend into a ReceiptWithMeta.
@@ -68,6 +31,7 @@ export function parseReceiptWithMeta(receiptWithMeta: {
     },
     receiptMeta: receiptWithMeta.receiptMeta.map((meta: any) => ({
       receiptId: meta.receiptId,
+      eventChain: BigInt(meta.eventChain),
       blockHash: meta.blockHash,
       blockNumber: BigInt(meta.blockNumber),
       timestamp: BigInt(meta.timestamp),

@@ -14,7 +14,7 @@ import {
   type SendPayloadEVM,
 } from "../types/calls";
 import { getTokensConfig, SendPayload } from "../../backend";
-import { EVMChains, SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID } from "../../config";
+import { SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID } from "../../config";
 
 /**
  * Converts an EVM address to a bytes32 hex string
@@ -254,33 +254,17 @@ export function combineFlags({
 
 async function getTokenWrappedData(tokenAddress: string, chainId: bigint) {
   const config = await getTokensConfig();
-  const tokenConfig = Object.values(config.tokens).find((token) =>
-    Object.values(token.addresses).find((address) => address === tokenAddress),
+  const tokenConfig = Object.values(config.tokens).find(
+    (token) => token.networks[chainId.toString()] && token.networks[chainId.toString()].address === tokenAddress,
   );
   if (!tokenConfig) {
     throw new Error("Token not found in config");
   }
-  let chainKey;
-  switch (chainId) {
-    case SOLANA_CHAIN_ID:
-      chainKey = "sol";
-      break;
-    case SOLANA_DEV_CHAIN_ID:
-      chainKey = "sol-dev";
-      break;
-    default:
-      chainKey = Object.entries(EVMChains).find(
-        ([, id]) => BigInt(id) === chainId,
-      )?.[0];
-      break;
-  }
-  if (!chainKey) {
-    throw new Error("Chain not found in config");
-  }
-  const isWrapped = tokenConfig.nativeAnalog !== "";
-  // Check if the token is in the primary networks for the given chain
-  const chainInPrimaryNets = tokenConfig.primaryNets.includes(chainKey)
-  return isWrapped && chainInPrimaryNets;
+  const tokenNetworkConfig = tokenConfig.networks[chainId.toString()];
+  const isWrapped =
+    tokenNetworkConfig.nativeCoin !== undefined &&
+    tokenNetworkConfig.nativeCoin !== "";
+  return isWrapped;
 }
 
 /**

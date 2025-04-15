@@ -24,12 +24,9 @@ export async function saveReceiptSend(
     .onConflictDoNothing();
 
   if (entity) {
-    let receiptMetaEntry: any = {
+    const receiptMetaEntry = {
       receiptId: entity?.receiptId,
-    };
-
-    receiptMetaEntry = {
-      ...receiptMetaEntry,
+      eventChain: context.network.chainId,
       blockHash: event.block.hash,
       blockNumber: event.block.number,
       timestamp: event.block.timestamp,
@@ -69,6 +66,7 @@ export async function saveReceiptWithdraw(
   if (entity) {
     let receiptMetaEntry: any = {
       receiptId: entity?.receiptId,
+      eventChain: context.network.chainId,
       blockHash: event.block.hash,
       blockNumber: event.block.number,
       timestamp: event.block.timestamp,

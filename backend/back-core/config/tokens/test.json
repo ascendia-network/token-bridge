@@ -1,8 +1,10 @@
 {
   "bridges": {
-    "sol-dev": {
-      "amb-test": "0x5Bcb9233DfEbcec502C1aCce6fc94FefF8c037C3",
-      "side": "ambZMSUBvU8bLfxop5uupQd9tcafeJKea1KoyTv2yM1"
+    "22040": {
+      "6003100671677645902": "0x5Bcb9233DfEbcec502C1aCce6fc94FefF8c037C3"
+    },
+    "6003100671677645902": {
+      "22040": "ambZMSUBvU8bLfxop5uupQd9tcafeJKea1KoyTv2yM1"
     }
   },
   "tokens": {
@@ -10,74 +12,60 @@
       "isActive": true,
       "name": "Synthetic Amber",
       "symbol": "SAMB",
-      "denomination": 18,
-      "decimals": {
-        "amb-test": 18,
-        "base-test": 18,
-        "amb": 18,
-        
-        "base": 18,
-        "sol": 6,
-        "sol-dev": 6
-      },
+      "ticker": "AMB",
       "logo": "https://media-exp1.licdn.com/dms/image/C560BAQFuR2Fncbgbtg/company-logo_200_200/0/1636390910839?e=2159024400&v=beta&t=W0WA5w02tIEH859mVypmzB_FPn29tS5JqTEYr4EYvps",
-      "primaryNets": [
-        "amb",
-        "amb-test"
-      ],
-      "addresses": {
-        "amb-test": "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b",
-        "sol-dev": "samb9vCFCTEvoi3eWDErSCb5GvTq8Kgv6VKSqvt7pgi"
-      },
-      "nativeAnalog": "AMB"
+      "networks": {
+        "22040": {
+          "address": "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b",
+          "denomination": 18,
+          "isPrimary": true,
+          "nativeCoin": "AMB"
+        },
+        "6003100671677645902": {
+          "address": "samb9vCFCTEvoi3eWDErSCb5GvTq8Kgv6VKSqvt7pgi",
+          "denomination": 6,
+          "isPrimary": false
+        }
+      }
     },
     "USDC": {
       "isActive": true,
       "name": "USD Coin",
       "symbol": "USDC",
-      "denomination": 6,
-      "decimals": {
-        "amb-test": 18,
-        "amb": 18,
-        "bsc": 18,
-        "eth": 6,
-        "sol-dev": 6
-      },
+      "ticker": "USDT",
       "logo": "https://etherscan.io/token/images/centre-usdc_28.png",
-      "primaryNets": [
-        "base",
-        "sol-dev",
-        "sol"
-      ],
-      "addresses": {
-        "amb-test": "0xB547f613B72928d4F62BCAc6Cc0d28C721f8D6bF",
-        "sol-dev": "usdc3xpQ18NLAumSUvadS62srrkxQWrvQHugk8Nv7MA"
-      },
-      "nativeAnalog": ""
+      "networks": {
+        "22040": {
+          "address": "0xB547f613B72928d4F62BCAc6Cc0d28C721f8D6bF",
+          "denomination": 18,
+          "isPrimary": false
+        },
+        "6003100671677645902": {
+          "address": "usdc3xpQ18NLAumSUvadS62srrkxQWrvQHugk8Nv7MA",
+          "denomination": 6,
+          "isPrimary": true
+        }
+      }
     },
     "wSOL": {
       "isActive": true,
       "name": "Wrapped Solana",
       "symbol": "wSOL",
-      "denomination": 18,
-      "decimals": {
-        "amb-test": 18,
-        "amb": 18,
-        "base": 18,
-        "sol": 6,
-        "sol-dev": 6
-      },
+      "ticker": "SOL",
       "logo": "https://en.wikipedia.org/wiki/File:Solana_logo.png#/media/File:Solana_logo.png",
-      "primaryNets": [
-        "sol-dev",
-        "sol"
-      ],
-      "addresses": {
-        "amb-test": "0x5B9E2BD997bc8f6aE97145cE0a8dEE075653f1AA",
-        "sol": "So11111111111111111111111111111111111111112",
-        "sol-dev": "So11111111111111111111111111111111111111112"
-      },
-      "nativeAnalog": "SOL"
+      "networks": {
+        "22040": {
+          "address": "0x5B9E2BD997bc8f6aE97145cE0a8dEE075653f1AA",
+          "denomination": 18,
+          "isPrimary": false
+        },
+        "6003100671677645902": {
+          "address": "So11111111111111111111111111111111111111112",
+          "denomination": 6,
+          "isPrimary": true,
+          "nativeCoin": "SOL"
+        }
+      }
     }
   }
 }

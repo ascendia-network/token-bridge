@@ -1,30 +1,5 @@
 import { backendUrl } from "../config";
-
-interface TokenConfig {
-  bridges: {
-    [key: string]: {
-      [network: string]: string;
-      side: string;
-    };
-  };
-  tokens: {
-    [symbol: string]: {
-      isActive: boolean;
-      name: string;
-      symbol: string;
-      denomination: number;
-      decimals: {
-        [network: string]: number;
-      };
-      logo: string;
-      primaryNets: string[];
-      addresses: {
-        [network: string]: string;
-      };
-      nativeAnalog: string;
-    };
-  };
-}
+import { TokenConfig } from "./types";
 
 /**
  * Fetches the tokens configuration from the backend API.

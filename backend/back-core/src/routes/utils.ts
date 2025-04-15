@@ -7,6 +7,16 @@ import { createSelectSchema } from "drizzle-zod";
 import { Base58 } from "ox";
 import { SOLANA_DEV_CHAIN_ID } from "../../config";
 import { toHex } from "viem";
+import type { Context } from "hono";
+import { cors } from "hono/cors";
+
+export const corsMiddleware = cors({
+  origin: (origin: string, c: Context) => {
+    return c.env.ALLOWED_ORIGINS ? c.env.ALLOWED_ORIGINS.split(",") : "*";
+  },
+  allowMethods: ["GET", "POST"],
+  allowHeaders: ["Content-Type"],
+});
 
 export const EvmAddressRegex = /^0x[a-fA-F0-9]{40}$/;
 export const SvmAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
@@ -173,10 +183,13 @@ const ReceiptSchema = createSelectSchema(receipt, {
       description: "Receipt ID as 'chainFrom_chainTo_eventId'",
     }),
   timestamp: (schema: z.ZodSchema) =>
-    schema.openapi({
-      example: "1633632000",
-      description: "Timestamp of the transaction",
-    }),
+    schema
+      .transform((val) => BigInt(val))
+      .pipe(z.bigint())
+      .openapi({
+        example: "1633632000",
+        description: "Timestamp of the transaction",
+      }),
   bridgeAddress: z
     .union([
       z.string().regex(EvmAddressRegex),
@@ -236,35 +249,53 @@ const ReceiptSchema = createSelectSchema(receipt, {
         description: "Token address on the receiver chain",
       }),
   amountFrom: (schema: z.ZodSchema) =>
-    schema.openapi({
-      example: "1000000000000000000",
-      description: "Amount of tokens on the sender chain",
-    }),
+    schema
+      .transform((val) => BigInt(val))
+      .pipe(z.bigint())
+      .openapi({
+        example: "1000000000000000000",
+        description: "Amount of tokens on the sender chain",
+      }),
   amountTo: (schema: z.ZodSchema) =>
-    schema.openapi({
-      example: "1000000000000000000",
-      description: "Amount of tokens on the receiver chain",
-    }),
+    schema
+      .transform((val) => BigInt(val))
+      .pipe(z.bigint())
+      .openapi({
+        example: "1000000000000000000",
+        description: "Amount of tokens on the receiver chain",
+      }),
   chainFrom: (schema: z.ZodSchema) =>
-    schema.openapi({
-      example: SOLANA_DEV_CHAIN_ID.toString(),
-      description: "Chain ID of the sender",
-    }),
+    schema
+      .transform((val) => BigInt(val))
+      .pipe(z.bigint())
+      .openapi({
+        example: SOLANA_DEV_CHAIN_ID.toString(),
+        description: "Chain ID of the sender",
+      }),
   chainTo: (schema: z.ZodSchema) =>
-    schema.openapi({
-      example: "22040",
-      description: "Chain ID of the receiver",
-    }),
+    schema
+      .transform((val) => BigInt(val))
+      .pipe(z.bigint())
+      .openapi({
+        example: "22040",
+        description: "Chain ID of the receiver",
+      }),
   eventId: (schema: z.ZodSchema) =>
-    schema.openapi({
-      example: "3",
-      description: "Event ID",
-    }),
+    schema
+      .transform((val) => BigInt(val))
+      .pipe(z.bigint())
+      .openapi({
+        example: "3",
+        description: "Event ID",
+      }),
   flags: (schema: z.ZodSchema) =>
-    schema.openapi({
-      example: "0",
-      description: "Flags for the transaction",
-    }),
+    schema
+      .transform((val) => BigInt(val))
+      .pipe(z.bigint())
+      .openapi({
+        example: "0",
+        description: "Flags for the transaction",
+      }),
   data: (schema: z.ZodString) =>
     schema
       .transform((val) => (val === "" ? "0x" : val))
@@ -273,11 +304,24 @@ const ReceiptSchema = createSelectSchema(receipt, {
         example: "0x",
         description: "Data for the flags",
       }),
-  claimed: (schema: z.ZodSchema) =>
+  claimed: (schema: z.ZodBoolean) =>
     schema.openapi({
       example: false,
       description: "If receipt has been claimed",
     }),
+  signaturesCount: (schema: z.ZodSchema) =>
+    schema
+      .transform((val) => Number.parseInt(val))
+      .pipe(z.number().nonnegative())
+      .openapi({
+        example: 0,
+        description: "Number of signatures",
+      }),
+}).extend({
+  signaturesRequired: z.number().openapi({
+    example: 5,
+    description: "Number of signatures required",
+  }),
 });
 
 export const receiptMetaEvmSchema = createSelectSchema(
@@ -287,6 +331,11 @@ export const receiptMetaEvmSchema = createSelectSchema(
       schema.regex(receiptIdRegex).openapi({
         example: "6003100671677646000_22040_3",
         description: "Receipt ID as 'chainFrom_chainTo_eventId'",
+      }),
+    eventChain: (schema: z.ZodSchema) =>
+      schema.openapi({
+        example: "22040",
+        description: "Chain ID of the event",
       }),
     blockHash: (schema: z.ZodSchema) =>
       schema.openapi({
@@ -325,6 +374,11 @@ export const receiptMetaSolanaSchema = createSelectSchema(
       schema.regex(receiptIdRegex).openapi({
         example: "6003100671677646000_22040_3",
         description: "Receipt ID as 'chainFrom_chainTo_eventId'",
+      }),
+    eventChain: (schema: z.ZodSchema) =>
+      schema.openapi({
+        example: "22040",
+        description: "Chain ID of the event",
       }),
     blockHash: (schema: z.ZodSchema) =>
       schema.nullable().openapi({
@@ -398,6 +452,11 @@ export const signaturesResponseSchema = z.object({
   receiptId: z.string().regex(receiptIdRegex).openapi({
     example: "6003100671677646000_22040_3",
     description: "Receipt ID as 'chainFrom_chainTo_eventId",
+  }),
+  readyForClaim: z.boolean().openapi({
+    example: true,
+    description:
+      "If the receipt is ready to be claimed and has enough signatures",
   }),
   signatures: z.array(signaturesSchema).openapi({
     description: "Signatures of the transaction",
@@ -485,177 +544,202 @@ export const sendPayloadResponseSchema = z.object({
 export const TokenConfigSchema = z.object({
   bridges: z
     .record(
-      z
-        .string()
-        .describe("Network")
-        .openapi({
-          description: "Network symbol",
-          examples: ["sol", "eth", "bsc", "base"],
+      z.string().describe("Source network chain ID").openapi({
+        description: "Source network chain ID",
+        example: "22040",
+      }),
+      z.record(
+        z.string().describe("Destination network chain ID").openapi({
+          description: "Destination network chain ID",
+          example: "6003100671677645902",
         }),
-      z.object({
-        amb: z.string().optional().openapi({
-          description: "Address of the AMB bridge",
-          example: "0x0659f7D44aE52AA209319de9Ea99Da2FebABfD81",
-        }),
-        "amb-test": z.string().optional().openapi({
-          description: "Address of the AMB test bridge",
-          example: "0x0659f7D44aE52AA209319de9Ea99Da2FebABfD81",
-        }),
-        "amb-dev": z.string().optional().openapi({
-          description: "Address of the AMB dev bridge",
-          example: "0x0659f7D44aE52AA209319de9Ea99Da2FebABfD81",
-        }),
-        side: z.string().optional().openapi({
-          description: "Address of the side chain bridge",
-          example: "0x0659f7D44aE52AA209319de9Ea99Da2FebABfD81",
-        }),
-      })
+        z
+          .union([
+            z.string().regex(EvmAddressRegex),
+            z.string().regex(SvmAddressRegex),
+          ])
+          .describe(
+            "Bridge address from source to destination network in source network"
+          )
+          .openapi({
+            description:
+              "Bridge address from source to destination network in source network",
+            examples: [
+              "0x5Bcb9233DfEbcec502C1aCce6fc94FefF8c037C3",
+              "ambZMSUBvU8bLfxop5uupQd9tcafeJKea1KoyTv2yM1",
+            ],
+          })
+      )
     )
     .openapi({
       description: "Bridges for different networks",
       example: {
-        sol: {
-          amb: "0x81c448672fc9167aa5c00B2eD773e8d2ff3F19BE",
-          side: "ambZMSUBvU8bLfxop5uupQd9tcafeJKea1KoyTv2yM1",
+        "22040": {
+          "6003100671677645902": "0x5Bcb9233DfEbcec502C1aCce6fc94FefF8c037C3",
         },
-        base: {
-          amb: "0xAe91d2F64BDDC37a9E3dd39507E5Bb58955d1813",
+        "6003100671677645902": {
+          "22040": "ambZMSUBvU8bLfxop5uupQd9tcafeJKea1KoyTv2yM1",
         },
       },
     }),
-  tokens: z
-    .record(
-      z
-        .string()
-        .describe("Symbol")
-        .openapi({
-          description: "Token symbol",
-          examples: ["USDC", "SAMB", "wSOL"],
-        }),
-      z.object({
-        isActive: z.boolean().openapi({
-          description: "If token is active for transfers",
-          example: true,
-        }),
-        name: z.string().openapi({
-          description: "Token name",
-          examples: ["USD Coin", "Synthetic Amber", "Wrapped SOL"],
-        }),
-        symbol: z.string().openapi({
-          description: "Token symbol",
-          examples: ["USDC", "SAMB", "wSOL"],
-        }),
-        denomination: z.number().openapi({
-          description: "Token denomination",
-          example: 18,
-        }),
-        decimals: z.record(
-          z
-            .string()
-            .describe("Network")
-            .openapi({
-              description: "Network symbol",
-              examples: ["sol", "eth", "bsc", "base"],
-            }),
-          z.number().openapi({
-            description: "Token decimals",
-            examples: [6, 18, 6, 9],
-          })
-        ),
-        logo: z.string().url().openapi({
-          description: "Token logo URL",
-          example:
-            "https://en.wikipedia.org/wiki/File:Solana_logo.png#/media/File:Solana_logo.png",
-        }),
-        primaryNets: z.array(z.string().describe("Network")).openapi({
-          description: "Primary networks for the token",
-          examples: [["sol"], ["eth", "bsc"]],
-        }),
-        addresses: z
-          .record(z.string().describe("Network"), z.string())
+  tokens: z.record(
+    z
+      .string()
+      .describe("Token symbol")
+      .openapi({
+        description: "Token symbol",
+        examples: ["USDC", "SAMB", "wSOL"],
+      }),
+    z.object({
+      isActive: z.boolean().openapi({
+        description: "If token is active for transfers",
+        example: true,
+      }),
+      name: z.string().openapi({
+        description: "Token name",
+        examples: ["USD Coin", "Synthetic Amber", "Wrapped SOL"],
+      }),
+      symbol: z.string().openapi({
+        description: "Token symbol",
+        examples: ["USDC", "SAMB", "wSOL"],
+      }),
+      ticker: z.string().openapi({
+        description: "Token ticker to get prices",
+        examples: ["USDT", "AMB", "SOL"],
+      }),
+      logo: z.string().url().optional().openapi({
+        description: "Token logo URL",
+        example:
+          "https://en.wikipedia.org/wiki/File:Solana_logo.png#/media/File:Solana_logo.png",
+      }),
+      networks: z.record(
+        z
+          .string()
+          .describe("Chain ID")
           .openapi({
-            description: "Token addresses on different networks",
-            examples: [
-              {
-                "amb-test": "0x8132928B8F4c0d278cc849b9b98Dffb28aE0B685",
-                sol: "usdc3xpQ18NLAumSUvadS62srrkxQWrvQHugk8Nv7MA",
-              },
-              {
-                "amb-test": "0xC6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
-                sol: "So11111111111111111111111111111111111111112",
-                "sol-dev": "So11111111111111111111111111111111111111112",
-              },
-            ],
+            description: "Chain ID",
+            examples: ["22040", "6003100671677645902"],
           }),
-        nativeAnalog: z.string().openapi({
-          description: "Native analog token",
-          examples: ["", "AMB", "SOL"],
-        }),
+        z.object({
+          address: z
+            .union([
+              z.string().regex(EvmAddressRegex),
+              z.string().regex(SvmAddressRegex),
+            ])
+            .openapi({
+              description: "Token address",
+              examples: [
+                "0xB547f613B72928d4F62BCAc6Cc0d28C721f8D6bF",
+                "usdc3xpQ18NLAumSUvadS62srrkxQWrvQHugk8Nv7MA",
+              ],
+            }),
+          denomination: z.number().nonnegative().openapi({
+            description: "Token denomination (decimals)",
+            examples: [18, 6],
+          }),
+          isPrimary: z.boolean().openapi({
+            description: "If token is primary on this network",
+            examples: [false, true],
+          }),
+          nativeCoin: z.string().optional().openapi({
+            description: "Native coin symbol",
+            examples: ["AMB", "SOL"],
+          })
+        })
+      ).openapi({
+        description: "Token data on different networks",
+        examples: [{
+          "22040": {
+            "address": "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b",
+            "denomination": 18,
+            "isPrimary": true,
+            "nativeCoin": "AMB"
+          },
+          "6003100671677645902": {
+            "address": "samb9vCFCTEvoi3eWDErSCb5GvTq8Kgv6VKSqvt7pgi",
+            "denomination": 6,
+            "isPrimary": false
+          }
+        },
+        {
+          "22040": {
+            "address": "0xB547f613B72928d4F62BCAc6Cc0d28C721f8D6bF",
+            "denomination": 18,
+            "isPrimary": false
+          },
+          "6003100671677645902": {
+            "address": "usdc3xpQ18NLAumSUvadS62srrkxQWrvQHugk8Nv7MA",
+            "denomination": 6,
+            "isPrimary": true
+          }
+        }]
       })
-    )
-    .openapi({
-      description: "Token configuration",
-      example: {
-        SAMB: {
-          isActive: true,
-          name: "Synthetic Amber",
-          symbol: "SAMB",
-          denomination: 18,
-          decimals: {
-            "amb-test": 18,
-            amb: 18,
-            base: 18,
-            sol: 6,
-          },
-          logo: "https://media-exp1.licdn.com/dms/image/C560BAQFuR2Fncbgbtg/company-logo_200_200/0/1636390910839?e=2159024400&v=beta&t=W0WA5w02tIEH859mVypmzB_FPn29tS5JqTEYr4EYvps",
-          primaryNets: ["amb"],
-          addresses: {
-            "amb-test": "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b",
-            sol: "samb9vCFCTEvoi3eWDErSCb5GvTq8Kgv6VKSqvt7pgi",
-          },
-          nativeAnalog: "AMB",
-        },
-        USDC: {
-          isActive: true,
-          name: "USD Coin",
-          symbol: "USDC",
-          denomination: 6,
-          decimals: {
-            "amb-test": 18,
-            amb: 18,
-            bsc: 18,
-            eth: 6,
-          },
-          logo: "https://etherscan.io/token/images/centre-usdc_28.png",
-          primaryNets: ["base", "sol"],
-          addresses: {
-            "amb-test": "0x8132928B8F4c0d278cc849b9b98Dffb28aE0B685",
-            sol: "usdc3xpQ18NLAumSUvadS62srrkxQWrvQHugk8Nv7MA",
-          },
-          nativeAnalog: "",
-        },
-        wSOL: {
-          isActive: true,
-          name: "Wrapped Solana",
-          symbol: "wSOL",
-          denomination: 18,
-          decimals: {
-            "amb-test": 18,
-            amb: 18,
-            base: 18,
-            sol: 6,
-          },
-          logo: "https://en.wikipedia.org/wiki/File:Solana_logo.png#/media/File:Solana_logo.png",
-          primaryNets: ["sol"],
-          addresses: {
-            "amb-test": "0xC6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
-            sol: "So11111111111111111111111111111111111111112",
-            "sol-dev": "So11111111111111111111111111111111111111112",
-          },
-          nativeAnalog: "SOL",
-        },
-      },
     }),
+  ).openapi({
+    description: "Tokens configuration for different networks",
+    example: {
+      "SAMB": {
+        "isActive": true,
+        "name": "Synthetic Amber",
+        "symbol": "SAMB",
+        "ticker": "AMB",
+        "logo": "https://media-exp1.licdn.com/dms/image/C560BAQFuR2Fncbgbtg/company-logo_200_200/0/1636390910839?e=2159024400&v=beta&t=W0WA5w02tIEH859mVypmzB_FPn29tS5JqTEYr4EYvps",
+        "networks": {
+          "22040": {
+            "address": "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b",
+            "denomination": 18,
+            "isPrimary": true,
+            "nativeCoin": "AMB"
+          },
+          "6003100671677645902": {
+            "address": "samb9vCFCTEvoi3eWDErSCb5GvTq8Kgv6VKSqvt7pgi",
+            "denomination": 6,
+            "isPrimary": false
+          }
+        }
+      },
+      "USDC": {
+        "isActive": true,
+        "name": "USD Coin",
+        "symbol": "USDC",
+        "ticker": "USDT",
+        "logo": "https://etherscan.io/token/images/centre-usdc_28.png",
+        "networks": {
+          "22040": {
+            "address": "0xB547f613B72928d4F62BCAc6Cc0d28C721f8D6bF",
+            "denomination": 18,
+            "isPrimary": false
+          },
+          "6003100671677645902": {
+            "address": "usdc3xpQ18NLAumSUvadS62srrkxQWrvQHugk8Nv7MA",
+            "denomination": 6,
+            "isPrimary": true
+          }
+        }
+      },
+      "wSOL": {
+        "isActive": true,
+        "name": "Wrapped Solana",
+        "symbol": "wSOL",
+        "ticker": "SOL",
+        "logo": "https://en.wikipedia.org/wiki/File:Solana_logo.png#/media/File:Solana_logo.png",
+        "networks": {
+          "22040": {
+            "address": "0x5B9E2BD997bc8f6aE97145cE0a8dEE075653f1AA",
+            "denomination": 18,
+            "isPrimary": false
+          },
+          "6003100671677645902": {
+            "address": "So11111111111111111111111111111111111111112",
+            "denomination": 6,
+            "isPrimary": true,
+            "nativeCoin": "SOL"
+          }
+        }
+      }
+    }
+  })
 });
+
 
 export type TokenConfig = z.infer<typeof TokenConfigSchema>;

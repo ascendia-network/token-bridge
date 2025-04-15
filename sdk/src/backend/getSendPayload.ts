@@ -1,24 +1,7 @@
 import { Hex } from "viem";
 import { backendUrl } from "../config";
 import { helpers } from "../evm";
-
-export interface SendPayload {
-  chainFrom: bigint;
-  chainTo: bigint;
-  tokenAddressFrom: Hex;
-  tokenAddressTo: Hex;
-  amountToSend: bigint;
-  feeAmount: bigint;
-  timestamp: bigint;
-  flags: bigint;
-  flagData: Hex;
-}
-
-export interface SendPayloadResponse {
-  sendPayload: SendPayload;
-  signedBy: string;
-  signature: Hex;
-}
+import { SendPayloadResponse } from "./types";
 
 /**
  * Fetches the signed send payload required for a cross-chain token transfer.

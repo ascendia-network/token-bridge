@@ -59,6 +59,7 @@ export async function webhookHandler(request, reply) {
 
           const metadata = {
             receiptId: entity[0].receiptId,
+            eventChain: CHAIN_NAME_TO_CHAIN_ID[process.env.SOL_ENVIRONMENT as Cluster],
             //blockHash: event.slot, //Not applicable for Solana
             blockNumber: event.slot, //???
             timestamp: event.blockTime,

@@ -14,6 +14,12 @@
           "primaryKey": true,
           "notNull": true
         },
+        "event_chain": {
+          "name": "event_chain",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "block_hash": {
           "name": "block_hash",
           "type": "text",

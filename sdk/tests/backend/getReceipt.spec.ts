@@ -38,6 +38,7 @@ const receiptsArray = [
     receiptMeta: [
       {
         receiptId: "22040_6003100671677645902_2",
+        eventChain: "22040",
         blockHash:
           "0xb1570d38742625d2c4a08223b97c51d97b1b81dacf67bc64ae557ac58d9b1121",
         blockNumber: "3890725",
@@ -71,6 +72,7 @@ const receiptsArray = [
     receiptMeta: [
       {
         receiptId: "22040_6003100671677645902_1",
+        eventChain: "22040",
         blockHash:
           "0x6b4873745b6d5940f0b7a0a9390f5f649d70381915a7c7f819d5f03340551766",
         blockNumber: "3890699",
@@ -104,6 +106,7 @@ const receiptsArray = [
     receiptMeta: [
       {
         receiptId: "22040_6003100671677645902_0",
+        eventChain: "22040",
         blockHash:
           "0x69a0e15965dda31b20536c05fe5957794e08fb442f839a6a86d7e3112aaf41d1",
         blockNumber: "3857315",

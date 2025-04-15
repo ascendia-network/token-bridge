@@ -8,21 +8,22 @@ CREATE TABLE "bridge"."signatures" (
 );
 --> statement-breakpoint
 CREATE MATERIALIZED VIEW "bridge"."receipts" AS (
-	select "receipt_id",
-		"timestamp",
-		"bridge_address",
-		"from",
-		"to",
-		"token_address_from",
-		"token_address_to",
-		"amount_from",
-		"amount_to",
-		"chain_from",
-		"chain_to",
-		"event_id",
-		"flags",
-		"data",
-		"claimed"
+	select "unioned"."receipt_id",
+		"unioned"."timestamp",
+		"unioned"."bridge_address",
+		"unioned"."from",
+		"unioned"."to",
+		"unioned"."token_address_from",
+		"unioned"."token_address_to",
+		"unioned"."amount_from",
+		"unioned"."amount_to",
+		"unioned"."chain_from",
+		"unioned"."chain_to",
+		"unioned"."event_id",
+		"unioned"."flags",
+		"unioned"."data",
+		"claimed",
+		COALESCE("signatures_count", 0) as "signatures_count"
 	from (
 			(
 				select "receipt_id",
@@ -72,6 +73,12 @@ CREATE MATERIALIZED VIEW "bridge"."receipts" AS (
 				order by "indexer_solana"."receiptsSent"."timestamp"
 			)
 		) "unioned"
+		left join (
+			select "receipt_id",
+				count(*) as "signatures_count"
+			from "bridge"."signatures"
+			group by "bridge"."signatures"."receipt_id"
+		) "signatures_agg" on "unioned"."receipt_id" = "signatures_agg"."receipt_id"
 	order by "unioned"."timestamp",
 		"claimed" desc
 );

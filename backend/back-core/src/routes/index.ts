@@ -3,12 +3,14 @@ import receiptRoutes from "./receipt";
 import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
 import sendSignatureRoutes from "./send-signature";
-import { CORS_CONFIG, stageConfig } from "../../config";
-import { TokenConfigSchema } from "./utils";
+import { stageConfig } from "../../config";
+import { corsMiddleware, TokenConfigSchema } from "./utils";
 import relayRoutes from "./relay";
-import { cors } from "hono/cors";
+import backofficeRoutes from "./backoffice";
 
 export const routes = new Hono();
+
+routes.use("*", corsMiddleware);
 
 /* The code `routes.get("/", (c) => c.json("Bridge Inventory API", 200));` is defining a route for
 handling GET requests to the root endpoint ("/"). When a GET request is made to this endpoint, the
@@ -19,9 +21,10 @@ routes.get("/", (c) => c.json("Bridge Inventory API", 200));
 routes.route("/receipts", receiptRoutes);
 routes.route("/relay", relayRoutes);
 routes.route("/send", sendSignatureRoutes);
+routes.route("/backoffice", backofficeRoutes);
+
 routes.get(
   "/tokens",
-  cors(CORS_CONFIG),
   describeRoute({
     description:
       "Fetches and parses the tokens configuration from a remote URL",

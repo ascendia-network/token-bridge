@@ -1,35 +1,15 @@
 import Decimal from "decimal.js";
-import { getToken } from "../utils/tokens";
-
-export const symbolMapping: { [symbol: string]: string } = {
-  "SAMB": "AMB",
-  "WBNB": "BNB",
-  "WETH": "ETH",
-  "wSOL": "SOL"
-};
+import { tokens } from "../utils/tokens2";
 
 
-export async function getNativeTokenUSDPrice(networkName: string) {
-  switch (networkName) {
-    case "sol":
-    case "sol-dev":
-      return await getTokenUSDPriceByAddress(networkName, "So11111111111111111111111111111111111111112");
-    default:
-      return await getTokenUSDPriceByAddress(networkName, "0x0000000000000000000000000000000000000000");
-  }
-}
-
-export async function getTokenUSDPriceByAddress(networkName: string, tokenAddr: string) {
-  const token = await getToken(networkName, tokenAddr);
+export async function getTokenUSDPriceByAddress(networkName: string, tokenAddr?: string) {
+  const token = tokens.getToken(networkName, tokenAddr);
   if (!token)
     throw new Error(`Token ${tokenAddr} not found in ${networkName} network`);
-  return await getTokenUSDPrice(token.name);
+  return await getTokenUSDPrice(token.ticker);
 }
 
 export async function getTokenUSDPrice(tokenSymbol: string) {
-  if (symbolMapping[tokenSymbol]) {
-    tokenSymbol = symbolMapping[tokenSymbol];
-  }
   const price = await cachedPrice.get(`${tokenSymbol}USDT`);
   return new Decimal(price);
 }

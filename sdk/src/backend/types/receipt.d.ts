@@ -17,6 +17,8 @@ export interface ReceiptWithMeta {
     flags: bigint;
     data: Hex;
     claimed: boolean;
+    signaturesCount: number;
+    signaturesRequired: number;
   };
   receiptMeta: Array<{
     receiptId: string;
@@ -31,6 +33,7 @@ export interface ReceiptWithMeta {
 
 export interface ReceiptSignatures {
   receiptId: string;
+  readyForClaim: boolean;
   signatures: Array<{
     receiptId: string;
     signedBy: string;

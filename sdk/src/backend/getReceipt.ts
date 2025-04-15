@@ -28,6 +28,10 @@ export function parseReceiptWithMeta(receiptWithMeta: {
       flags: BigInt(receiptWithMeta.receipt.flags),
       data: receiptWithMeta.receipt.data,
       claimed: receiptWithMeta.receipt.claimed,
+      signaturesCount: Number.parseInt(receiptWithMeta.receipt.signaturesCount),
+      signaturesRequired: Number.parseInt(
+        receiptWithMeta.receipt.signaturesRequired,
+      ),
     },
     receiptMeta: receiptWithMeta.receiptMeta.map((meta: any) => ({
       receiptId: meta.receiptId,

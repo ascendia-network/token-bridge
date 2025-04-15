@@ -1,9 +1,64 @@
 {
-  "id": "50615cc0-8d1e-475e-8aa0-a21891e83d64",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "prevId": "",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "indexer_solana.receiptsMeta": {
+      "name": "receiptsMeta",
+      "schema": "indexer_solana",
+      "columns": {
+        "receipt_id": {
+          "name": "receipt_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "event_chain": {
+          "name": "event_chain",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "block_hash": {
+          "name": "block_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "block_number": {
+          "name": "block_number",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "transaction_hash": {
+          "name": "transaction_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "transaction_index": {
+          "name": "transaction_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
     "indexer_solana.receiptsClaimed": {
       "name": "receiptsClaimed",
       "schema": "indexer_solana",
@@ -44,14 +99,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "chain_to": {
-          "name": "chain_to",
+        "chain_from": {
+          "name": "chain_from",
           "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
-        "chain_from": {
-          "name": "chain_from",
+        "chain_to": {
+          "name": "chain_to",
           "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
@@ -67,77 +122,23 @@
           "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
-        },
-        "data": {
-          "name": "data",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
         }
       },
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "receiptsClaimed_chain_to_event_id_pk": {
-          "name": "receiptsClaimed_chain_to_event_id_pk",
+        "receiptsClaimed_chain_from_chain_to_event_id_pk": {
+          "name": "receiptsClaimed_chain_from_chain_to_event_id_pk",
           "columns": [
+            "chain_from",
             "chain_to",
             "event_id"
           ]
         }
       },
       "uniqueConstraints": {},
-      "policies": {},
       "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "indexer_solana.receiptsMeta": {
-      "name": "receiptsMeta",
-      "schema": "indexer_solana",
-      "columns": {
-        "receipt_id": {
-          "name": "receipt_id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "block_hash": {
-          "name": "block_hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "block_number": {
-          "name": "block_number",
-          "type": "numeric(78, 0)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "timestamp": {
-          "name": "timestamp",
-          "type": "numeric(78, 0)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "transaction_hash": {
-          "name": "transaction_hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "transaction_index": {
-          "name": "transaction_index",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "indexer_solana.receiptsSent": {
@@ -242,8 +243,8 @@
         }
       },
       "uniqueConstraints": {},
-      "policies": {},
       "checkConstraints": {},
+      "policies": {},
       "isRLSEnabled": false
     }
   },
@@ -256,8 +257,11 @@
   "policies": {},
   "views": {},
   "_meta": {
-    "columns": {},
     "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
     "tables": {}
   }
 }

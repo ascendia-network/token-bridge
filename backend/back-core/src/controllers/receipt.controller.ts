@@ -239,7 +239,9 @@ export class ReceiptController {
     chainEnum: "evm" | "svm"
   ): Promise<
     Array<{
-      receipts: typeof receipt.$inferSelect;
+      receipts: typeof receipt.$inferSelect & {
+        signaturesRequired: number;
+      };
       receiptsMeta:
         | typeof receiptsMetaInIndexerEvm.$inferSelect
         | typeof receiptsMetaInIndexerSolana.$inferSelect
@@ -276,7 +278,13 @@ export class ReceiptController {
         )
       )
       .leftJoin(joinModel, eq(receipt.receiptId, joinModel.receiptId));
-    return receipts;
+    return receipts.map((r) => ({
+      receipts: {
+        ...r.receipts,
+        signaturesRequired: bridgeValidators[r.receipts.chainTo].length,
+      },
+      receiptsMeta: r.receiptsMeta,
+    }));
   }
 
   private async checkSignerEVM(

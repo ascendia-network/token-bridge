@@ -260,11 +260,7 @@ async function getTokenWrappedData(tokenAddress: string, chainId: bigint) {
   if (!tokenConfig) {
     throw new Error("Token not found in config");
   }
-  const tokenNetworkConfig = tokenConfig.networks[chainId.toString()];
-  const isWrapped =
-    tokenNetworkConfig.nativeCoin !== undefined &&
-    tokenNetworkConfig.nativeCoin !== "";
-  return isWrapped;
+  return !!tokenConfig.networks[chainId.toString()].nativeCoin;
 }
 
 /**

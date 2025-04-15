@@ -1,6 +1,6 @@
 {
   "name": "bridge-v2-sdk",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "SDK for bridge iteractions",
   "repository": {
     "type": "git",
@@ -9,6 +9,12 @@
   "license": "ISC",
   "author": "",
   "type": "module",
+  "files": [
+    "dist",
+    "package.json",
+    "README.md",
+    "LICENSE"
+  ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.cts",
@@ -26,7 +32,7 @@
     "test": "jest",
     "lint": "eslint --ext .js,.ts .",
     "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\"",
-    "build": "pkgroll --minify"
+    "build": "pkgroll"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.0",

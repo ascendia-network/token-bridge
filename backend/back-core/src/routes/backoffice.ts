@@ -1,20 +1,11 @@
-import { Dependency } from "hono-simple-di";
 import { z } from "zod";
 import { validator as zValidator } from "hono-openapi/zod";
-import { ReceiptController } from "../controllers/receipt.controller";
 import { receiptResponseSchema } from "./utils";
 import { Hono } from "hono";
-import { env } from "hono/adapter";
 import { tokens } from "../utils/tokens2";
 import { formatUnits } from "viem";
 import { addressToUserFriendly } from "../utils/addresses";
-
-const receiptControllerDep = new Dependency((c) => {
-  const vars = env<{
-    DATABASE_URL: string
-  }>(c);
-  return new ReceiptController(vars.DATABASE_URL);
-});
+import { receiptControllerMiddleware } from "../../middleware/receiptController";
 
 export const backofficeRoutes = new Hono();
 
@@ -31,7 +22,7 @@ backofficeRoutes.get(
       chainTo: z.coerce.number().optional(),
     })
   ),
-  receiptControllerDep.middleware("receiptController"),
+  receiptControllerMiddleware.middleware("receiptController"),
   async (c) => {
     const { limit, offset, ordering, chainFrom, chainTo } = c.req.valid("query");
     const { receiptController } = c.var;

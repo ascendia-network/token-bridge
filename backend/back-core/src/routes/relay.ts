@@ -1,8 +1,6 @@
-import { Dependency } from "hono-simple-di";
 import { z } from "zod";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator as zValidator } from "hono-openapi/zod";
-import { ReceiptController } from "../controllers/receipt.controller";
 import {
   evmAddressValidatorSchema,
   receiptIdValidatorSchema,
@@ -12,15 +10,7 @@ import {
 } from "./utils";
 import { Hono } from "hono";
 import { type ContentfulStatusCode } from "hono/utils/http-status";
-import { env } from "hono/adapter";
-
-
-const receiptControllerDep = new Dependency((c) => {
-  const vars = env<{
-    DATABASE_URL: string;
-  }>(c);
-  return new ReceiptController(vars.DATABASE_URL);
-});
+import { receiptControllerMiddleware } from "../../middleware/receiptController";
 
 export const relayRoutes = new Hono();
 
@@ -61,7 +51,7 @@ relayRoutes.get(
     }
   }),
   zValidator("param", evmAddressValidatorSchema),
-  receiptControllerDep.middleware("receiptController"),
+  receiptControllerMiddleware.middleware("receiptController"),
   async (c) => {
     try {
       const pubkey = c.req.valid("param").address;
@@ -108,7 +98,7 @@ relayRoutes.get(
     }
   }),
   zValidator("param", svmAddressValidatorSchema),
-  receiptControllerDep.middleware("receiptController"),
+  receiptControllerMiddleware.middleware("receiptController"),
   async (c) => {
     try {
       const pubkey = c.req.valid("param").address;
@@ -201,7 +191,7 @@ relayRoutes.post(
         })
     })
   ),
-  receiptControllerDep.middleware("receiptController"),
+  receiptControllerMiddleware.middleware("receiptController"),
   async (c) => {
     try {
       const { receiptController } = c.var;

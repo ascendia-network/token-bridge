@@ -1,4 +1,3 @@
-import { Dependency } from "hono-simple-di";
 import { z } from "zod";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator as zValidator } from "hono-openapi/zod";
@@ -11,14 +10,7 @@ import {
   svmAddressBytes32Hex,
 } from "./utils";
 import { Hono } from "hono";
-import { env } from "hono/adapter";
-
-const receiptControllerDep = new Dependency((c) => {
-  const vars = env<{
-    DATABASE_URL: string
-  }>(c);
-  return new ReceiptController(vars.DATABASE_URL);
-});
+import { receiptControllerMiddleware } from "../../middleware/receiptController";
 
 export const receiptRoutes = new Hono<{
   Bindings: {
@@ -56,9 +48,9 @@ receiptRoutes.get(
         description: "Returns receipts",
         content: {
           "application/json": {
-            schema: resolver(z.array(receiptResponseSchema))
-          }
-        }
+            schema: resolver(z.array(receiptResponseSchema)),
+          },
+        },
       },
       400: {
         // 400 Bad Request
@@ -69,24 +61,24 @@ receiptRoutes.get(
               type: "object",
               properties: {
                 message: {
-                  type: "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                  type: "string",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   }),
   zValidator(
     "query",
     z.object({
       limit: z.coerce.number().optional().default(50),
       offset: z.coerce.number().optional().default(0),
-      ordering: z.enum(["asc", "desc"]).optional().default("desc")
+      ordering: z.enum(["asc", "desc"]).optional().default("desc"),
     })
   ),
-  receiptControllerDep.middleware("receiptController"),
+  receiptControllerMiddleware.middleware("receiptController"),
   async (c) => {
     const { limit, offset, ordering } = c.req.valid("query");
     const { receiptController } = c.var;
@@ -114,9 +106,9 @@ receiptRoutes.get(
         description: "Returns receipts",
         content: {
           "application/json": {
-            schema: resolver(z.array(receiptResponseSchema))
-          }
-        }
+            schema: resolver(z.array(receiptResponseSchema)),
+          },
+        },
       },
       400: {
         description: "Returns error message",
@@ -126,21 +118,21 @@ receiptRoutes.get(
               type: "object",
               properties: {
                 message: {
-                  type: "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                  type: "string",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   }),
   zValidator(
     "param",
     z.object({
       userAddress: z
         .union([evmAddressBytes32Hex, svmAddressBytes32Hex])
-        .optional()
+        .optional(),
     })
   ),
   zValidator(
@@ -148,10 +140,10 @@ receiptRoutes.get(
     z.object({
       limit: z.coerce.number().optional().default(50),
       offset: z.coerce.number().optional().default(0),
-      ordering: z.enum(["asc", "desc"]).optional().default("desc")
+      ordering: z.enum(["asc", "desc"]).optional().default("desc"),
     })
   ),
-  receiptControllerDep.middleware("receiptController"),
+  receiptControllerMiddleware.middleware("receiptController"),
   async (c) => {
     const { userAddress } = c.req.valid("param");
     const { limit, offset, ordering } = c.req.valid("query");
@@ -185,12 +177,12 @@ receiptRoutes.get(
               type: "object",
               properties: {
                 receiptId: {
-                  type: "string"
-                }
-              }
-            }
-          }
-        }
+                  type: "string",
+                },
+              },
+            },
+          },
+        },
       },
       404: {
         description: "Receipt not found",
@@ -201,12 +193,12 @@ receiptRoutes.get(
               properties: {
                 message: {
                   type: "string",
-                  example: "Receipt not found"
-                }
-              }
-            }
-          }
-        }
+                  example: "Receipt not found",
+                },
+              },
+            },
+          },
+        },
       },
       400: {
         description: "Returns error message",
@@ -216,27 +208,29 @@ receiptRoutes.get(
               type: "object",
               properties: {
                 message: {
-                  type: "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                  type: "string",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   }),
   zValidator(
     "param",
     z.object({
-      transactionHash: z.string()
+      transactionHash: z.string(),
     })
   ),
-  receiptControllerDep.middleware("receiptController"),
+  receiptControllerMiddleware.middleware("receiptController"),
   async (c) => {
     const { transactionHash } = c.req.valid("param");
     const { receiptController } = c.var;
     try {
-      const receiptId = await receiptController.getReceiptIdByTransactionHash(transactionHash);
+      const receiptId = await receiptController.getReceiptIdByTransactionHash(
+        transactionHash
+      );
       if (!receiptId) {
         return c.json({ message: "Receipt not found" }, 404);
       }
@@ -258,9 +252,9 @@ receiptRoutes.get(
         description: "Returns receipt",
         content: {
           "application/json": {
-            schema: resolver(receiptResponseSchema)
-          }
-        }
+            schema: resolver(receiptResponseSchema),
+          },
+        },
       },
       404: {
         description: "Receipt not found",
@@ -271,12 +265,12 @@ receiptRoutes.get(
               properties: {
                 message: {
                   type: "string",
-                  example: "Receipt not found"
-                }
-              }
-            }
-          }
-        }
+                  example: "Receipt not found",
+                },
+              },
+            },
+          },
+        },
       },
       400: {
         description: "Returns error message",
@@ -286,17 +280,17 @@ receiptRoutes.get(
               type: "object",
               properties: {
                 message: {
-                  type: "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                  type: "string",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   }),
   zValidator("param", receiptIdValidatorSchema),
-  receiptControllerDep.middleware("receiptController"),
+  receiptControllerMiddleware.middleware("receiptController"),
   async (c) => {
     try {
       const receiptId = c.req.valid("param").receiptId;
@@ -322,9 +316,9 @@ receiptRoutes.get(
         description: "Returns receipt",
         content: {
           "application/json": {
-            schema: resolver(signaturesResponseSchema)
-          }
-        }
+            schema: resolver(signaturesResponseSchema),
+          },
+        },
       },
       400: {
         description: "Returns error message",
@@ -334,17 +328,17 @@ receiptRoutes.get(
               type: "object",
               properties: {
                 message: {
-                  type: "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                  type: "string",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   }),
   zValidator("param", receiptIdValidatorSchema),
-  receiptControllerDep.middleware("receiptController"),
+  receiptControllerMiddleware.middleware("receiptController"),
   async (c) => {
     try {
       const receiptId = c.req.valid("param").receiptId;
@@ -355,7 +349,7 @@ receiptRoutes.get(
         signaturesResponseSchema.parse({
           receiptId,
           readyForClaim: data.length >= c.env.SIGNATURES_REQUIRED,
-          signatures: data
+          signatures: data,
         }),
         200
       );

@@ -1,17 +1,9 @@
-import { Dependency } from "hono-simple-di";
 import { Hono } from "hono";
-import { SendSignatureController } from "../controllers/send-signature.controller";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { sendPayloadResponseSchema, sendSignatureQuerySchema } from "./utils";
-import { env } from "hono/adapter";
+import { sendSignatureControllerMiddleware } from "../../middleware/sendSignature";
 
-const sendSignatureControllerDep = new Dependency((c) => {
-  const { SEND_SIGNER_MNEMONIC } = env<{
-    SEND_SIGNER_MNEMONIC: string;
-  }>(c);
-  return new SendSignatureController(SEND_SIGNER_MNEMONIC);
-});
 
 export const sendSignatureRoutes = new Hono();
 
@@ -46,7 +38,7 @@ sendSignatureRoutes.get(
     },
   }),
   zValidator("query", sendSignatureQuerySchema),
-  sendSignatureControllerDep.middleware("sendSignatureController"),
+  sendSignatureControllerMiddleware.middleware("sendSignatureController"),
   async (c) => {
     try {
       const {

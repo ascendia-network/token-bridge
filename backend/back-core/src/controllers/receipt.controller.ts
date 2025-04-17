@@ -47,10 +47,10 @@ export class ReceiptController {
         : undefined;
       const filterChainFrom = chainFrom
         ? eq(receipt.chainFrom, chainFrom.toString())
-        : undefined;
+        : inArray(receipt.chainFrom, Object.keys(bridgeValidators));
       const filterChainTo = chainTo
         ? eq(receipt.chainTo, chainTo.toString())
-        : undefined;
+        : inArray(receipt.chainTo, Object.keys(bridgeValidators));
 
       const result = await this.db
         .select()
@@ -95,19 +95,20 @@ export class ReceiptController {
             result.map((r) => r.receiptId)
           )
         );
-      return result.map((r) => {
-        const metaEvm = metasEvm.filter((m) => m.receiptId === r.receiptId);
-        const metaSolana = metasSolana.filter(
-          (m) => m.receiptId === r.receiptId
-        );
-        return {
-          receipt: {
-            ...r,
-            signaturesRequired: bridgeValidators[r.chainTo].length,
-          },
-          receiptMeta: [...metaEvm, ...metaSolana],
-        };
-      });
+      return result
+        .map((r) => {
+          const metaEvm = metasEvm.filter((m) => m.receiptId === r.receiptId);
+          const metaSolana = metasSolana.filter(
+            (m) => m.receiptId === r.receiptId
+          );
+          return {
+            receipt: {
+              ...r,
+              signaturesRequired: bridgeValidators[r.chainTo].length,
+            },
+            receiptMeta: [...metaEvm, ...metaSolana],
+          };
+        });
     } catch (error) {
       consoleLogger(
         "Error selecting receipts",
@@ -190,8 +191,17 @@ export class ReceiptController {
       const [result] = await this.db
         .select()
         .from(receipt)
-        .where(eq(receipt.receiptId, receiptId));
-
+        .where(
+          and(
+            eq(receipt.receiptId, receiptId),
+            inArray(receipt.chainFrom, Object.keys(bridgeValidators)),
+            inArray(receipt.chainTo, Object.keys(bridgeValidators))
+          )
+        );
+      if (!Object.keys(bridgeValidators).includes(result.chainFrom))
+        throw new Error("Receipt chainFrom not supported");
+      if (!Object.keys(bridgeValidators).includes(result.chainTo))
+        throw new Error("Receipt chainTo not supported");
       return {
         receipt: {
           ...result,
@@ -258,6 +268,8 @@ export class ReceiptController {
       .from(receipt)
       .where(
         and(
+          inArray(receipt.chainFrom, Object.keys(bridgeValidators)),
+          inArray(receipt.chainTo, Object.keys(bridgeValidators)),
           eq(receipt.claimed, false),
           chainEnum === "svm"
             ? or(

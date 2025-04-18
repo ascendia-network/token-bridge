@@ -32,6 +32,9 @@ pub mod amb_sol_bridge {
     pub fn set_pause(ctx: Context<UpdateState>, pause: bool) -> Result<()> {
         instructions::set_pause(ctx, pause)
     }
+    pub fn set_signers(ctx: Context<UpdateState>, send_signer: Pubkey, receive_signer: Pubkey) -> Result<()> {
+        instructions::set_signers(ctx, send_signer, receive_signer)
+    }
 
     pub fn withdraw_fees(ctx: Context<UpdateState>, amount: u64) -> Result<()> {
         instructions::withdraw(ctx, amount)

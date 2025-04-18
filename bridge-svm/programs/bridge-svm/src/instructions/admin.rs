@@ -119,6 +119,12 @@ pub fn set_pause(ctx: Context<UpdateState>, pause: bool) -> Result<()> {
     Ok(())
 }
 
+pub fn set_signers(ctx: Context<UpdateState>, send_signer: Pubkey, receive_signer: Pubkey) -> Result<()> {
+    ctx.accounts.state.send_signer = send_signer;
+    ctx.accounts.state.receive_signer = receive_signer;
+    Ok(())
+}
+
 pub fn withdraw(ctx: Context<UpdateState>, amount: u64) -> Result<()> {
     let vault = &ctx.accounts.state;
     let admin = &ctx.accounts.admin;

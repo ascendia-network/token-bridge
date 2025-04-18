@@ -887,6 +887,64 @@ export type AmbSolBridge = {
       ]
     },
     {
+      "name": "setSigners",
+      "discriminator": [
+        16,
+        210,
+        170,
+        26,
+        155,
+        87,
+        127,
+        49
+      ],
+      "accounts": [
+        {
+          "name": "state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "state"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "sendSigner",
+          "type": "pubkey"
+        },
+        {
+          "name": "receiveSigner",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
       "name": "withdrawFees",
       "discriminator": [
         198,
@@ -1040,6 +1098,11 @@ export type AmbSolBridge = {
       "code": 6005,
       "name": "paused",
       "msg": "Bridge is paused"
+    },
+    {
+      "code": 6006,
+      "name": "notAdmin",
+      "msg": "Not an admin"
     }
   ],
   "types": [

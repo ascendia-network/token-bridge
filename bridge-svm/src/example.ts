@@ -11,13 +11,14 @@ import idl from "./idl/idl.json";
 import { send } from "./sdk/send";
 
 import {
+  getBridgeStateAccount,
   getBridgeTokenAccounts,
   getOrCreateUserATA,
   getUserNoncePda, initializeToken,
 } from "./sdk/utils";
 import { createMint, mintTo, NATIVE_MINT } from "@solana/spl-token";
 import { Buffer } from "buffer";
-import { backendMock, receiveSigners, sendSigner } from "./backend/signs";
+import { backendMock, receiveSigner, receiveSigners, sendSigner } from "./backend/signs";
 import { keccak_256 } from "@noble/hashes/sha3";
 import NodeWallet from "@coral-xyz/anchor/dist/esm/nodewallet";
 import { receive } from "./sdk/receive";
@@ -75,6 +76,7 @@ export async function main() {
   // await createToken(sambKeypair, true);
   // await createToken(usdcKeypair);
 
+  console.log(sambKeypair.publicKey.toBase58());
   const sambAmb = "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b";
   const wsolAmb = "0x335d175e096d3aEF99646C81B825E956513667D6";
   const usdcAmb = "0x835DAbB66f894720Ef4E81f7F43A76D392E46e64";
@@ -84,12 +86,29 @@ export async function main() {
   // await initializeToken(program, admin, usdcKeypair.publicKey, usdcAmb, 18, false);
   //
   //
-  // const globalState = await program.account.globalState.fetch(getBridgeStateAccount(program.programId));
-  // console.log(globalState);
-  // console.log(sendSigner.publicKey.toBase58());
+  console.log("sendSigner", sendSigner.publicKey.toBase58());
+  console.log("receiveSigner", receiveSigner.toString());
+  const globalState = await program.account.globalState.fetch(getBridgeStateAccount(program.programId));
+  console.log(globalState);
+
+  // await setSigners(sendSigner.publicKey, receiveSigner);
   // await makeSendTx(usdcKeypair.publicKey, usdcAmb);
   // await makeReceiveTx();
 }
+
+
+
+
+async function setSigners(sendSigner: PublicKey, receiveSigner: PublicKey) {
+  await program.methods
+    .setSigners(sendSigner, receiveSigner)
+    .accounts({
+      admin: admin.publicKey,
+    })
+    .signers([admin])
+    .rpc();
+}
+
 
 /**
  * Creates a new token mint.

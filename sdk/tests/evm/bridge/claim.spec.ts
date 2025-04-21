@@ -6,7 +6,7 @@ import {
   expect,
   test,
 } from "@jest/globals";
-import * as child from "child_process";
+import { ChildProcess } from "child_process";
 import {
   Address,
   createTestClient,
@@ -23,22 +23,13 @@ import { evm } from "../../../src/";
 import type { ClaimCall } from "../../../src/types";
 import { AccountFixture } from "../../mocks/fixtures/privateKey";
 import { receipts } from "../../mocks/fixtures/receipt";
-import { waitForAnvil } from "../../mocks/anvil";
+import { startAnvil } from "../../mocks/anvil";
 describe("Test bridge claim request", () => {
   let testClient: TestClient;
-  let anvil: child.ChildProcess;
+  let anvil: ChildProcess;
   beforeAll(async () => {
-    anvil = child.spawn("anvil", [
-      "-p",
-      "8545",
-      "--fork-block-number",
-      "4000000",
-      "-f",
-      "https://network-archive.ambrosus-test.io",
-      "--silent",
-    ]);
-    await waitForAnvil();
-  }, 30000);
+    anvil = await startAnvil();
+  }, 60000);
   afterAll(() => {
     anvil.kill();
   }, 5000);

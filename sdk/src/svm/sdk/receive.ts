@@ -1,6 +1,6 @@
 import { Buffer } from "buffer";
 import { BN, Program } from "@coral-xyz/anchor";
-import { Connection, PublicKey, sendAndConfirmTransaction, type Signer, Transaction } from "@solana/web3.js";
+import { PublicKey, Transaction } from "@solana/web3.js";
 import type { AmbSolBridge } from "../idl/idlType";
 import { verifySignatureInstruction } from "./ed25519_ix";
 import { unwrapWSolInstruction } from "./wsol_ix";
@@ -12,8 +12,7 @@ import { keccak_256 } from "@noble/hashes/sha3";
 
 
 export async function receive(
-  connection: Connection,
-  user: Signer,
+  user: PublicKey,
   bridgeProgram: Program<AmbSolBridge>,
   receipt: ReceiptWithMeta,
   signatures: ReceiptSignatures,
@@ -31,7 +30,7 @@ export async function receive(
   const { isMintable } = await getBridgeTokenInfo(bridgeProgram, new PublicKey(payload.tokenAddressTo));
 
   const shouldUnwrap = token == NATIVE_MINT && checkFlags(payload.flags, Flags.SHOULD_UNWRAP);
-  const unwrapInstructions = shouldUnwrap ? [unwrapWSolInstruction(user.publicKey)] : [];
+  const unwrapInstructions = shouldUnwrap ? [unwrapWSolInstruction(user)] : [];
 
   const receiveInstruction = await bridgeProgram.methods
     .receive(
@@ -40,15 +39,13 @@ export async function receive(
       [...payload.flags],
       Buffer.from(payload.flagData)
     ).accountsPartial({
-      receiver: user.publicKey,
+      receiver: user,
       mint: token,
       bridgeTokenAccount: isMintable ? null : undefined,  // pass null to not use bridge token account
-    }).signers([user]).instruction()
+    }).instruction()
 
   const tx = new Transaction().add(verifyInstruction, receiveInstruction, ...unwrapInstructions);
-  tx.feePayer = user.publicKey;
-  // wait for transaction to be confirmed
-  return await sendAndConfirmTransaction(connection, tx, [user], { commitment: 'confirmed' });
-
+  tx.feePayer = user;
+  return tx;
 }
 

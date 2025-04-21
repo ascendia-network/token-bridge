@@ -1,5 +1,5 @@
 import { getBridgeTokenInfo, hexToUint8Array } from "./utils";
-import { Connection, PublicKey, sendAndConfirmTransaction, type Signer, Transaction } from "@solana/web3.js";
+import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { Program } from "@coral-xyz/anchor";
 import { verifySignatureInstruction } from "./ed25519_ix";
 import type { AmbSolBridge } from "../idl/idlType";
@@ -13,7 +13,7 @@ import { Base58 } from "ox";
 export async function send(
   connection: Connection,
   bridgeProgram: Program<AmbSolBridge>,
-  userFrom: Signer,
+  userFrom: PublicKey,
   userTo: string,
   sendPayloadResponse: SendPayloadResponse
 ) {
@@ -34,15 +34,15 @@ export async function send(
   const sendInstruction = await bridgeProgram.methods
     .send(serializedPayload, [...hexToUint8Array(userTo)])
     .accountsPartial({
-      sender: userFrom.publicKey,
+      sender: userFrom,
       mint: tokenFrom,
       bridgeTokenAccount: isMintable ? null : undefined,  // pass null to not use bridge token account
-    }).signers([userFrom]).instruction();
+    }).instruction();
 
 
   const tx = new Transaction().add(...wrapInstructions, verifyInstruction, sendInstruction);
-  tx.feePayer = userFrom.publicKey;
-  return await sendAndConfirmTransaction(connection, tx, [userFrom], { commitment: 'confirmed' }); // wait for transaction to be confirmed
+  tx.feePayer = userFrom;
+  return tx;
 }
 
 

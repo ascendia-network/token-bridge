@@ -1,4 +1,4 @@
-import { Connection, PublicKey, Signer, SystemProgram } from "@solana/web3.js";
+import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
 import {
   createAssociatedTokenAccountInstruction,
   createCloseAccountInstruction,
@@ -7,10 +7,10 @@ import {
   NATIVE_MINT
 } from "@solana/spl-token";
 
-export async function wrapSolInstructions(connection: Connection, user: Signer, amountToSend: number) {
+export async function wrapSolInstructions(connection: Connection, user: PublicKey, amountToSend: number) {
   const instructions = [];
 
-  const userATA = getAssociatedTokenAddressSync(NATIVE_MINT, user.publicKey);
+  const userATA = getAssociatedTokenAddressSync(NATIVE_MINT, user);
 
   let balance = 0;
   try {
@@ -18,7 +18,7 @@ export async function wrapSolInstructions(connection: Connection, user: Signer, 
   } catch (e) {
     console.log("need to create user WSOL ATA")
     instructions.push(
-      createAssociatedTokenAccountInstruction(user.publicKey, userATA, user.publicKey, NATIVE_MINT)
+      createAssociatedTokenAccountInstruction(user, userATA, user, NATIVE_MINT)
     );
   }
 
@@ -26,7 +26,7 @@ export async function wrapSolInstructions(connection: Connection, user: Signer, 
     console.log("need to wrap some SOL", amountToSend - balance)
     instructions.push(
       SystemProgram.transfer({
-        fromPubkey: user.publicKey,
+        fromPubkey: user,
         toPubkey: userATA,
         lamports: amountToSend - balance,
       }),

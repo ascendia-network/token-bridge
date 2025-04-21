@@ -37,12 +37,13 @@ export async function waitForAnvil(retries = 0) {
     });
     return response.ok && (await response.json()) !== undefined;
   } catch {
+    retries++;
     console.debug(`Anvil is not ready yet, retrying... ${retries}/${MAX_RETRIES}`);
     if (retries > MAX_RETRIES) {
       throw new Error("Anvil is not ready");
     } else {
       return await new Promise((resolve) => {
-        setTimeout(() => resolve(waitForAnvil(retries++)), RETRY_DELAY);
+        setTimeout(() => resolve(waitForAnvil(retries)), RETRY_DELAY);
       });
     }
   }

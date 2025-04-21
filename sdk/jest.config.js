@@ -13,6 +13,8 @@ export default {
     "interfaces",
     "\\.mock\\.ts",
   ],
+  globalSetup: "./jest.setup.js",
+  globalTeardown: "./jest.teardown.js",
   coverageThreshold: {
     global: {
       branches: 10,

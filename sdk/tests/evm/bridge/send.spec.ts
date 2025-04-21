@@ -1,12 +1,9 @@
 import {
-  afterAll,
-  beforeAll,
   beforeEach,
   describe,
   expect,
   test,
 } from "@jest/globals";
-import { ChildProcess} from "child_process";
 import {
   Address,
   Hex,
@@ -26,7 +23,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { evm } from "../../../src/";
 import type { SendPayloadEVM, SendCall } from "../../../src/types";
 import { AccountFixture } from "../../mocks/fixtures/privateKey";
-import { startAnvil } from "../../mocks/anvil";
+// import { startAnvil } from "../../mocks/anvil";
 // #region SAMB ABI
 const sAMBAbi: Abi = [
   {
@@ -416,13 +413,6 @@ const sAMBAbi: Abi = [
 
 describe("Test bridge send request", () => {
   let testClient: TestClient;
-  let anvil: ChildProcess;
-  beforeAll(async () => {
-    anvil = await startAnvil();
-  }, 60000);
-  afterAll(() => {
-    anvil.kill();
-  }, 5000);
   beforeEach(async () => {
     testClient = createTestClient({
       mode: "anvil",
@@ -431,6 +421,10 @@ describe("Test bridge send request", () => {
     })
       .extend(publicActions)
       .extend(walletActions);
+    testClient.setBalance({
+      address: "0xa5cc3c03994DB5b0d9A5eEdD10CabaB0813678AC",
+      value: parseEther("100"),
+    });
   });
   const mockedBridgeAddress: Address =
     "0x5Bcb9233DfEbcec502C1aCce6fc94FefF8c037C3";

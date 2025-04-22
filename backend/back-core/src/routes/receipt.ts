@@ -15,7 +15,7 @@ import { SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID } from "../../config";
 
 export const receiptRoutes = new Hono<{
   Bindings: {
-    SIGNATURES_REQUIRED: number;
+    SIGNATURES_REQUIRED: string;
     DATABASE_URL: string;
   };
 }>();
@@ -349,7 +349,7 @@ receiptRoutes.get(
       return c.json(
         signaturesResponseSchema.parse({
           receiptId,
-          readyForClaim: data.length >= c.env.SIGNATURES_REQUIRED,
+          readyForClaim: data.length >= Number.parseInt(c.env.SIGNATURES_REQUIRED),
           messageHash: [SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID].includes(
             BigInt(receipt.receipt.chainTo)
           )

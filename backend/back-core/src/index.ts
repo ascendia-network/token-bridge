@@ -8,17 +8,13 @@ import { consoleLogger } from "./utils";
 import { config } from "dotenv";
 import { openAPISpecs } from "hono-openapi";
 import { Hono } from "hono";
-
 config();
-process.env = { ...process.env };
 export type Env = {
   Bindings: {
-    SIGNATURES_REQUIRED: number;
+    SIGNATURES_REQUIRED: string;
     DATABASE_URL: string;
     SEND_SIGNER_MNEMONIC: string;
-    RELAY_ALLOWED_ORIGINS: string;
     ALLOWED_ORIGINS: string;
-    [key: `RPC_URL_${number}`]: string;
   };
 };
 

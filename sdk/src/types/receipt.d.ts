@@ -34,10 +34,9 @@ export interface ReceiptWithMeta {
 export interface ReceiptSignatures {
   receiptId: string;
   readyForClaim: boolean;
+  messageHash: Hex;
   signatures: Array<{
-    receiptId: string;
     signedBy: string;
-    messageHash: Hex;
     signature: Hex;
   }>;
 }

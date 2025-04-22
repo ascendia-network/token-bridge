@@ -122,39 +122,36 @@ const receiptsArray = [
 const signatures = [
   {
     receiptId: "22040_6003100671677645902_0",
+    readyForClaim: true,
+    messageHash:
+      "0x8cab9183350a1ad7aad1e1dafbff353b17adbc4f284132f79d98a0c0850565f9",
     signatures: [
       {
-        receiptId: "22040_6003100671677645902_0",
         signedBy: "5LEctUbBJ3RDBsaz2ZRfvrCUT7S36bUHe58ebiymSLuU",
         signature:
           "0x239d9cc14e0dfffe4511061ddc65f1f997aa83189b15886c7f11c3a1c6e57f592de64d8cb72c7bde1ada547e776e8d391957b94d45b4acb8e51664c174bef105",
       },
       {
-        receiptId: "22040_6003100671677645902_0",
         signedBy: "AgsF8YRCHEWwRDJJE6pRTN3YP86qZbqToKE2k6eiGGJ1",
         signature:
           "0x9959179e3c09b72e6a71a37e531b0be9b5b5dbef6f9258c81a7337cfaacb563ba68301e60ba825ed1c8b3bf41337ca5da8d6b6f7d7708b53dbb1235b3adcb50d",
       },
       {
-        receiptId: "22040_6003100671677645902_0",
         signedBy: "BxjUNyhbM8je1ynfPcEuihYdi1qB7EkjuL1N8zgZWczx",
         signature:
           "0x8c83d9d684a36cb58fe50c143e9945358dcd0ba263592fa1590740b4fb77dc7ada6a63246aea6f9029e3fa4daf89af91088c054d28b37ae4ae6a84ac8c656e0b",
       },
       {
-        receiptId: "22040_6003100671677645902_0",
         signedBy: "GCSfaYKrPKirtS33JzVZbAZmbwyGenWTXx9Zf77qo882",
         signature:
           "0x97c37ddfd0a87260a79e3a5c6a6516c56e83402064f9867be2298ec41221c03b79269cf9410fff2cd2d0aed1ad66a1c2c94b9659f9045de2cf8c11386a60e60f",
       },
       {
-        receiptId: "22040_6003100671677645902_0",
         signedBy: "HovoifHQnmogSutaxjNSptz2BV8LoPkP2V6omrjYE9Tp",
         signature:
           "0x309dd2254c3817272eb25e3543f2ee06278ca6f6e329cd8faec2e82c855d0c69dbd4a4e524f544172c60805c9d4f5ea631aece5c5e738a2cb20084823870bb08",
       },
       {
-        receiptId: "22040_6003100671677645902_0",
         signedBy: "T9VhfHpg2616B4cSLtc4DDqbuMJWv2yEuN1xGAtXStP",
         signature:
           "0x74ac22e84e93228997ab52a285c60e49e3cdc3fd83c217b50cfb43fd2e3857b3ce095350e6dafc21e8146543eaaefe058951aba11138cc342a4d98da0d58e806",
@@ -163,33 +160,31 @@ const signatures = [
   },
   {
     receiptId: "22040_6003100671677645902_1",
+    readyForClaim: true,
+    messageHash:
+      "0xcea1b8f8d748f5861a931b44ff374c549929bb6fbdbecc297a314c589df212bf",
     signatures: [
       {
-        receiptId: "22040_6003100671677645902_1",
         signedBy: "5LEctUbBJ3RDBsaz2ZRfvrCUT7S36bUHe58ebiymSLuU",
         signature:
           "0x73242f1d223f55ac014dbe99d3dc33f94bf58a658dd8e0db01288960a69b654dc7d49c3370217fe8129ab037cd62d5eddad25aa6cc817c83f3354281f8aacb03",
       },
       {
-        receiptId: "22040_6003100671677645902_1",
         signedBy: "AgsF8YRCHEWwRDJJE6pRTN3YP86qZbqToKE2k6eiGGJ1",
         signature:
           "0x8e6a0064cd5fb7c2a355ea5f8d9312f0bb27dad185ff3137f1f9955c8f3417fbe789781f8f6a6c60519372bdcb703cfc42fbb907c60f946e926a35e8eb7b3f0e",
       },
       {
-        receiptId: "22040_6003100671677645902_1",
         signedBy: "BxjUNyhbM8je1ynfPcEuihYdi1qB7EkjuL1N8zgZWczx",
         signature:
           "0x0597ca13b8436250a15eed9e57082bb172a660f37bba9345a3f481b8accbc7c0a8b2bc13844d320331b0149c9aa96515f807877ecb5c5d73b5971917b6064a0f",
       },
       {
-        receiptId: "22040_6003100671677645902_1",
         signedBy: "HovoifHQnmogSutaxjNSptz2BV8LoPkP2V6omrjYE9Tp",
         signature:
           "0xbff6a5b6a0f01209fdcc4bd33f182938945f7dc6d27d4e0f09da64ed9d30dd2df3525f4158bad3e9bc122f6d25082834ac08a917bf1d0a42b7b75be46b6b8202",
       },
       {
-        receiptId: "22040_6003100671677645902_1",
         signedBy: "T9VhfHpg2616B4cSLtc4DDqbuMJWv2yEuN1xGAtXStP",
         signature:
           "0xc63eca50f8f7e6f988167779d83bcbaaf1a8a28aa48180f15d961f3fb80fb54bd020b2747d9a05570f4b853bdfa69f14c60af6d8705794da6946e833104b7504",
@@ -197,34 +192,32 @@ const signatures = [
     ],
   },
   {
-    receiptId: "22040_6003100671677645902_2",
+    receiptId: "22040_6003100671677645902_9",
+    readyForClaim: true,
+    messageHash:
+      "0xaea4565024a8653e2be171b86e8f80275af0a549235e829ead8a6665f3f66101",
     signatures: [
       {
-        receiptId: "22040_6003100671677645902_2",
         signedBy: "5LEctUbBJ3RDBsaz2ZRfvrCUT7S36bUHe58ebiymSLuU",
         signature:
           "0x1d2ecf8ee6abebbcd58edaee0279280872dcba93ce646c9dbffc6718a7006370571c0a932b7a18d6d124466c1d01dd10a187651b9136911231c77fb2da5ccd0b",
       },
       {
-        receiptId: "22040_6003100671677645902_2",
         signedBy: "AgsF8YRCHEWwRDJJE6pRTN3YP86qZbqToKE2k6eiGGJ1",
         signature:
           "0xa2632807114b2e952c12901653a096fd4b2ea07cc82004be7dba72f5c63d505e0cb617f4b291caa92d863582774686de1babaf6e07423bb5edb0fadcda7d8a00",
       },
       {
-        receiptId: "22040_6003100671677645902_2",
         signedBy: "BxjUNyhbM8je1ynfPcEuihYdi1qB7EkjuL1N8zgZWczx",
         signature:
           "0x3527fe72833e742bf9f7e4c22555cea1d10ac8156e8928fe2b6e45b9785d42af3e4dfa923c6d20cdc846fd62a6aa79b2861a805c5689b0f1514f30a835065c04",
       },
       {
-        receiptId: "22040_6003100671677645902_2",
         signedBy: "HovoifHQnmogSutaxjNSptz2BV8LoPkP2V6omrjYE9Tp",
         signature:
           "0x2b44106d4720bc4f032ce81083bcfeb76d3ece88e28e5ac31599700a4f3666b0edf1babeaf3d6946176e01eb9e096ca1ab703c71fd271f279fd31ab8716dd902",
       },
       {
-        receiptId: "22040_6003100671677645902_2",
         signedBy: "T9VhfHpg2616B4cSLtc4DDqbuMJWv2yEuN1xGAtXStP",
         signature:
           "0x35084507fbd47d8a3e00bef54fc34ae6beceb7e8c15242667ae66400d0c71798d913aa60a8f09f8fa9f5d82009ae3952ce480526ee428363c1df6b785f88dd03",

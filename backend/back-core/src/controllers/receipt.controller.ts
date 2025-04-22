@@ -3,7 +3,7 @@ import { receipt, signatures } from "../db/schema/core.schema";
 import { receiptsMetaInIndexerEvm } from "../db/schema/evm.schema";
 import { receiptsMetaInIndexerSolana } from "../db/schema/solana.schema";
 import { eq, or, asc, desc, ne, and, notInArray, inArray } from "drizzle-orm";
-import { toBytes, keccak256, recoverMessageAddress, encodePacked, bytesToHex } from "viem";
+import { toBytes, keccak256, recoverMessageAddress, encodePacked } from "viem";
 import { consoleLogger } from "../utils";
 import { serializeReceivePayload, ReceivePayload } from "../utils/solana";
 import {
@@ -14,7 +14,6 @@ import {
 import nacl from "tweetnacl";
 import { PublicKey } from "@solana/web3.js";
 import { Networks } from "../utils/networks";
-import { Hash } from "ox";
 
 export class ReceiptController {
   db: NodePgDatabase;

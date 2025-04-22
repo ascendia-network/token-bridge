@@ -10,7 +10,7 @@ import {
 } from "./utils";
 import { Hono } from "hono";
 import { type ContentfulStatusCode } from "hono/utils/http-status";
-import { receiptControllerMiddleware } from "../../middleware/receiptController";
+import { receiptControllerMiddleware } from "../middleware/receiptController";
 
 export const relayRoutes = new Hono();
 

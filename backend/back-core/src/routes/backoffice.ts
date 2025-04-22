@@ -5,7 +5,7 @@ import { Hono } from "hono";
 import { tokens } from "../utils/tokens2";
 import { formatUnits } from "viem";
 import { addressToUserFriendly } from "../utils/addresses";
-import { receiptControllerMiddleware } from "../../middleware/receiptController";
+import { receiptControllerMiddleware } from "../middleware/receiptController";
 
 export const backofficeRoutes = new Hono();
 

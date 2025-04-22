@@ -1,5 +1,5 @@
 import { env } from "hono/adapter";
-import { SendSignatureController } from "../src/controllers/send-signature.controller";
+import { SendSignatureController } from "../controllers/send-signature.controller";
 import { Dependency } from "hono-simple-di";
 
 export const sendSignatureControllerMiddleware = new Dependency((c) => {

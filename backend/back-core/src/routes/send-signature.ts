@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { sendPayloadResponseSchema, sendSignatureQuerySchema } from "./utils";
-import { sendSignatureControllerMiddleware } from "../../middleware/sendSignature";
+import { sendSignatureControllerMiddleware } from "../middleware/sendSignature";
 
 
 export const sendSignatureRoutes = new Hono();

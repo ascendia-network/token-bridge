@@ -10,7 +10,7 @@ import {
   svmAddressBytes32Hex,
 } from "./utils";
 import { Hono } from "hono";
-import { receiptControllerMiddleware } from "../../middleware/receiptController";
+import { receiptControllerMiddleware } from "../middleware/receiptController";
 import { SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID } from "../../config";
 
 export const receiptRoutes = new Hono<{

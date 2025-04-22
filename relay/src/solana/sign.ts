@@ -13,6 +13,8 @@ export async function signReceiptForSolana(
     tokenAddressTo: toBytes(receipt.tokenAddressTo, { size: 32 }),
     amountTo: Number.parseInt(receipt.amountTo.toString()),
     chainTo: receipt.chainTo,
+    chainFrom: receipt.chainFrom,
+    eventId: receipt.eventId,
     flags: toBytes(receipt.flags, { size: 32 }),
     flagData: toBytes(receipt.data),
   };

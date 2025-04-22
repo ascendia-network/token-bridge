@@ -42,10 +42,11 @@ const serialize = (value: any, schema: any) =>
 export interface SendPayload {
   tokenAddressFrom: Uint8Array;
   tokenAddressTo: Uint8Array;
-  amountToSend: number;
-  feeAmount: number;
+  amountToSend: number | bigint;
+  feeAmount: number | bigint;
   chainFrom: number | bigint;
-  timestamp: number;
+  chainTo: number | bigint;
+  timestamp: number | bigint;
   flags: Uint8Array;
   flagData: Uint8Array;
 }
@@ -56,6 +57,7 @@ const sendSchema = {
   amountToSend: "u64",
   feeAmount: "u64",
   chainFrom: "u64",
+  chainTo: "u64",
   timestamp: "u64",
   flags: _b32,
   flagData: { array: { type: "u8" } },
@@ -64,8 +66,10 @@ const sendSchema = {
 export interface ReceivePayload {
   to: Uint8Array;
   tokenAddressTo: Uint8Array;
-  amountTo: number;
+  amountTo: number | bigint;
+  chainFrom: number | bigint;
   chainTo: number | bigint;
+  eventId: number | bigint;
   flags: Uint8Array;
   flagData: Uint8Array;
 }
@@ -74,7 +78,9 @@ const receiveSchema = {
   to: _b32,
   tokenAddressTo: _b32,
   amountTo: "u64",
+  chainFrom: "u64",
   chainTo: "u64",
+  eventId: "u64",
   flags: _b32,
   flagData: { array: { type: "u8" } },
 };

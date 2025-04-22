@@ -333,7 +333,9 @@ export class ReceiptController {
       to: toBytes(receiptToSign.to, { size: 32 }),
       tokenAddressTo: toBytes(receiptToSign.tokenAddressTo, { size: 32 }),
       amountTo: BigInt(receiptToSign.amountTo),
+      chainFrom: BigInt(receiptToSign.chainFrom),
       chainTo: BigInt(receiptToSign.chainTo),
+      eventId: BigInt(receiptToSign.eventId),
       flags: toBytes(BigInt(receiptToSign.flags), { size: 32 }),
       flagData: toBytes(receiptToSign.data),
     });

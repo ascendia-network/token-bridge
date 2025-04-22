@@ -29,11 +29,11 @@ const serialize = (value: any, schema: any) => Buffer.from(borsh.serialize({ str
 export interface SendPayload {
   tokenAddressFrom: Uint8Array;
   tokenAddressTo: Uint8Array;
-  amountToSend: number;
-  feeAmount: number;
+  amountToSend: number | bigint;
+  feeAmount: number | bigint;
   chainFrom: number | bigint;
   chainTo: number | bigint;
-  timestamp: number;
+  timestamp: number | bigint;
   flags: Uint8Array;
   flagData: Uint8Array;
 }
@@ -53,10 +53,10 @@ const sendSchema = {
 export interface ReceivePayload {
   to: Uint8Array;
   tokenAddressTo: Uint8Array;
-  amountTo: number;
+  amountTo: number | bigint;
   chainFrom: number | bigint;
   chainTo: number | bigint;
-  eventId: number;
+  eventId: number | bigint;
   flags: Uint8Array;
   flagData: Uint8Array;
 }

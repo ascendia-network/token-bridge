@@ -16,6 +16,7 @@ export const SendPayload = z.object({
   amountToSend: z.coerce.bigint().max(2n ** 64n - 1n),
   feeAmount: z.coerce.bigint().max(2n ** 64n - 1n),
   chainFrom: z.coerce.bigint().max(2n ** 64n - 1n),
+  chainTo: z.coerce.bigint().max(2n ** 64n - 1n),
   timestamp: z.coerce.bigint().max(2n ** 64n - 1n),
   flags: z.instanceof(Uint8Array).refine((v) => v.length === 32),
   flagData: z.instanceof(Uint8Array),
@@ -29,16 +30,19 @@ const sendSchema = {
   amountToSend: "u64",
   feeAmount: "u64",
   chainFrom: "u64",
+  chainTo: "u64",
   timestamp: "u64",
   flags: _b32,
-  flagData: { array: { type: "u8" } }
+  flagData: { array: { type: "u8" } },
 };
 
 export const ReceivePayload = z.object({
   to: z.instanceof(Uint8Array).refine((v) => v.length === 32),
   tokenAddressTo: z.instanceof(Uint8Array).refine((v) => v.length === 32),
   amountTo: z.coerce.bigint().max(2n ** 64n - 1n),
+  chainFrom: z.coerce.bigint().max(2n ** 64n - 1n),
   chainTo: z.coerce.bigint().max(2n ** 64n - 1n),
+  eventId: z.coerce.bigint().max(2n ** 64n - 1n),
   flags: z.instanceof(Uint8Array).refine((v) => v.length === 32),
   flagData: z.instanceof(Uint8Array),
 });
@@ -49,9 +53,11 @@ const receiveSchema = {
   to: _b32,
   tokenAddressTo: _b32,
   amountTo: "u64",
+  chainFrom: "u64",
   chainTo: "u64",
+  eventId: "u64",
   flags: _b32,
-  flagData: { array: { type: "u8" } }
+  flagData: { array: { type: "u8" } },
 };
 
 export const serializeSendPayload = (value: SendPayload) =>

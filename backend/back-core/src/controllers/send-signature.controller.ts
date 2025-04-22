@@ -142,6 +142,7 @@ export class SendSignatureController {
         amountToSend: sendPayload.amountToSend,
         feeAmount: sendPayload.feeAmount,
         chainFrom: sendPayload.chainFrom,
+        chainTo: sendPayload.chainTo,
         timestamp: BigInt(sendPayload.timestamp),
         flags: toBytes(sendPayload.flags, { size: 32 }),
         flagData:

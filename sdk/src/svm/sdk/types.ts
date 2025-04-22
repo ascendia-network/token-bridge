@@ -17,7 +17,7 @@ export interface SendPayloadSolana {
   feeAmount: number | bigint;
   chainFrom: number | bigint;
   chainTo: number | bigint;
-  timestamp: number;
+  timestamp: number | bigint;
   flags: Uint8Array;
   flagData: Uint8Array;
 }
@@ -71,7 +71,7 @@ export function convertSendPayload(sendPayload: SendPayload): SendPayloadSolana 
     feeAmount: sendPayload.feeAmount,
     chainFrom: sendPayload.chainFrom,
     chainTo: sendPayload.chainTo,
-    timestamp: Number(sendPayload.timestamp),
+    timestamp: sendPayload.timestamp,
     flags: bignumberToUint8Array(sendPayload.flags, 32),
     flagData: hexToUint8Array(sendPayload.flagData),
   }
@@ -86,7 +86,7 @@ export function convertReceivePayload(receipt: ReceiptWithMeta): ReceivePayloadS
     amountTo: receivePayload.amountTo,
     chainFrom: receivePayload.chainFrom,
     chainTo: receivePayload.chainTo,
-    eventId: Number(receivePayload.eventId),
+    eventId: receivePayload.eventId,
     flags: bignumberToUint8Array(receivePayload.flags, 32),
     flagData: hexToUint8Array(receivePayload.data),
   }

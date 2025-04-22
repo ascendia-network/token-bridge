@@ -48,6 +48,12 @@ export class SendSignatureController {
       flagData,
     }: SendSignatureArgs
   ) {
+    if (!Networks.isSupportedNetwork(networkFrom)) {
+      throw new Error(`Network From (${networkFrom}) is not supported`);
+    }
+    if (!Networks.isSupportedNetwork(networkTo)) {
+      throw new Error(`Network To (${networkTo}) is not supported`);
+    }
     const { feeAmount, amountToSend } = await getFees(
       networkFrom, networkTo, addressToUserFriendly(tokenAddress), amount, isMaxAmount
     );
@@ -55,7 +61,7 @@ export class SendSignatureController {
 
     let signResult: { signature: Hex; signedBy: string },
       sendPayload: SendPayload;
-
+    
     if (Networks.isSolana(networkFrom)) {
       sendPayload = {
         tokenAddressFrom: bytesToHex(toBytes(tokenAddress, { size: 32 })),

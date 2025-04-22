@@ -37,7 +37,7 @@ describe("Test bridge claim request", () => {
     });
   });
   const mockedBridgeAddress: Address =
-    "0x5Bcb9233DfEbcec502C1aCce6fc94FefF8c037C3";
+    "0xb05f659D9B043e6ecB37c12F25c43D00e4f6d618";
   test("Should call claim request successfully", async () => {
     await testClient.impersonateAccount({
       address: AccountFixture.address,

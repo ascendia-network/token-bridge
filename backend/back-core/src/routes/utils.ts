@@ -570,7 +570,7 @@ export const TokenConfigSchema = z.object({
             description:
               "Bridge address from source to destination network in source network",
             examples: [
-              "0x5Bcb9233DfEbcec502C1aCce6fc94FefF8c037C3",
+              "0xb05f659D9B043e6ecB37c12F25c43D00e4f6d618",
               "ambZMSUBvU8bLfxop5uupQd9tcafeJKea1KoyTv2yM1",
             ],
           })
@@ -580,7 +580,7 @@ export const TokenConfigSchema = z.object({
       description: "Bridges for different networks",
       example: {
         "22040": {
-          "6003100671677645902": "0x5Bcb9233DfEbcec502C1aCce6fc94FefF8c037C3",
+          "6003100671677645902": "0xb05f659D9B043e6ecB37c12F25c43D00e4f6d618",
         },
         "6003100671677645902": {
           "22040": "ambZMSUBvU8bLfxop5uupQd9tcafeJKea1KoyTv2yM1",

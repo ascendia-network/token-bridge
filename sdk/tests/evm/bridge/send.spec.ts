@@ -427,7 +427,7 @@ describe("Test bridge send request", () => {
     });
   });
   const mockedBridgeAddress: Address =
-    "0x5Bcb9233DfEbcec502C1aCce6fc94FefF8c037C3";
+    "0xb05f659D9B043e6ecB37c12F25c43D00e4f6d618";
   const mockedRecipient: Hex = toHex("Bob", { size: 32 });
   const mockedSignature: Hex =
     "0x4c5908107ce8fe51ac8c09188bb817c070ffed724b52bc8b29baf9905b76efe314392dbf9ace7e23aa3be2113ffb97fe9af438c4ff393d5a0de37b1ba2a28e211b";

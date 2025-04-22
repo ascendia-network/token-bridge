@@ -8,6 +8,7 @@ import { consoleLogger } from "./utils";
 import { config } from "dotenv";
 import { openAPISpecs } from "hono-openapi";
 import { Hono } from "hono";
+import { env } from "hono/adapter";
 config();
 export type Env = {
   Bindings: {

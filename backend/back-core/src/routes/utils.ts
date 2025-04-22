@@ -9,10 +9,12 @@ import { SOLANA_DEV_CHAIN_ID } from "../../config";
 import { toHex } from "viem";
 import type { Context } from "hono";
 import { cors } from "hono/cors";
+import { env } from "hono/adapter";
 
 export const corsMiddleware = cors({
   origin: (origin: string, c: Context) => {
-    return c.env.ALLOWED_ORIGINS ? c.env.ALLOWED_ORIGINS.split(",") : "*";
+    const origins = env<{ ALLOWED_ORIGINS: string }>(c).ALLOWED_ORIGINS;
+    return origins ? origins.split(",") : "*";
   },
   allowMethods: ["GET", "POST"],
   allowHeaders: ["Content-Type"],

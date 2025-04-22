@@ -751,7 +751,7 @@ abstract contract BridgeSolanaSendTest is BridgeTestBase {
             amountToSend,
             address(bridgeInstance)
         );
-        uint256 destinationChain = block.chainid;
+        uint256 destinationChain = SOLANA_DEVNET;
         uint256 feeAmount = 1000 wei;
         uint256 flag = 0;
         (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)

@@ -3,6 +3,7 @@ import { accountSolana } from "../config";
 import { ReceiptWithMeta } from "../typeValidators";
 import { ReceivePayload, serializeReceivePayload } from "./utils";
 import { toBytes, bytesToHex } from "viem"
+import { Hash } from "ox";
 
 export async function signReceiptForSolana(
   receiptWithMeta: ReceiptWithMeta
@@ -11,7 +12,7 @@ export async function signReceiptForSolana(
   const payload: ReceivePayload = {
     to: toBytes(receipt.to, { size: 32 }),
     tokenAddressTo: toBytes(receipt.tokenAddressTo, { size: 32 }),
-    amountTo: Number.parseInt(receipt.amountTo.toString()),
+    amountTo: receipt.amountTo,
     chainTo: receipt.chainTo,
     chainFrom: receipt.chainFrom,
     eventId: receipt.eventId,
@@ -19,6 +20,10 @@ export async function signReceiptForSolana(
     flagData: toBytes(receipt.data),
   };
   const messageBytes = serializeReceivePayload(payload);
-  const signatureBytes = nacl.sign.detached(messageBytes, accountSolana.secretKey);
+  const messageHashBytes = Hash.keccak256(messageBytes);
+  const signatureBytes = nacl.sign.detached(
+    messageHashBytes,
+    accountSolana.secretKey
+  );
   return bytesToHex(signatureBytes); // signature;
 }

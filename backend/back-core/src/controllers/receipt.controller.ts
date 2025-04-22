@@ -220,12 +220,11 @@ export class ReceiptController {
 
   async getReceiptSignatures(
     receiptId: `${number}_${number}_${number}`
-  ): Promise<Array<Omit<typeof signatures.$inferSelect, "id">>> {
+  ): Promise<Array<Omit<typeof signatures.$inferSelect, "id"| "receiptId">>> {
     try {
       await this.db.refreshMaterializedView(receipt);
       const signaturesData = await this.db
         .select({
-          receiptId: signatures.receiptId,
           signedBy: signatures.signedBy,
           signature: signatures.signature,
         })

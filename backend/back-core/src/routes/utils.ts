@@ -424,11 +424,6 @@ export const unsignedReceiptsResponseSchema = z.array(
 );
 
 const signaturesSchema = createSelectSchema(signatures, {
-  receiptId: (schema: z.ZodString) =>
-    schema.regex(receiptIdRegex).openapi({
-      example: "6003100671677646000_22040_3",
-      description: "Receipt ID as 'chainFrom_chainTo_eventId",
-    }),
   signedBy: (schema: z.ZodString) =>
     schema.openapi({
       examples: [
@@ -443,7 +438,7 @@ const signaturesSchema = createSelectSchema(signatures, {
         "0x14610d481d0b786920d49cb6318a03ac781ae3a031b306932773c0aad66339547d271ec0c306f62f4e297a8a6cd4c05774863a24852b3fe9a499a355a5fe8fb11b",
       description: "Signature of the transaction",
     }),
-}).omit({ id: true });
+}).omit({ id: true, receiptId: true });
 
 export const receiptResponseSchema = z.object({
   receipt: ReceiptSchema,

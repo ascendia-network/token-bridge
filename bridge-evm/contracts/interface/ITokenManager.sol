@@ -5,14 +5,20 @@ pragma abicoder v2;
 interface ITokenManager {
 
     struct ExternalToken {
-        bytes32 externalTokenAddress;
-        address tokenAddress;
-        uint8 decimals;
+        // 1st slot (32 bytes)
+        bytes32 externalTokenAddress; 
+        // 2nd slot (20 + 1 + 8 bytes)
+        address tokenAddress; // 2nd slot (20 bytes)
+        uint8 decimals; // 2nd slot (1 byte)
+        uint64 chainId; // 2nd slot (8 bytes)
     }
 
     struct ExternalTokenUnmapped {
+        // 1st slot (32 bytes)
         bytes32 externalTokenAddress;
-        uint8 decimals;
+        // 2nd slot (1 + 8 bytes)
+        uint8 decimals; // 2nd slot (1 byte)
+        uint64 chainId; // 2nd slot (8 bytes)
     }
 
     /// Emits when token is added to the bridge
@@ -81,6 +87,9 @@ interface ITokenManager {
     /// Reverts if token is paused
     /// @param token address of the token
     error TokenIsPaused(address token);
+
+    /// Reverts when the chain ID is invalid
+    error WrongChainId();
 
     /// Check if the token is bridgable
     /// @param token address of the token

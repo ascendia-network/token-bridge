@@ -135,7 +135,8 @@ abstract contract BridgeRestrictedTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("SOLANA_TOKEN"),
-            decimals: 6
+            decimals: 6,
+            chainId: SOLANA_DEVNET
         });
         vm.expectRevert(
             abi.encodeWithSelector(

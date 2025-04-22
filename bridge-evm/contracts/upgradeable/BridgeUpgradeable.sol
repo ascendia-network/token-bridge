@@ -338,19 +338,22 @@ abstract contract BridgeUpgradeable is
         SendPayload calldata payload,
         bytes calldata payloadSignature
     ) private view returns (uint256 amountToReceive) {
-        validator().validatePayload(payload, payloadSignature);
-        address srcToken = payload.tokenAddress.toAddress();
         if (payload.chainTo == block.chainid) {
             revert InvalidChain();
         }
         if (payload.chainFrom != block.chainid) {
             revert InvalidChain();
         }
+        validator().validatePayload(payload, payloadSignature);
+        address srcToken = payload.tokenAddress.toAddress();
         if (pausedTokens(srcToken)) {
             revert TokenIsPaused(srcToken);
         }
         ExternalToken memory externalToken_ =
             externalToken(payload.externalTokenAddress);
+        if (externalToken_.chainId != payload.chainTo) {
+            revert InvalidChain();
+        }
         if (externalToken_.tokenAddress != srcToken) {
             revert TokenNotBridgable(srcToken);
         }

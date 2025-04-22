@@ -1,5 +1,5 @@
 # ITokenManager
-[Git Source](https://github.com/ambrosus/token-bridge/blob/b8faea8dbabdd33f2dbbdda724404a71e4c5b492/contracts/interface/ITokenManager.sol)
+[Git Source](https://github.com/ambrosus/token-bridge/blob/552fd0953a1932ae8ea9555e10159a131960dfef/contracts/interface/ITokenManager.sol)
 
 
 ## Functions
@@ -507,6 +507,14 @@ error TokenIsPaused(address token);
 |----|----|-----------|
 |`token`|`address`|address of the token|
 
+### WrongChainId
+Reverts when the chain ID is invalid
+
+
+```solidity
+error WrongChainId();
+```
+
 ## Structs
 ### ExternalToken
 
@@ -515,6 +523,7 @@ struct ExternalToken {
     bytes32 externalTokenAddress;
     address tokenAddress;
     uint8 decimals;
+    uint64 chainId;
 }
 ```
 
@@ -524,6 +533,7 @@ struct ExternalToken {
 struct ExternalTokenUnmapped {
     bytes32 externalTokenAddress;
     uint8 decimals;
+    uint64 chainId;
 }
 ```
 

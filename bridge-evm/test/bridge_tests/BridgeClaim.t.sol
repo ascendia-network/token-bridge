@@ -51,7 +51,8 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("SOLANA_TOKEN"),
-            decimals: permittableToken.decimals()
+            decimals: permittableToken.decimals(),
+            chainId: SOLANA_DEVNET
         });
         address token = bridgeInstance.deployExternalTokenERC20(
             extToken, "solana token", "SOL", 18
@@ -64,7 +65,7 @@ abstract contract BridgeClaimTest is BridgeTestBase {
             tokenAddressTo: bytes32(uint256(uint160(token))),
             amountFrom: amount,
             amountTo: amount,
-            chainFrom: uint256(bytes32("SOLANA")),
+            chainFrom: SOLANA_DEVNET,
             chainTo: block.chainid,
             eventId: 555,
             flags: 0,
@@ -87,7 +88,8 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("SOLANA_TOKEN"),
-            decimals: permittableToken.decimals()
+            decimals: permittableToken.decimals(),
+            chainId: SOLANA_DEVNET
         });
         address token = bridgeInstance.deployExternalTokenERC20(
             extToken, "solana token", "SOL", 18
@@ -100,7 +102,7 @@ abstract contract BridgeClaimTest is BridgeTestBase {
             tokenAddressTo: bytes32(uint256(uint160(token))),
             amountFrom: amount,
             amountTo: amount,
-            chainFrom: uint256(bytes32("SOLANA")),
+            chainFrom: SOLANA_DEVNET,
             chainTo: block.chainid,
             eventId: 555,
             flags: 0,
@@ -129,7 +131,7 @@ abstract contract BridgeClaimTest is BridgeTestBase {
             tokenAddressTo: bytes32(uint256(uint160(token))),
             amountFrom: amount,
             amountTo: amount,
-            chainFrom: uint256(bytes32("SOLANA")),
+            chainFrom: SOLANA_DEVNET,
             chainTo: block.chainid,
             eventId: 555,
             flags: 0,
@@ -154,7 +156,7 @@ abstract contract BridgeClaimTest is BridgeTestBase {
             tokenAddressTo: bytes32(uint256(uint160(deadBeef))),
             amountFrom: amount,
             amountTo: amount,
-            chainFrom: uint256(bytes32("SOLANA")),
+            chainFrom: SOLANA_DEVNET,
             chainTo: block.chainid,
             eventId: 555,
             flags: 0,
@@ -175,7 +177,8 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("SOLANA_TOKEN"),
-            decimals: permittableToken.decimals()
+            decimals: permittableToken.decimals(),
+            chainId: SOLANA_DEVNET
         });
         address token = bridgeInstance.deployExternalTokenERC20(
             extToken, "solana token", "SOL", 18
@@ -188,7 +191,7 @@ abstract contract BridgeClaimTest is BridgeTestBase {
             tokenAddressTo: bytes32(uint256(uint160(token))),
             amountFrom: amount,
             amountTo: amount,
-            chainFrom: uint256(bytes32("SOLANA")),
+            chainFrom: SOLANA_DEVNET,
             chainTo: block.chainid + 1,
             eventId: 555,
             flags: 0,
@@ -205,7 +208,8 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("SOLANA_TOKEN"),
-            decimals: permittableToken.decimals()
+            decimals: permittableToken.decimals(),
+            chainId: SOLANA_DEVNET
         });
         address token = bridgeInstance.deployExternalTokenERC20(
             extToken, "solana token", "SOL", 18
@@ -217,7 +221,7 @@ abstract contract BridgeClaimTest is BridgeTestBase {
             tokenAddressTo: bytes32(uint256(uint160(token))),
             amountFrom: amount,
             amountTo: amount,
-            chainFrom: uint256(bytes32("SOLANA")),
+            chainFrom: SOLANA_DEVNET,
             chainTo: block.chainid,
             eventId: 555,
             flags: 0,
@@ -240,7 +244,8 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("SOLANA_TOKEN"),
-            decimals: permittableToken.decimals()
+            decimals: permittableToken.decimals(),
+            chainId: SOLANA_DEVNET
         });
         bridgeInstance.addToken(address(wrappedToken), extToken, false);
         BridgeTypes.FullReceipt memory receipt = BridgeTypes.FullReceipt({
@@ -250,7 +255,7 @@ abstract contract BridgeClaimTest is BridgeTestBase {
             tokenAddressTo: bytes32(uint256(uint160(address(wrappedToken)))),
             amountFrom: amount,
             amountTo: amount,
-            chainFrom: uint256(bytes32("SOLANA")),
+            chainFrom: SOLANA_DEVNET,
             chainTo: block.chainid,
             eventId: 555,
             flags: 0,
@@ -276,7 +281,8 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("SOLANA_TOKEN"),
-            decimals: permittableToken.decimals()
+            decimals: permittableToken.decimals(),
+            chainId: SOLANA_DEVNET
         });
 
         bridgeInstance.addToken(address(wrappedToken), extToken, false);
@@ -288,7 +294,7 @@ abstract contract BridgeClaimTest is BridgeTestBase {
             tokenAddressTo: bytes32(uint256(uint160(address(wrappedToken)))),
             amountFrom: amount,
             amountTo: amount,
-            chainFrom: uint256(bytes32("SOLANA")),
+            chainFrom: SOLANA_DEVNET,
             chainTo: block.chainid,
             eventId: 555,
             flags: BridgeFlags.SHOULD_UNWRAP,
@@ -314,7 +320,8 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("SOLANA_TOKEN"),
-            decimals: permittableToken.decimals()
+            decimals: permittableToken.decimals(),
+            chainId: SOLANA_DEVNET
         });
         bridgeInstance.addToken(address(wrappedToken), extToken, false);
         BridgeTypes.FullReceipt memory receipt = BridgeTypes.FullReceipt({
@@ -324,7 +331,7 @@ abstract contract BridgeClaimTest is BridgeTestBase {
             tokenAddressTo: bytes32(uint256(uint160(address(wrappedToken)))),
             amountFrom: amount,
             amountTo: amount,
-            chainFrom: uint256(bytes32("SOLANA")),
+            chainFrom: SOLANA_DEVNET,
             chainTo: block.chainid,
             eventId: 555,
             flags: BridgeFlags.SHOULD_UNWRAP,
@@ -342,7 +349,8 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("SOLANA_TOKEN"),
-            decimals: permittableToken.decimals()
+            decimals: permittableToken.decimals(),
+            chainId: SOLANA_DEVNET
         });
         address token = bridgeInstance.deployExternalTokenERC20(
             extToken, "solana token", "SOL", 18
@@ -356,7 +364,7 @@ abstract contract BridgeClaimTest is BridgeTestBase {
             tokenAddressTo: bytes32(uint256(uint160(token))),
             amountFrom: amount,
             amountTo: amount,
-            chainFrom: uint256(bytes32("SOLANA")),
+            chainFrom: SOLANA_DEVNET,
             chainTo: block.chainid,
             eventId: 555,
             flags: BridgeFlags.SEND_NATIVE_TO_RECEIVER,
@@ -382,7 +390,8 @@ abstract contract BridgeClaimTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("SOLANA_TOKEN"),
-            decimals: permittableToken.decimals()
+            decimals: permittableToken.decimals(),
+            chainId: SOLANA_DEVNET
         });
         address token = bridgeInstance.deployExternalTokenERC20(
             extToken, "solana token", "SOL", 18
@@ -395,7 +404,7 @@ abstract contract BridgeClaimTest is BridgeTestBase {
             tokenAddressTo: bytes32(uint256(uint160(token))),
             amountFrom: amount,
             amountTo: amount,
-            chainFrom: uint256(bytes32("SOLANA")),
+            chainFrom: SOLANA_DEVNET,
             chainTo: block.chainid,
             eventId: 555,
             flags: BridgeFlags.SEND_NATIVE_TO_RECEIVER,

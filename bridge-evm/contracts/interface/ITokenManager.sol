@@ -6,7 +6,7 @@ interface ITokenManager {
 
     struct ExternalToken {
         // 1st slot (32 bytes)
-        bytes32 externalTokenAddress; 
+        bytes32 externalTokenAddress;
         // 2nd slot (20 + 1 + 8 bytes)
         address tokenAddress; // 2nd slot (20 bytes)
         uint8 decimals; // 2nd slot (1 byte)

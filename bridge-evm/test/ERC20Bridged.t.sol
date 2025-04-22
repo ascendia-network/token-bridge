@@ -141,7 +141,7 @@ contract ERC20BridgedTest is Test {
     function test_blacklist() public {
         uint256 initialBalance = 1000;
         uint256 amount = 100;
-        
+
         vm.startPrank(fakeBridge);
         token.transfer(alice, initialBalance);
         vm.stopPrank();
@@ -166,7 +166,6 @@ contract ERC20BridgedTest is Test {
         emit IERC20.Transfer(alice, bob, amount);
         token.transfer(bob, amount);
         vm.stopPrank();
-        
     }
 
     function test_fail_blacklist_unauthorized() public {
@@ -178,7 +177,7 @@ contract ERC20BridgedTest is Test {
         );
         token.addBlacklist(alice);
         vm.stopPrank();
-        
+
         vm.startPrank(address(this));
         token.addBlacklist(alice);
         vm.stopPrank();
@@ -192,4 +191,5 @@ contract ERC20BridgedTest is Test {
         token.removeBlacklist(alice);
         vm.stopPrank();
     }
+
 }

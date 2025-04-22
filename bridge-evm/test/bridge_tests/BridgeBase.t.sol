@@ -35,7 +35,7 @@ import {sAMB} from "../mocks/sAMB.sol";
 abstract contract BridgeTestBase is Test {
 
     using EnumerableSet for EnumerableSet.AddressSet;
-    
+
     uint64 constant SOLANA_DEVNET = uint64(bytes8("SOLANADN"));
     uint64 constant SOLANA_MAINNET = uint64(bytes8("SOLANA"));
     bytes32 constant coverageProfile = keccak256(abi.encodePacked("coverage"));

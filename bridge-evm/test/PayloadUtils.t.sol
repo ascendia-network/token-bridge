@@ -38,7 +38,8 @@ contract PayloadUtilsTest is Test {
         runJsInputs[2] = Strings.toHexString(uint256(payload.chainFrom), 32);
         runJsInputs[3] = Strings.toHexString(uint256(payload.chainTo), 32);
         runJsInputs[4] = Strings.toHexString(uint256(payload.tokenAddress), 32);
-        runJsInputs[5] = Strings.toHexString(uint256(payload.externalTokenAddress), 32);
+        runJsInputs[5] =
+            Strings.toHexString(uint256(payload.externalTokenAddress), 32);
         runJsInputs[6] = Strings.toHexString(payload.amountToSend, 32);
         runJsInputs[7] = Strings.toHexString(payload.feeAmount, 32);
         runJsInputs[8] = Strings.toHexString(payload.timestamp, 32);
@@ -53,7 +54,8 @@ contract PayloadUtilsTest is Test {
         assertEq(expectedHash, jsGenerated);
     }
 
-    string constant JS_PAYLOAD_HASH_ETHERS_PATH = "./test/differential_testing/payload2hashEthers.js";
+    string constant JS_PAYLOAD_HASH_ETHERS_PATH =
+        "./test/differential_testing/payload2hashEthers.js";
 
     function test_fuzz_payload2hash_ethers(
         uint256 chainFrom, // source chain id
@@ -91,7 +93,8 @@ contract PayloadUtilsTest is Test {
         payload2hash_check(JS_PAYLOAD_HASH_ETHERS_PATH, payload);
     }
 
-    string constant JS_PAYLOAD_HASH_VIEM_PATH = "./test/differential_testing/payload2hashViem.js";
+    string constant JS_PAYLOAD_HASH_VIEM_PATH =
+        "./test/differential_testing/payload2hashViem.js";
 
     function test_fuzz_payload2hash_viem(
         uint256 chainFrom, // source chain id

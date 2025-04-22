@@ -505,8 +505,7 @@ abstract contract BridgeUpgradeable is
         SendPayload calldata payload,
         bytes calldata payloadSignature
     ) private returns (FullReceipt memory receipt) {
-        uint256 amountTo =
-            _validateSendValues(payload, payloadSignature);
+        uint256 amountTo = _validateSendValues(payload, payloadSignature);
         address sender = payload.flags & BridgeFlags.SENDER_IS_TXORIGIN != 0
             ? tx.origin
             : msg.sender;

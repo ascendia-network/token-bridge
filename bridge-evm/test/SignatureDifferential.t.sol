@@ -10,6 +10,7 @@ import {PayloadUtils} from "../contracts/utils/PayloadUtils.sol";
 import {ReceiptUtils} from "../contracts/utils/ReceiptUtils.sol";
 
 contract SignatureDifferentialTest is Test {
+
     using ReceiptUtils for BridgeTypes.FullReceipt;
     using ReceiptUtils for BridgeTypes.MiniReceipt;
     using PayloadUtils for BridgeTypes.SendPayload;
@@ -56,7 +57,9 @@ contract SignatureDifferentialTest is Test {
         commonSigner = getSigner("commonSigner");
     }
 
-    function iToHex(bytes memory buffer) public pure returns (string memory) {
+    function iToHex(
+        bytes memory buffer
+    ) public pure returns (string memory) {
         // Fixed buffer size for hexadecimal conversion
         bytes memory converted = new bytes(buffer.length * 2);
 
@@ -105,14 +108,10 @@ contract SignatureDifferentialTest is Test {
         runJsInputs[2] = "--full";
         runJsInputs[3] = Strings.toHexString(uint256(receipt.from), 32);
         runJsInputs[4] = Strings.toHexString(uint256(receipt.to), 32);
-        runJsInputs[5] = Strings.toHexString(
-            uint256(receipt.tokenAddressFrom),
-            32
-        );
-        runJsInputs[6] = Strings.toHexString(
-            uint256(receipt.tokenAddressTo),
-            32
-        );
+        runJsInputs[5] =
+            Strings.toHexString(uint256(receipt.tokenAddressFrom), 32);
+        runJsInputs[6] =
+            Strings.toHexString(uint256(receipt.tokenAddressTo), 32);
         runJsInputs[7] = Strings.toHexString(receipt.amountFrom, 32);
         runJsInputs[8] = Strings.toHexString(receipt.amountTo, 32);
         runJsInputs[9] = Strings.toHexString(receipt.chainFrom, 32);
@@ -136,10 +135,8 @@ contract SignatureDifferentialTest is Test {
         runJsInputs[1] = jsPath;
         runJsInputs[2] = "--mini";
         runJsInputs[3] = Strings.toHexString(uint256(receipt.to), 32);
-        runJsInputs[4] = Strings.toHexString(
-            uint256(receipt.tokenAddressTo),
-            32
-        );
+        runJsInputs[4] =
+            Strings.toHexString(uint256(receipt.tokenAddressTo), 32);
         runJsInputs[5] = Strings.toHexString(receipt.amountTo, 32);
         runJsInputs[6] = Strings.toHexString(receipt.chainFrom, 32);
         runJsInputs[7] = Strings.toHexString(receipt.chainTo, 32);
@@ -163,10 +160,8 @@ contract SignatureDifferentialTest is Test {
         runJsInputs[2] = Strings.toHexString(uint256(payload.chainFrom), 32);
         runJsInputs[3] = Strings.toHexString(uint256(payload.chainTo), 32);
         runJsInputs[4] = Strings.toHexString(uint256(payload.tokenAddress), 32);
-        runJsInputs[5] = Strings.toHexString(
-            uint256(payload.externalTokenAddress),
-            32
-        );
+        runJsInputs[5] =
+            Strings.toHexString(uint256(payload.externalTokenAddress), 32);
         runJsInputs[6] = Strings.toHexString(payload.amountToSend, 32);
         runJsInputs[7] = Strings.toHexString(payload.feeAmount, 32);
         runJsInputs[8] = Strings.toHexString(payload.timestamp, 32);
@@ -220,20 +215,19 @@ contract SignatureDifferentialTest is Test {
         uint256 flags, // flags for receiver
         bytes calldata data // additional data of the transaction (eg. user nonce for Solana)
     ) internal pure returns (BridgeTypes.FullReceipt memory) {
-        return
-            BridgeTypes.FullReceipt({
-                from: from,
-                to: to,
-                tokenAddressFrom: tokenAddressFrom,
-                tokenAddressTo: tokenAddressTo,
-                amountFrom: amountFrom,
-                amountTo: amountTo,
-                chainFrom: chainFrom,
-                chainTo: chainTo,
-                eventId: eventId,
-                flags: flags,
-                data: data
-            });
+        return BridgeTypes.FullReceipt({
+            from: from,
+            to: to,
+            tokenAddressFrom: tokenAddressFrom,
+            tokenAddressTo: tokenAddressTo,
+            amountFrom: amountFrom,
+            amountTo: amountTo,
+            chainFrom: chainFrom,
+            chainTo: chainTo,
+            eventId: eventId,
+            flags: flags,
+            data: data
+        });
     }
 
     function buildMiniReceipt(
@@ -246,17 +240,16 @@ contract SignatureDifferentialTest is Test {
         uint256 flags, // flags for receiver
         bytes calldata data // additional data of the transaction (eg. user nonce for Solana)
     ) internal pure returns (BridgeTypes.MiniReceipt memory) {
-        return
-            BridgeTypes.MiniReceipt({
-                to: to,
-                tokenAddressTo: tokenAddressTo,
-                amountTo: amountTo,
-                chainFrom: chainFrom,
-                chainTo: chainTo,
-                eventId: eventId,
-                flags: flags,
-                data: data
-            });
+        return BridgeTypes.MiniReceipt({
+            to: to,
+            tokenAddressTo: tokenAddressTo,
+            amountTo: amountTo,
+            chainFrom: chainFrom,
+            chainTo: chainTo,
+            eventId: eventId,
+            flags: flags,
+            data: data
+        });
     }
 
     function buildPayload(
@@ -270,18 +263,17 @@ contract SignatureDifferentialTest is Test {
         uint256 flags, // flags of the sending operation
         bytes calldata flagData // additional data of the sending operation (unused for now)
     ) internal pure returns (BridgeTypes.SendPayload memory) {
-        return
-            BridgeTypes.SendPayload({
-                chainFrom: chainFrom,
-                chainTo: chainTo,
-                tokenAddress: tokenAddress,
-                externalTokenAddress: externalTokenAddress,
-                amountToSend: amountToSend,
-                feeAmount: feeAmount,
-                timestamp: timestamp,
-                flags: flags,
-                flagData: flagData
-            });
+        return BridgeTypes.SendPayload({
+            chainFrom: chainFrom,
+            chainTo: chainTo,
+            tokenAddress: tokenAddress,
+            externalTokenAddress: externalTokenAddress,
+            amountToSend: amountToSend,
+            feeAmount: feeAmount,
+            timestamp: timestamp,
+            flags: flags,
+            flagData: flagData
+        });
     }
 
     function getSigner(
@@ -293,9 +285,7 @@ contract SignatureDifferentialTest is Test {
 
     function test_fullReceiptSign_ethers() public {
         fullReceiptCheck(
-            JS_RECEIPT_SIGN_ETHERS_PATH,
-            receiptCommon,
-            commonSigner
+            JS_RECEIPT_SIGN_ETHERS_PATH, receiptCommon, commonSigner
         );
     }
 
@@ -334,9 +324,7 @@ contract SignatureDifferentialTest is Test {
 
     function test_miniReceiptSign_ethers() public {
         miniReceiptCheck(
-            JS_RECEIPT_SIGN_ETHERS_PATH,
-            receiptCommon.asMini(),
-            commonSigner
+            JS_RECEIPT_SIGN_ETHERS_PATH, receiptCommon.asMini(), commonSigner
         );
     }
 
@@ -371,11 +359,7 @@ contract SignatureDifferentialTest is Test {
         "./test/differential_testing/signReceiptViem.js";
 
     function test_fullReceiptSign_viem() public {
-        fullReceiptCheck(
-            JS_RECEIPT_SIGN_VIEM_PATH,
-            receiptCommon,
-            commonSigner
-        );
+        fullReceiptCheck(JS_RECEIPT_SIGN_VIEM_PATH, receiptCommon, commonSigner);
     }
 
     function test_fuzz_fullReceiptSign_viem(
@@ -413,9 +397,7 @@ contract SignatureDifferentialTest is Test {
 
     function test_miniReceiptSign_viem() public {
         miniReceiptCheck(
-            JS_RECEIPT_SIGN_VIEM_PATH,
-            receiptCommon.asMini(),
-            commonSigner
+            JS_RECEIPT_SIGN_VIEM_PATH, receiptCommon.asMini(), commonSigner
         );
     }
 
@@ -517,4 +499,5 @@ contract SignatureDifferentialTest is Test {
             getSigner(signerSeed)
         );
     }
+
 }

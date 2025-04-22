@@ -8,6 +8,7 @@ import {ITokenManager} from "../contracts/interface/ITokenManager.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract AddTokensToBridge is DeployerBase {
+
     struct TokenInfoJsonEntry {
         address addressLocal;
         uint64 chainId;
@@ -25,10 +26,8 @@ contract AddTokensToBridge is DeployerBase {
     ) public view returns (TokenInfoJsonEntry[] memory) {
         try vm.readFile(path) returns (string memory json) {
             bytes memory data = vm.parseJson(json);
-            TokenInfoJsonEntry[] memory tokensInfo = abi.decode(
-                data,
-                (TokenInfoJsonEntry[])
-            );
+            TokenInfoJsonEntry[] memory tokensInfo =
+                abi.decode(data, (TokenInfoJsonEntry[]));
             return tokensInfo;
         } catch (bytes memory error) {
             console.log("Error reading tokens info");
@@ -46,13 +45,16 @@ contract AddTokensToBridge is DeployerBase {
         vm.startBroadcast(deployer.privateKey);
         getBridgeSolana();
 
-        TokenInfoJsonEntry[] memory tokensInfo = loadTokensInfo("script/tokens.json");
+        TokenInfoJsonEntry[] memory tokensInfo =
+            loadTokensInfo("script/tokens.json");
         for (uint256 i = 0; i < tokensInfo.length; i++) {
             console.log("Adding token:");
             console.log("\tName", tokensInfo[i].name);
             console.log("\tSymbol", tokensInfo[i].symbol);
             console.log("\tExternal Chain ID", tokensInfo[i].chainId);
-            console.log("\tExternal Address", tokensInfo[i].externalTokenAddress);
+            console.log(
+                "\tExternal Address", tokensInfo[i].externalTokenAddress
+            );
             console.log("\tExternal Decimals", tokensInfo[i].externalDecimals);
             console.log("\tAddress", tokensInfo[i].addressLocal);
             console.log("\tDecimals", tokensInfo[i].decimals);
@@ -60,8 +62,7 @@ contract AddTokensToBridge is DeployerBase {
                 bridgeSolana.addToken(
                     tokensInfo[i].addressLocal,
                     ITokenManager.ExternalTokenUnmapped({
-                        externalTokenAddress: tokensInfo[i]
-                            .externalTokenAddressHex,
+                        externalTokenAddress: tokensInfo[i].externalTokenAddressHex,
                         decimals: tokensInfo[i].externalDecimals,
                         chainId: tokensInfo[i].chainId
                     }),
@@ -71,8 +72,7 @@ contract AddTokensToBridge is DeployerBase {
             } else {
                 address token = bridgeSolana.deployExternalTokenERC20(
                     ITokenManager.ExternalTokenUnmapped({
-                        externalTokenAddress: tokensInfo[i]
-                            .externalTokenAddressHex,
+                        externalTokenAddress: tokensInfo[i].externalTokenAddressHex,
                         decimals: tokensInfo[i].externalDecimals,
                         chainId: tokensInfo[i].chainId
                     }),
@@ -89,4 +89,5 @@ contract AddTokensToBridge is DeployerBase {
         }
         vm.stopBroadcast();
     }
+
 }

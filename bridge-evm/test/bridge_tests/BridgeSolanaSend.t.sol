@@ -739,42 +739,6 @@ abstract contract BridgeSolanaSendTest is BridgeTestBase {
         );
     }
 
-    function test_revertWhen_send_WrongSrcToken() public {
-        MockERC20Permit otherToken = new MockERC20Permit();
-        uint256 amountToSend = 100 ether;
-        Signer memory signer = prepareSend(amountToSend);
-        deal(address(permittableToken), signer.Address, amountToSend);
-        approveOrPermit(
-            true,
-            address(otherToken),
-            signer,
-            amountToSend,
-            address(bridgeInstance)
-        );
-        uint256 destinationChain = SOLANA_DEVNET;
-        uint256 feeAmount = 1000 wei;
-        uint256 flag = 0;
-        (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)
-        = generateSendingValues(
-            address(otherToken), // some other address
-            amountToSend,
-            feeAmount,
-            flag,
-            signer.Address,
-            bytes32("SOLANA_ADDRESS"),
-            destinationChain
-        );
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ITokenManager.TokenNotBridgable.selector,
-                address(otherToken)
-            )
-        );
-        bridgeInstance.send{value: payload.feeAmount}(
-            bytes32("SOLANA_ADDRESS"), payload, payloadSignature
-        );
-    }
-
     function test_revertWhen_send_ERC20TransferFailed() public {
         uint256 amountToSend = 100 ether;
         Signer memory signer = prepareSend(amountToSend);

@@ -27,6 +27,7 @@ import {ReceiptUtils} from "../../contracts/utils/ReceiptUtils.sol";
 
 import {SigUtils} from "../SigUtils.sol";
 import {BridgeTestBase} from "./BridgeBase.t.sol";
+import {MockERC20Permit} from "../mocks/MockERC20.sol";
 
 // Huge mess cuz Stack too deep error
 abstract contract BridgeSolanaSendTest is BridgeTestBase {
@@ -674,6 +675,101 @@ abstract contract BridgeSolanaSendTest is BridgeTestBase {
             destinationChain
         );
         vm.expectRevert(IBridge.SendFailed.selector);
+        bridgeInstance.send{value: payload.feeAmount}(
+            bytes32("SOLANA_ADDRESS"), payload, payloadSignature
+        );
+    }
+
+    function test_revertWhen_send_BadChainId() public {
+        uint256 amountToSend = 100 ether;
+        Signer memory signer = prepareSend(amountToSend);
+        approveOrPermit(
+            true,
+            address(permittableToken),
+            signer,
+            amountToSend,
+            address(bridgeInstance)
+        );
+        uint256 destinationChain = uint64(1);
+        uint256 feeAmount = 1000 wei;
+        uint256 flag = 0;
+        (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)
+        = generateSendingValues(
+            address(permittableToken),
+            amountToSend,
+            feeAmount,
+            flag,
+            signer.Address,
+            bytes32("SOLANA_ADDRESS"),
+            destinationChain
+        );
+        vm.expectRevert(IBridge.InvalidChain.selector);
+        bridgeInstance.send{value: payload.feeAmount}(
+            bytes32("SOLANA_ADDRESS"), payload, payloadSignature
+        );
+    }
+
+    function test_revertWhen_send_SelfChainId() public {
+        
+        uint256 amountToSend = 100 ether;
+        Signer memory signer = prepareSend(amountToSend);
+        approveOrPermit(
+            true,
+            address(permittableToken),
+            signer,
+            amountToSend,
+            address(bridgeInstance)
+        );
+        uint256 destinationChain = block.chainid;
+        uint256 feeAmount = 1000 wei;
+        uint256 flag = 0;
+        (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)
+        = generateSendingValues(
+            address(permittableToken),
+            amountToSend,
+            feeAmount,
+            flag,
+            signer.Address,
+            bytes32("SOLANA_ADDRESS"),
+            destinationChain
+        );
+        vm.expectRevert(IBridge.InvalidChain.selector);
+        bridgeInstance.send{value: payload.feeAmount}(
+            bytes32("SOLANA_ADDRESS"), payload, payloadSignature
+        );
+    }
+
+    function test_revertWhen_send_WrongSrcToken() public {
+        MockERC20Permit otherToken = new MockERC20Permit();
+        uint256 amountToSend = 100 ether;
+        Signer memory signer = prepareSend(amountToSend);
+        deal(address(permittableToken), signer.Address, amountToSend);
+        approveOrPermit(
+            true,
+            address(otherToken),
+            signer,
+            amountToSend,
+            address(bridgeInstance)
+        );
+        uint256 destinationChain = block.chainid;
+        uint256 feeAmount = 1000 wei;
+        uint256 flag = 0;
+        (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)
+        = generateSendingValues(
+            address(otherToken), // some other address
+            amountToSend,
+            feeAmount,
+            flag,
+            signer.Address,
+            bytes32("SOLANA_ADDRESS"),
+            destinationChain
+        );
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITokenManager.TokenNotBridgable.selector,
+                address(otherToken)
+            )
+        );
         bridgeInstance.send{value: payload.feeAmount}(
             bytes32("SOLANA_ADDRESS"), payload, payloadSignature
         );

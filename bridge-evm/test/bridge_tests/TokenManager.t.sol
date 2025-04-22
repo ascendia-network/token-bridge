@@ -166,6 +166,18 @@ abstract contract TokenManagerTest is BridgeTestBase {
         bridgeInstance.addToken(address(0), externalToken);
     }
 
+    function test_revertIf_addToken_SelfChain() public {
+        address token = address(wrappedToken);
+        ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
+            .ExternalTokenUnmapped({
+            externalTokenAddress: bytes32("sAMB"),
+            decimals: 6,
+            chainId: uint64(block.chainid)
+        });
+        vm.expectRevert(ITokenManager.WrongChainId.selector);
+        bridgeInstance.addToken(token, externalToken);
+    }
+
     function test_revertIf_addToken_not_authority() public {
         vm.startPrank(bob);
         vm.expectRevert(
@@ -283,6 +295,21 @@ abstract contract TokenManagerTest is BridgeTestBase {
                 ITokenManager.TokenNotBridgable.selector, address(wrappedToken)
             )
         );
+        bridgeInstance.mapExternalToken(externalToken, token);
+    }
+
+    function test_revertIf_mapExternalToken_WrongChainID() public {
+        address token = address(wrappedToken);
+        bytes32 externalTokenAddress = bytes32("sAMB");
+        uint8 decimals = 6;
+        addToken(token, externalTokenAddress, decimals);
+        ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
+            .ExternalTokenUnmapped({
+            externalTokenAddress: bytes32("sAMB2"),
+            decimals: 6,
+            chainId: uint64(block.chainid)
+        });
+        vm.expectRevert(ITokenManager.WrongChainId.selector);
         bridgeInstance.mapExternalToken(externalToken, token);
     }
 

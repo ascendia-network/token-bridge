@@ -1,7 +1,7 @@
 import * as child from "child_process";
 
-const MAX_RETRIES = 20;
-const RETRY_DELAY = 3000;
+const MAX_RETRIES = 30;
+const RETRY_DELAY = 10000;
 
 export async function startAnvil() {
   const anvil = child.spawn("anvil", [

@@ -42,14 +42,12 @@ export function getReceiptNonce(receipt: ReceiptWithMeta) {
 }
 
 export async function getUserNonceValue(bridgeProgram: Program<AmbSolBridge>, user: PublicKey) {
+  const nonceAccount = getUserNoncePda(user, bridgeProgram.programId);
   try {
-    const expectedNonce = +(
-      await bridgeProgram.account.nonceAccount.fetch(getUserNoncePda(user, bridgeProgram.programId))
-    ).nonceCounter;
-    return expectedNonce;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const nonceAccountData = await bridgeProgram.account.nonceAccount.fetch(nonceAccount);
+    return BigInt(nonceAccountData.nonceCounter.toString());
   } catch (e) {
-    return 0;
+    return BigInt(0);
   }
 }
 

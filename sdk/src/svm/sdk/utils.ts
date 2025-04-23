@@ -3,6 +3,7 @@ import { Connection, Keypair, PublicKey, type Signer } from "@solana/web3.js";
 import { getAssociatedTokenAddressSync, getOrCreateAssociatedTokenAccount, } from "@solana/spl-token";
 import { Program } from "@coral-xyz/anchor";
 import type { AmbSolBridge } from "../idl/idlType";
+import type { ReceiptWithMeta } from "../../types";
 
 
 export function hexToUint8Array(hexString: string) {
@@ -33,6 +34,24 @@ export function bignumberToUint8Array(num: bigint, length = 8) {
   return bytes;
 }
 
+export function getReceiptNonce(receipt: ReceiptWithMeta) {
+  const flagBytes = hexToUint8Array(receipt.receipt.data);
+  const dv = new DataView(flagBytes.buffer);
+  const nonce = dv.getBigUint64(0, false);
+  return nonce;
+}
+
+export async function getUserNonceValue(bridgeProgram: Program<AmbSolBridge>, user: PublicKey) {
+  try {
+    const expectedNonce = +(
+      await bridgeProgram.account.nonceAccount.fetch(getUserNoncePda(user, bridgeProgram.programId))
+    ).nonceCounter;
+    return expectedNonce;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (e) {
+    return 0;
+  }
+}
 
 export async function getBridgeTokenInfo(bridgeProgram: Program<AmbSolBridge>, token: PublicKey) {
   const [bridge_token_pda, _] = getBridgeTokenAccounts(token, bridgeProgram.programId);
@@ -40,7 +59,7 @@ export async function getBridgeTokenInfo(bridgeProgram: Program<AmbSolBridge>, t
 }
 
 export async function getOrCreateUserATA(connection: Connection, user: Signer, token: PublicKey) {
-  const account = await getOrCreateAssociatedTokenAccount(connection, user, token, user.publicKey, undefined, undefined, {commitment: 'confirmed'});
+  const account = await getOrCreateAssociatedTokenAccount(connection, user, token, user.publicKey, undefined, undefined, { commitment: 'confirmed' });
   return account.address;
 }
 
@@ -68,7 +87,6 @@ export async function initializeToken(bridgeProgram: Program<AmbSolBridge>, admi
     bridgeTokenAccount: isSynthetic ? null : undefined  // empty value (null) for synthetic, auto-resoluted for non-synthetic
   }).signers([admin]).rpc();
 }
-
 
 
 export enum Flags {

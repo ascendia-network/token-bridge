@@ -34,8 +34,8 @@ export async function receive(
 
   const receiveInstruction = await bridgeProgram.methods
     .receive(
-      new BN(payload.amountTo),
-      new BN(payload.eventId),
+      new BN(payload.amountTo.toString()),
+      new BN(payload.eventId.toString()),
       [...payload.flags],
       Buffer.from(payload.flagData)
     ).accountsPartial({

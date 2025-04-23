@@ -29,6 +29,11 @@ export const bridgeAbi: Abi = [
             type: "uint8",
             internalType: "uint8",
           },
+          {
+            name: "chainId",
+            type: "uint64",
+            internalType: "uint64",
+          },
         ],
       },
       {
@@ -69,6 +74,11 @@ export const bridgeAbi: Abi = [
             name: "decimals",
             type: "uint8",
             internalType: "uint8",
+          },
+          {
+            name: "chainId",
+            type: "uint64",
+            internalType: "uint64",
           },
         ],
       },
@@ -280,6 +290,11 @@ export const bridgeAbi: Abi = [
             type: "uint8",
             internalType: "uint8",
           },
+          {
+            name: "chainId",
+            type: "uint64",
+            internalType: "uint64",
+          },
         ],
       },
       {
@@ -356,6 +371,11 @@ export const bridgeAbi: Abi = [
             name: "decimals",
             type: "uint8",
             internalType: "uint8",
+          },
+          {
+            name: "chainId",
+            type: "uint64",
+            internalType: "uint64",
           },
         ],
       },
@@ -613,6 +633,11 @@ export const bridgeAbi: Abi = [
             name: "decimals",
             type: "uint8",
             internalType: "uint8",
+          },
+          {
+            name: "chainId",
+            type: "uint64",
+            internalType: "uint64",
           },
         ],
       },
@@ -1692,6 +1717,11 @@ export const bridgeAbi: Abi = [
   {
     type: "error",
     name: "TransferFailed",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "WrongChainId",
     inputs: [],
   },
 ];

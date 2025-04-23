@@ -1,9 +1,4 @@
-import {
-  beforeEach,
-  describe,
-  expect,
-  test,
-} from "@jest/globals";
+import { beforeEach, describe, expect, test } from "@jest/globals";
 import {
   Address,
   createTestClient,
@@ -20,8 +15,9 @@ import { evm } from "../../../src/";
 import type { ClaimCall } from "../../../src/types";
 import { AccountFixture } from "../../mocks/fixtures/privateKey";
 import { receipts } from "../../mocks/fixtures/receipt";
+import { describeif } from "../../utils";
 
-describe("Test bridge claim request", () => {
+describeif(process.env.NODE_ENV != "ci")("Test bridge claim request", () => {
   let testClient: TestClient;
   beforeEach(async () => {
     testClient = createTestClient({

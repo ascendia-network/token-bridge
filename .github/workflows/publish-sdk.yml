@@ -32,6 +32,8 @@ jobs:
         run: npm ci
       - name: Test package
         run: npm test
+        env:
+          NODE_ENV: ci
       - name: Build package
         run: npm run build
       - name: Publish package

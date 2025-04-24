@@ -6,7 +6,7 @@ export const indexerSolana = pgSchema("indexer_solana");
 
 export const receiptsMetaInIndexerSolana = indexerSolana.table("receiptsMeta", {
 	receiptId: text("receipt_id").primaryKey().notNull(),
-  eventChain: numeric("event_chain", { precision: 78, scale:  0 }),
+	eventChain: numeric("event_chain", { precision: 78, scale:  0 }),
 	blockHash: text("block_hash"),
 	blockNumber: numeric("block_number", { precision: 78, scale:  0 }),
 	timestamp: numeric({ precision: 78, scale:  0 }),
@@ -21,12 +21,13 @@ export const receiptsClaimedInIndexerSolana = indexerSolana.table("receiptsClaim
 	to: text().notNull(),
 	tokenAddressTo: text("token_address_to").notNull(),
 	amountTo: numeric("amount_to", { precision: 78, scale:  0 }).notNull(),
-	chainFrom: numeric("chain_from", { precision: 78, scale:  0 }).notNull(),
 	chainTo: numeric("chain_to", { precision: 78, scale:  0 }).notNull(),
+	chainFrom: numeric("chain_from", { precision: 78, scale:  0 }).notNull(),
 	eventId: numeric("event_id", { precision: 78, scale:  0 }).notNull(),
 	flags: numeric({ precision: 78, scale:  0 }).notNull(),
+	data: text().notNull(),
 }, (table) => [
-	primaryKey({ columns: [table.chainFrom, table.chainTo, table.eventId], name: "receiptsClaimed_chain_from_chain_to_event_id_pk"}),
+	primaryKey({ columns: [table.chainTo, table.chainFrom, table.eventId], name: "receiptsClaimed_chain_from_chain_to_event_id_pk"}),
 ]);
 
 export const receiptsSentInIndexerSolana = indexerSolana.table("receiptsSent", {

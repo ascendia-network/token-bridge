@@ -36,7 +36,7 @@ export const receiptsClaimed = indexerSolana.table(
   },
   (table) => [
     primaryKey({
-      columns: [table.chainTo, table.eventId]
+      columns: [table.chainFrom, table.chainTo, table.eventId]
     })
   ]
 );

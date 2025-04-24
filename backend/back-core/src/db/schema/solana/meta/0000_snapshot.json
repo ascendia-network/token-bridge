@@ -14,6 +14,12 @@
           "primaryKey": true,
           "notNull": true
         },
+        "event_chain": {
+          "name": "event_chain",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "block_hash": {
           "name": "block_hash",
           "type": "text",
@@ -93,14 +99,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "chain_from": {
-          "name": "chain_from",
+        "chain_to": {
+          "name": "chain_to",
           "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
         },
-        "chain_to": {
-          "name": "chain_to",
+        "chain_from": {
+          "name": "chain_from",
           "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
@@ -116,6 +122,12 @@
           "type": "numeric(78, 0)",
           "primaryKey": false,
           "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {},
@@ -124,8 +136,8 @@
         "receiptsClaimed_chain_from_chain_to_event_id_pk": {
           "name": "receiptsClaimed_chain_from_chain_to_event_id_pk",
           "columns": [
-            "chain_from",
             "chain_to",
+            "chain_from",
             "event_id"
           ]
         }

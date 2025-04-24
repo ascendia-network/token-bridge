@@ -23,7 +23,7 @@ export const receiptsMetaInIndexerEvm = indexerEvm.table("receiptsMeta", {
 export const bridgesInIndexerEvm = indexerEvm.table("bridges", {
 	bridgeAddress: text("bridge_address").primaryKey().notNull(),
 	feeReceiver: text("fee_receiver").notNull(),
-	nativeSendAmount: numeric("native_send_amount", { precision: 78, scale:  0 }).notNull(),
+	nativeSendAmount: numeric("native_send_amount", { precision: 78, scale: 0 }).notNull(),
 	validatorAddress: text("validator_address").notNull(),
 });
 
@@ -52,6 +52,7 @@ export const receiptsClaimedInIndexerEvm = indexerEvm.table("receiptsClaimed", {
 	chainTo: numeric("chain_to", { precision: 78, scale:  0 }).notNull(),
 	eventId: numeric("event_id", { precision: 78, scale:  0 }).notNull(),
 	flags: numeric({ precision: 78, scale:  0 }).notNull(),
+	data: text().notNull(),
 }, (table) => [
 	primaryKey({ columns: [table.chainFrom, table.chainTo, table.eventId], name: "receiptsClaimed_chain_from_chain_to_event_id_pk"}),
 ]);

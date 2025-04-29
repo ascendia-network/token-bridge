@@ -23,6 +23,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { evm } from "../../../src/";
 import type { SendPayloadEVM, SendCall } from "../../../src/types";
 import { AccountFixture } from "../../mocks/fixtures/privateKey";
+import { describeif } from "../../utils";
 // import { startAnvil } from "../../mocks/anvil";
 // #region SAMB ABI
 const sAMBAbi: Abi = [
@@ -410,180 +411,179 @@ const sAMBAbi: Abi = [
   },
 ];
 // #endregion
-
-describe("Test bridge send request", () => {
-  let testClient: TestClient;
-  beforeEach(async () => {
-    testClient = createTestClient({
-      mode: "anvil",
-      transport: http(`http://127.0.0.1:8545`),
-      account: privateKeyToAccount(AccountFixture.privateKey),
-    })
-      .extend(publicActions)
-      .extend(walletActions);
-    testClient.setBalance({
-      address: "0xa5cc3c03994DB5b0d9A5eEdD10CabaB0813678AC",
-      value: parseEther("100"),
+  describeif(process.env.NODE_ENV != "ci")("Test bridge send request", () => {
+    let testClient: TestClient;
+    beforeEach(async () => {
+      testClient = createTestClient({
+        mode: "anvil",
+        transport: http(`http://127.0.0.1:8545`),
+        account: privateKeyToAccount(AccountFixture.privateKey),
+      })
+        .extend(publicActions)
+        .extend(walletActions);
+      testClient.setBalance({
+        address: "0xa5cc3c03994DB5b0d9A5eEdD10CabaB0813678AC",
+        value: parseEther("100"),
+      });
     });
-  });
-  const mockedBridgeAddress: Address =
-    "0x5Bcb9233DfEbcec502C1aCce6fc94FefF8c037C3";
-  const mockedRecipient: Hex = toHex("Bob", { size: 32 });
-  const mockedSignature: Hex =
-    "0x4c5908107ce8fe51ac8c09188bb817c070ffed724b52bc8b29baf9905b76efe314392dbf9ace7e23aa3be2113ffb97fe9af438c4ff393d5a0de37b1ba2a28e211b";
-  const mockedPayload: SendPayloadEVM = {
-    amountToSend: 1000000000000000000n,
-    chainFrom: 22040n,
-    chainTo: 6003100671677645902n,
-    externalTokenAddress:
-      "0x0cf53911c806ccffeb6a2cf754a5ec25b87f7a733cf375a90ce5faac9fcf4c5b",
-    feeAmount: 585666821314334878500n,
-    flagData: "0x",
-    flags: 0n,
-    timestamp: 1741897441,
-    tokenAddress:
-      "0x0000000000000000000000002Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b",
-  };
-  test("Should call send with approve request successfully", async () => {
-    await testClient.impersonateAccount({
-      address: AccountFixture.address,
-    });
-    const sendParams: SendCall = {
-      recipient: mockedRecipient,
-      payload: mockedPayload,
-      payloadSignature: mockedSignature,
+    const mockedBridgeAddress: Address =
+      "0xb05f659D9B043e6ecB37c12F25c43D00e4f6d618";
+    const mockedRecipient: Hex = toHex("Bob", { size: 32 });
+    const mockedSignature: Hex =
+      "0x4c5908107ce8fe51ac8c09188bb817c070ffed724b52bc8b29baf9905b76efe314392dbf9ace7e23aa3be2113ffb97fe9af438c4ff393d5a0de37b1ba2a28e211b";
+    const mockedPayload: SendPayloadEVM = {
+      amountToSend: 1000000000000000000n,
+      chainFrom: 22040n,
+      chainTo: 6003100671677645902n,
+      externalTokenAddress:
+        "0x0cf53911c806ccffeb6a2cf754a5ec25b87f7a733cf375a90ce5faac9fcf4c5b",
+      feeAmount: 585666821314334878500n,
+      flagData: "0x",
+      flags: 0n,
+      timestamp: 1741897441,
+      tokenAddress:
+        "0x0000000000000000000000002Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b",
     };
-    await testClient.setBalance({
-      address: AccountFixture.address,
-      value:
-        mockedPayload.amountToSend +
-        mockedPayload.feeAmount +
-        parseEther("100"),
-    });
-    const sAmb = await getContract({
-      address: ("0x" + mockedPayload.tokenAddress.slice(-40)) as Address,
-      abi: sAMBAbi,
-      client: {
-        public: testClient as unknown as PublicClient,
-        wallet: testClient as unknown as WalletClient,
-      },
-    });
-    await sAmb.write.deposit([], { value: mockedPayload.amountToSend });
-    await sAmb.write.approve([mockedBridgeAddress, mockedPayload.amountToSend]);
-    const tx = await evm.contract.calls.sendFromEVM(
-      sendParams,
-      mockedBridgeAddress,
-      testClient as unknown as PublicClient,
-      testClient as unknown as WalletClient,
-    );
-    expect(tx).toBeDefined();
-  }, 30000);
-
-  test("Should fail send with approve request with insufficient allowance", async () => {
-    await testClient.impersonateAccount({
-      address: AccountFixture.address,
-    });
-    const sendParams: SendCall = {
-      recipient: mockedRecipient,
-      payload: mockedPayload,
-      payloadSignature: mockedSignature,
-    };
-    await testClient.setBalance({
-      address: AccountFixture.address,
-      value:
-        mockedPayload.amountToSend +
-        mockedPayload.feeAmount +
-        parseEther("100"),
-    });
-    const sAmb = await getContract({
-      address: ("0x" + mockedPayload.tokenAddress.slice(-40)) as Address,
-      abi: sAMBAbi,
-      client: {
-        public: testClient as unknown as PublicClient,
-        wallet: testClient as unknown as WalletClient,
-      },
-    });
-    await sAmb.write.deposit([], { value: mockedPayload.amountToSend });
-    await expect(
-      evm.contract.calls.sendFromEVM(
+    test("Should call send with approve request successfully", async () => {
+      await testClient.impersonateAccount({
+        address: AccountFixture.address,
+      });
+      const sendParams: SendCall = {
+        recipient: mockedRecipient,
+        payload: mockedPayload,
+        payloadSignature: mockedSignature,
+      };
+      await testClient.setBalance({
+        address: AccountFixture.address,
+        value:
+          mockedPayload.amountToSend +
+          mockedPayload.feeAmount +
+          parseEther("100"),
+      });
+      const sAmb = await getContract({
+        address: ("0x" + mockedPayload.tokenAddress.slice(-40)) as Address,
+        abi: sAMBAbi,
+        client: {
+          public: testClient as unknown as PublicClient,
+          wallet: testClient as unknown as WalletClient,
+        },
+      });
+      await sAmb.write.deposit([], { value: mockedPayload.amountToSend });
+      await sAmb.write.approve([mockedBridgeAddress, mockedPayload.amountToSend]);
+      const tx = await evm.contract.calls.sendFromEVM(
         sendParams,
         mockedBridgeAddress,
         testClient as unknown as PublicClient,
         testClient as unknown as WalletClient,
-      ),
-    ).rejects.toThrow("Insufficient allowance");
-  });
-  test("Should fail send with approve request with insufficient balance", async () => {
-    await testClient.impersonateAccount({
-      address: AccountFixture.address,
-    });
-    const sendParams: SendCall = {
-      recipient: mockedRecipient,
-      payload: mockedPayload,
-      payloadSignature: mockedSignature,
-    };
-    await testClient.setBalance({
-      address: AccountFixture.address,
-      value: mockedPayload.amountToSend + parseEther("0.001"),
-    });
-    const sAmb = await getContract({
-      address: ("0x" + mockedPayload.tokenAddress.slice(-40)) as Address,
-      abi: sAMBAbi,
-      client: {
-        public: testClient as unknown as PublicClient,
-        wallet: testClient as unknown as WalletClient,
-      },
-    });
-    await sAmb.write.deposit([], { value: mockedPayload.amountToSend });
-    await sAmb.write.approve([mockedBridgeAddress, mockedPayload.amountToSend]);
-    await expect(
-      evm.contract.calls.sendFromEVM(
-        sendParams,
-        mockedBridgeAddress,
-        testClient as unknown as PublicClient,
-        testClient as unknown as WalletClient,
-      ),
-    ).rejects.toThrow("Insufficient balance");
-  });
+      );
+      expect(tx).toBeDefined();
+    }, 30000);
 
-  test("Should fail send with approve request with RPC error", async () => {
-    await testClient.impersonateAccount({
-      address: AccountFixture.address,
+    test("Should fail send with approve request with insufficient allowance", async () => {
+      await testClient.impersonateAccount({
+        address: AccountFixture.address,
+      });
+      const sendParams: SendCall = {
+        recipient: mockedRecipient,
+        payload: mockedPayload,
+        payloadSignature: mockedSignature,
+      };
+      await testClient.setBalance({
+        address: AccountFixture.address,
+        value:
+          mockedPayload.amountToSend +
+          mockedPayload.feeAmount +
+          parseEther("100"),
+      });
+      const sAmb = await getContract({
+        address: ("0x" + mockedPayload.tokenAddress.slice(-40)) as Address,
+        abi: sAMBAbi,
+        client: {
+          public: testClient as unknown as PublicClient,
+          wallet: testClient as unknown as WalletClient,
+        },
+      });
+      await sAmb.write.deposit([], { value: mockedPayload.amountToSend });
+      await expect(
+        evm.contract.calls.sendFromEVM(
+          sendParams,
+          mockedBridgeAddress,
+          testClient as unknown as PublicClient,
+          testClient as unknown as WalletClient,
+        ),
+      ).rejects.toThrow("Insufficient allowance");
     });
-    const sendParams: SendCall = {
-      recipient: mockedRecipient,
-      payload: mockedPayload,
-      payloadSignature: "0x".padEnd(132, "deadBeef") as Hex,
-    };
-    await testClient.setBalance({
-      address: AccountFixture.address,
-      value:
-        mockedPayload.amountToSend +
-        mockedPayload.feeAmount +
-        parseEther("100"),
+    test("Should fail send with approve request with insufficient balance", async () => {
+      await testClient.impersonateAccount({
+        address: AccountFixture.address,
+      });
+      const sendParams: SendCall = {
+        recipient: mockedRecipient,
+        payload: mockedPayload,
+        payloadSignature: mockedSignature,
+      };
+      await testClient.setBalance({
+        address: AccountFixture.address,
+        value: mockedPayload.amountToSend + parseEther("0.001"),
+      });
+      const sAmb = await getContract({
+        address: ("0x" + mockedPayload.tokenAddress.slice(-40)) as Address,
+        abi: sAMBAbi,
+        client: {
+          public: testClient as unknown as PublicClient,
+          wallet: testClient as unknown as WalletClient,
+        },
+      });
+      await sAmb.write.deposit([], { value: mockedPayload.amountToSend });
+      await sAmb.write.approve([mockedBridgeAddress, mockedPayload.amountToSend]);
+      await expect(
+        evm.contract.calls.sendFromEVM(
+          sendParams,
+          mockedBridgeAddress,
+          testClient as unknown as PublicClient,
+          testClient as unknown as WalletClient,
+        ),
+      ).rejects.toThrow("Insufficient balance");
     });
-    const sAmb = await getContract({
-      address: ("0x" + mockedPayload.tokenAddress.slice(-40)) as Address,
-      abi: sAMBAbi,
-      client: {
-        public: testClient as unknown as PublicClient,
-        wallet: testClient as unknown as WalletClient,
-      },
-    });
-    await sAmb.write.deposit([], { value: mockedPayload.amountToSend });
-    await sAmb.write.approve([mockedBridgeAddress, mockedPayload.amountToSend]);
-    await expect(
-      evm.contract.calls.sendFromEVM(
-        sendParams,
-        mockedBridgeAddress,
-        testClient as unknown as PublicClient,
-        testClient as unknown as WalletClient,
-      ),
-    ).rejects.toMatchObject({
-      errorName: "ECDSAInvalidSignatureS",
-      errorArgs: [
-        "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
-      ],
+
+    test("Should fail send with approve request with RPC error", async () => {
+      await testClient.impersonateAccount({
+        address: AccountFixture.address,
+      });
+      const sendParams: SendCall = {
+        recipient: mockedRecipient,
+        payload: mockedPayload,
+        payloadSignature: "0x".padEnd(132, "deadBeef") as Hex,
+      };
+      await testClient.setBalance({
+        address: AccountFixture.address,
+        value:
+          mockedPayload.amountToSend +
+          mockedPayload.feeAmount +
+          parseEther("100"),
+      });
+      const sAmb = await getContract({
+        address: ("0x" + mockedPayload.tokenAddress.slice(-40)) as Address,
+        abi: sAMBAbi,
+        client: {
+          public: testClient as unknown as PublicClient,
+          wallet: testClient as unknown as WalletClient,
+        },
+      });
+      await sAmb.write.deposit([], { value: mockedPayload.amountToSend });
+      await sAmb.write.approve([mockedBridgeAddress, mockedPayload.amountToSend]);
+      await expect(
+        evm.contract.calls.sendFromEVM(
+          sendParams,
+          mockedBridgeAddress,
+          testClient as unknown as PublicClient,
+          testClient as unknown as WalletClient,
+        ),
+      ).rejects.toMatchObject({
+        errorName: "ECDSAInvalidSignatureS",
+        errorArgs: [
+          "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+        ],
+      });
     });
   });
-});

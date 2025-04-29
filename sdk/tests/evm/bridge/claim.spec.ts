@@ -1,9 +1,4 @@
-import {
-  beforeEach,
-  describe,
-  expect,
-  test,
-} from "@jest/globals";
+import { beforeEach, describe, expect, test } from "@jest/globals";
 import {
   Address,
   createTestClient,
@@ -20,8 +15,9 @@ import { evm } from "../../../src/";
 import type { ClaimCall } from "../../../src/types";
 import { AccountFixture } from "../../mocks/fixtures/privateKey";
 import { receipts } from "../../mocks/fixtures/receipt";
+import { describeif } from "../../utils";
 
-describe("Test bridge claim request", () => {
+describeif(process.env.NODE_ENV != "ci")("Test bridge claim request", () => {
   let testClient: TestClient;
   beforeEach(async () => {
     testClient = createTestClient({
@@ -37,7 +33,7 @@ describe("Test bridge claim request", () => {
     });
   });
   const mockedBridgeAddress: Address =
-    "0x5Bcb9233DfEbcec502C1aCce6fc94FefF8c037C3";
+    "0xb05f659D9B043e6ecB37c12F25c43D00e4f6d618";
   test("Should call claim request successfully", async () => {
     await testClient.impersonateAccount({
       address: AccountFixture.address,

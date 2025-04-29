@@ -94,7 +94,7 @@ export async function sendFromEVM(
         sendParams.s,
       );
     }
-    await bridgeContract.simulate.send(params, { value });
+    await bridgeContract.simulate.send(params, { value, account: walletClient.account?.address });
     return await bridgeContract.write.send(params, { value });
   } catch (err) {
     throw handleCustomError(err as Error);

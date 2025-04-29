@@ -1,4 +1,6 @@
 export default async function (globalConfig, projectConfig) {
-  console.warn("Killing anvil from teardown");
-  await globalThis.__ANVIL__.kill();
+  if (process.env.NODE_ENV != "ci") {
+    console.warn("\nStopping anvil from teardown\n");
+    await globalThis.__ANVIL__.stop();
+  }
 }

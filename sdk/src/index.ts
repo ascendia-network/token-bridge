@@ -6,4 +6,4 @@ export {
   SOLANA_DEV_CHAIN_ID,
   setBackendUrl,
 } from "./config";
-export * from './types'
+export type * from './types'

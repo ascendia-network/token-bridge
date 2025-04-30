@@ -25,7 +25,7 @@ export async function send(
   const signatureMessage = keccak_256(serializedPayload)
   const verifyInstruction = verifySignatureInstruction(signatureMessage, [signer], [hexToUint8Array(signature)]);
 
-  const tokenFrom = new PublicKey(payload.tokenAddressTo)
+  const tokenFrom = new PublicKey(payload.tokenAddressFrom)
   const { isMintable } = await getBridgeTokenInfo(bridgeProgram, tokenFrom);
 
   const wrapInstructions = (tokenFrom == NATIVE_MINT) ?

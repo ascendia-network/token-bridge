@@ -32,7 +32,7 @@
       "isActive": true,
       "name": "USD Coin",
       "symbol": "USDC",
-      "ticker": "USDT",
+      "ticker": "USDC",
       "logo": "https://etherscan.io/token/images/centre-usdc_28.png",
       "networks": {
         "22040": {
@@ -61,7 +61,7 @@
         },
         "6003100671677645902": {
           "address": "So11111111111111111111111111111111111111112",
-          "denomination": 6,
+          "denomination": 9,
           "isPrimary": true,
           "nativeCoin": "SOL"
         }

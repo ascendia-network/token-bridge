@@ -61,7 +61,7 @@ export class SendSignatureController {
 
     let signResult: { signature: Hex; signedBy: string },
       sendPayload: SendPayload;
-    
+
     if (Networks.isSolana(networkFrom)) {
       sendPayload = {
         tokenAddressFrom: bytesToHex(toBytes(tokenAddress, { size: 32 })),
@@ -157,8 +157,9 @@ export class SendSignatureController {
             : toBytes(sendPayload.flagData),
       });
     const serializedPayload = serializeSendPayload(sendPayloadToSerialize);
+    const message = toBytes(keccak256(serializedPayload));
     const signature = nacl.sign.detached(
-      serializedPayload,
+      message,
       this.solanaSigner.secretKey
     );
     return {

@@ -34,6 +34,7 @@ describeif(process.env.NODE_ENV != "ci")("Test bridge claim request", () => {
   });
   const mockedBridgeAddress: Address =
     "0xfdbBEc1347B64c6eAc2cbabfc98D908AC2A91570";
+
   test("Should call claim request successfully", async () => {
     await testClient.impersonateAccount({
       address: AccountFixture.address,

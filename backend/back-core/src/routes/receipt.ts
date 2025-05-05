@@ -12,11 +12,9 @@ import {
 import { Hono } from "hono";
 import { receiptControllerMiddleware } from "../middleware/receiptController";
 import { SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID } from "../../config";
-import { env } from "hono/adapter";
 
 export const receiptRoutes = new Hono<{
   Bindings: {
-    SIGNATURES_REQUIRED: string;
     DATABASE_URL: string;
   };
 }>();
@@ -341,7 +339,6 @@ receiptRoutes.get(
   zValidator("param", receiptIdValidatorSchema),
   receiptControllerMiddleware.middleware("receiptController"),
   async (c) => {
-    const signaturesRequired = Number.parseInt(env(c).SIGNATURES_REQUIRED);
     try {
       const receiptId = c.req.valid("param").receiptId;
       const { receiptController } = c.var;
@@ -351,7 +348,7 @@ receiptRoutes.get(
       return c.json(
         signaturesResponseSchema.parse({
           receiptId,
-          readyForClaim: data.length >= signaturesRequired,
+          readyForClaim: data.length >= receipt.receipt.signaturesRequired,
           messageHash: [SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID].includes(
             BigInt(receipt.receipt.chainTo)
           )

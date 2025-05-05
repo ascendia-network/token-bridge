@@ -4,6 +4,43 @@
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "indexer_evm.bridges": {
+      "name": "bridges",
+      "schema": "indexer_evm",
+      "columns": {
+        "bridge_address": {
+          "name": "bridge_address",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "fee_receiver": {
+          "name": "fee_receiver",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "native_send_amount": {
+          "name": "native_send_amount",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "validator_address": {
+          "name": "validator_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
     "indexer_evm.receiptsMeta": {
       "name": "receiptsMeta",
       "schema": "indexer_evm",
@@ -49,43 +86,6 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {},
-      "policies": {},
-      "isRLSEnabled": false
-    },
-    "indexer_evm.bridges": {
-      "name": "bridges",
-      "schema": "indexer_evm",
-      "columns": {
-        "bridge_address": {
-          "name": "bridge_address",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "fee_receiver": {
-          "name": "fee_receiver",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "native_send_amount": {
-          "name": "native_send_amount",
-          "type": "numeric(78, 0)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "validator_address": {
-          "name": "validator_address",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
         }
       },
       "indexes": {},
@@ -229,6 +229,12 @@
         "flags": {
           "name": "flags",
           "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         }

@@ -13,7 +13,8 @@ import {
 } from "./types";
 
 // random keys
-export const sendSigner = Keypair.fromSecretKey(new Uint8Array([68, 44, 150, 53, 232, 72, 85, 214, 69, 48, 144, 144, 63, 70, 51, 254, 70, 165, 226, 95, 243, 211, 65, 253, 156, 92, 68, 213, 13, 114, 91, 240, 160, 217, 23, 184, 7, 88, 214, 152, 21, 242, 228, 150, 173, 249, 2, 240, 237, 218, 180, 205, 6, 196, 194, 162, 53, 183, 198, 244, 31, 215, 108, 122]));
+export const sendSigner = getSolanaAccount("rhythm patient ecology alpha island course ugly exhibit gift toilet fan sword throw envelope blind");
+
 
 export const receiveSigners = [
   getSolanaAccount("flower hurdle marriage hand track spawn exhibit ketchup cradle glove domain absent couple churn round"),

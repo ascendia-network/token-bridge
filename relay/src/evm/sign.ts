@@ -31,7 +31,7 @@ export async function signReceiptForEVM(
 
   const messageHash = keccak256(message);
   const signature = await config.accountEVM.signMessage({
-    message: messageHash,
+    message: { raw: messageHash },
   });
   return signature;
 }

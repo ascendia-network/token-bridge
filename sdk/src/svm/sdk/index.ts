@@ -8,6 +8,8 @@ import {
   getBridgeTokenAccounts,
   getOrCreateUserATA,
   getUserNoncePda,
+  getUserNonceValue,
+  getReceiptNonce,
   initializeToken,
   Flags,
 } from "./utils";
@@ -28,6 +30,8 @@ export const helpers = {
   getBridgeTokenAccounts,
   getOrCreateUserATA,
   getUserNoncePda,
+  getUserNonceValue,
+  getReceiptNonce,
   initializeToken,
   Flags,
   convertReceivePayload,

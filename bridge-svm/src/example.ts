@@ -14,7 +14,7 @@ import {
   getBridgeStateAccount,
   getBridgeTokenAccounts,
   getOrCreateUserATA,
-  getUserNoncePda, initializeToken,
+  getUserNoncePda, getUserNonceValue, initializeToken,
 } from "./sdk/utils";
 import { createMint, mintTo, NATIVE_MINT } from "@solana/spl-token";
 import { Buffer } from "buffer";
@@ -34,20 +34,10 @@ const admin = Keypair.fromSecretKey(
 
 // keypair need only for deploying, not for using
 const sambKeypair = Keypair.fromSecretKey(
-  new Uint8Array([
-    83, 147, 2, 142, 124, 9, 120, 10, 166, 163, 47, 187, 129, 120, 148, 140,
-    133, 192, 196, 205, 147, 206, 101, 158, 241, 3, 54, 166, 58, 158, 128, 101,
-    12, 245, 57, 17, 200, 6, 204, 255, 235, 106, 44, 247, 84, 165, 236, 37, 184,
-    127, 122, 115, 60, 243, 117, 169, 12, 229, 250, 172, 159, 207, 76, 91,
-  ])
+  new Uint8Array([16, 99, 93, 30, 67, 15, 92, 33, 241, 64, 17, 16, 43, 13, 149, 136, 231, 61, 126, 109, 241, 159, 132, 15, 33, 44, 137, 66, 77, 142, 209, 159, 12, 245, 57, 26, 117, 170, 48, 170, 195, 252, 51, 155, 147, 227, 86, 75, 146, 229, 175, 99, 90, 185, 158, 90, 191, 250, 213, 249, 103, 151, 125, 213])
 );
 const usdcKeypair = Keypair.fromSecretKey(
-  new Uint8Array([
-    250, 118, 92, 141, 112, 40, 17, 71, 123, 162, 41, 47, 184, 52, 167, 6, 188,
-    213, 63, 125, 17, 105, 73, 40, 14, 238, 177, 151, 115, 174, 250, 186, 13,
-    139, 115, 106, 223, 91, 60, 173, 12, 148, 110, 43, 72, 209, 132, 178, 153,
-    252, 178, 94, 208, 158, 181, 91, 68, 75, 153, 40, 79, 227, 245, 161,
-  ])
+  new Uint8Array([154, 248, 197, 31, 22, 14, 102, 81, 112, 107, 69, 102, 24, 66, 131, 61, 155, 158, 227, 186, 12, 49, 68, 46, 134, 249, 202, 124, 57, 34, 117, 25, 13, 139, 115, 120, 69, 1, 103, 23, 41, 21, 104, 0, 221, 79, 194, 90, 34, 46, 182, 208, 107, 25, 47, 183, 249, 80, 103, 16, 216, 207, 63, 212])
 );
 
 const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
@@ -73,7 +63,7 @@ export const program = new Program(idl as AmbSolBridge, provider);
 export async function main() {
   // await initialize()
 
-  // await createToken(sambKeypair, true);
+  await createToken(sambKeypair, true, 9);
   // await createToken(usdcKeypair);
 
   console.log(sambKeypair.publicKey.toBase58());
@@ -81,22 +71,22 @@ export async function main() {
   const wsolAmb = "0x56Fd3B5C152750772bE0c24aAd3C66f7d386e0b7";
   const usdcAmb = "0xc251fce04dE83A95119009F4a0B851843206486e";
 
-  // await initializeToken(program, admin, sambKeypair.publicKey, sambAmb, 18, true);
+  await initializeToken(program, admin, sambKeypair.publicKey, sambAmb, 18, true);
   // await initializeToken(program, admin, NATIVE_MINT, wsolAmb, 18, false);
   // await initializeToken(program, admin, usdcKeypair.publicKey, usdcAmb, 18, false);
   //
   //
+  const expectedNonce = await getUserNonceValue(program, admin.publicKey);
+  console.log("expectedNonce", expectedNonce);
   console.log("sendSigner", sendSigner.publicKey.toBase58());
   console.log("receiveSigner", receiveSigner.toString());
   const globalState = await program.account.globalState.fetch(getBridgeStateAccount(program.programId));
   console.log(globalState);
 
-  // await setSigners(sendSigner.publicKey, receiveSigner);
+  // await setSigners(new PublicKey("D3RaAuGFmZRjQpnHvuAHBcZsbxKH2TdCBRLwWYMtxg1T"), receiveSigner);
   // await makeSendTx(usdcKeypair.publicKey, usdcAmb);
   // await makeReceiveTx();
 }
-
-
 
 
 async function setSigners(sendSigner: PublicKey, receiveSigner: PublicKey) {
@@ -118,7 +108,7 @@ async function setSigners(sendSigner: PublicKey, receiveSigner: PublicKey) {
  * @param tokenKeypair - The keypair representing the token mint to be created.
  * @param isSynthetic - Optional flag indicating if the token should be synthetic (default is false).
  */
-async function createToken(tokenKeypair: Keypair, isSynthetic = false) {
+async function createToken(tokenKeypair: Keypair, isSynthetic = false, decimals = 6) {
   if (isSynthetic) {
     // mint authority should be bridge token PDA for synthetic tokens
     const [bridgeTokenPDA] = getBridgeTokenAccounts(
@@ -129,8 +119,8 @@ async function createToken(tokenKeypair: Keypair, isSynthetic = false) {
       connection,
       admin,
       bridgeTokenPDA,
-      admin.publicKey,
-      6,
+      undefined,
+      decimals,
       tokenKeypair
     );
   } else {
@@ -138,8 +128,8 @@ async function createToken(tokenKeypair: Keypair, isSynthetic = false) {
       connection,
       admin,
       admin.publicKey,
-      admin.publicKey,
-      6,
+      undefined,
+      decimals,
       tokenKeypair
     );
     // also mint some tokens to user
@@ -154,7 +144,7 @@ async function createToken(tokenKeypair: Keypair, isSynthetic = false) {
       tokenKeypair.publicKey,
       userATA,
       admin,
-      1000000 * 10 ** 6
+      1000000 * 10 ** decimals
     );
   }
 }
@@ -237,11 +227,7 @@ async function makeSendTx(tokenFrom: PublicKey, tokenTo: string) {
  * await makeReceiveTx();
  */
 async function makeReceiveTx() {
-  const expectedNonce = +(
-    await program.account.nonceAccount.fetch(
-      getUserNoncePda(admin.publicKey, program.programId)
-    )
-  ).nonceCounter;
+  const expectedNonce = await getUserNonceValue(program, admin.publicKey);
 
   const { payload, signature } = await backendMock.getReceivePayload(
     admin.publicKey,

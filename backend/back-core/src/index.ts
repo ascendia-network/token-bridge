@@ -12,7 +12,6 @@ import { env } from "hono/adapter";
 config();
 export type Env = {
   Bindings: {
-    SIGNATURES_REQUIRED: string;
     DATABASE_URL: string;
     SEND_SIGNER_MNEMONIC: string;
     ALLOWED_ORIGINS: string;

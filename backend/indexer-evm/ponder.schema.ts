@@ -33,9 +33,7 @@ export const receiptsSent = onchainTable(
 export const receiptsClaimed = onchainTable(
   "receiptsClaimed",
   (t) => ({
-    receiptId: t
-      .text("receipt_id")
-      .notNull(),
+    receiptId: t.text("receipt_id").notNull(),
     // .references(() => receipt.receiptId), // Not supported in ponder
     timestamp: t.bigint().notNull(),
     bridgeAddress: t.hex().notNull(),
@@ -47,6 +45,7 @@ export const receiptsClaimed = onchainTable(
     chainTo: t.bigint().notNull(),
     eventId: t.bigint().notNull(),
     flags: t.bigint().notNull(),
+    data: t.hex().notNull(),
   }),
   (table) => ({
     pk: primaryKey({

@@ -42,7 +42,15 @@ export function numberToUint8Array(num: number, length = 8) {
   return bytes;
 }
 
-
+export async function getUserNonceValue(bridgeProgram: Program<AmbSolBridge>, user: PublicKey) {
+  const nonceAccount = getUserNoncePda(user, bridgeProgram.programId);
+  try {
+    const nonceAccountData = await bridgeProgram.account.nonceAccount.fetch(nonceAccount);
+    return BigInt(nonceAccountData.nonceCounter.toString());
+  } catch (e) {
+    return BigInt(0);
+  }
+}
 
 export async function getBridgeTokenInfo(bridgeProgram: Program<AmbSolBridge>, token: PublicKey) {
   const [bridge_token_pda, _] = getBridgeTokenAccounts(token, bridgeProgram.programId);
@@ -50,7 +58,7 @@ export async function getBridgeTokenInfo(bridgeProgram: Program<AmbSolBridge>, t
 }
 
 export async function getOrCreateUserATA(connection: Connection, user: Signer, token: PublicKey) {
-  const account = await getOrCreateAssociatedTokenAccount(connection, user, token, user.publicKey, undefined, undefined, {commitment: 'confirmed'});
+  const account = await getOrCreateAssociatedTokenAccount(connection, user, token, user.publicKey, undefined, undefined, { commitment: 'confirmed' });
   return account.address;
 }
 
@@ -78,7 +86,6 @@ export async function initializeToken(bridgeProgram: Program<AmbSolBridge>, admi
     bridgeTokenAccount: isSynthetic ? null : undefined  // empty value (null) for synthetic, auto-resoluted for non-synthetic
   }).signers([admin]).rpc();
 }
-
 
 
 export enum Flags {

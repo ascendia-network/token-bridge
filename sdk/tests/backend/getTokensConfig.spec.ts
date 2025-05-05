@@ -33,7 +33,7 @@ const tokenConfig = {
       logo: "https://media-exp1.licdn.com/dms/image/C560BAQFuR2Fncbgbtg/company-logo_200_200/0/1636390910839?e=2159024400&v=beta&t=W0WA5w02tIEH859mVypmzB_FPn29tS5JqTEYr4EYvps",
       primaryNets: ["amb", "amb-test"],
       addresses: {
-        "amb-test": "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b",
+        "amb-test": "0x8D3e03889bFCb859B2dBEB65C60a52Ad9523512c",
         "sol-dev": "samb9vCFCTEvoi3eWDErSCb5GvTq8Kgv6VKSqvt7pgi",
       },
       nativeAnalog: "AMB",

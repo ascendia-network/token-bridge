@@ -77,9 +77,9 @@ export async function main() {
   // await createToken(usdcKeypair);
 
   console.log(sambKeypair.publicKey.toBase58());
-  const sambAmb = "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b";
-  const wsolAmb = "0x335d175e096d3aEF99646C81B825E956513667D6";
-  const usdcAmb = "0x835DAbB66f894720Ef4E81f7F43A76D392E46e64";
+  const sambAmb = "0x8D3e03889bFCb859B2dBEB65C60a52Ad9523512c";
+  const wsolAmb = "0x56Fd3B5C152750772bE0c24aAd3C66f7d386e0b7";
+  const usdcAmb = "0xc251fce04dE83A95119009F4a0B851843206486e";
 
   // await initializeToken(program, admin, sambKeypair.publicKey, sambAmb, 18, true);
   // await initializeToken(program, admin, NATIVE_MINT, wsolAmb, 18, false);

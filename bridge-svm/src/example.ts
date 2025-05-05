@@ -34,7 +34,7 @@ const admin = Keypair.fromSecretKey(
 
 // keypair need only for deploying, not for using
 const sambKeypair = Keypair.fromSecretKey(
-  new Uint8Array([42, 218, 74, 175, 89, 48, 244, 195, 202, 171, 141, 220, 71, 112, 181, 215, 41, 32, 43, 6, 4, 47, 43, 219, 43, 237, 39, 185, 108, 100, 147, 187, 12, 245, 57, 25, 47, 98, 109, 137, 78, 194, 163, 130, 250, 139, 124, 8, 138, 227, 56, 214, 69, 50, 234, 184, 133, 57, 233, 149, 182, 196, 239, 4])
+  new Uint8Array([16, 99, 93, 30, 67, 15, 92, 33, 241, 64, 17, 16, 43, 13, 149, 136, 231, 61, 126, 109, 241, 159, 132, 15, 33, 44, 137, 66, 77, 142, 209, 159, 12, 245, 57, 26, 117, 170, 48, 170, 195, 252, 51, 155, 147, 227, 86, 75, 146, 229, 175, 99, 90, 185, 158, 90, 191, 250, 213, 249, 103, 151, 125, 213])
 );
 const usdcKeypair = Keypair.fromSecretKey(
   new Uint8Array([154, 248, 197, 31, 22, 14, 102, 81, 112, 107, 69, 102, 24, 66, 131, 61, 155, 158, 227, 186, 12, 49, 68, 46, 134, 249, 202, 124, 57, 34, 117, 25, 13, 139, 115, 120, 69, 1, 103, 23, 41, 21, 104, 0, 221, 79, 194, 90, 34, 46, 182, 208, 107, 25, 47, 183, 249, 80, 103, 16, 216, 207, 63, 212])
@@ -63,8 +63,8 @@ export const program = new Program(idl as AmbSolBridge, provider);
 export async function main() {
   // await initialize()
 
-  await createToken(sambKeypair, true);
-  await createToken(usdcKeypair);
+  await createToken(sambKeypair, true, 9);
+  // await createToken(usdcKeypair);
 
   console.log(sambKeypair.publicKey.toBase58());
   const sambAmb = "0x8D3e03889bFCb859B2dBEB65C60a52Ad9523512c";
@@ -73,7 +73,7 @@ export async function main() {
 
   await initializeToken(program, admin, sambKeypair.publicKey, sambAmb, 18, true);
   // await initializeToken(program, admin, NATIVE_MINT, wsolAmb, 18, false);
-  await initializeToken(program, admin, usdcKeypair.publicKey, usdcAmb, 18, false);
+  // await initializeToken(program, admin, usdcKeypair.publicKey, usdcAmb, 18, false);
   //
   //
   const expectedNonce = await getUserNonceValue(program, admin.publicKey);
@@ -108,7 +108,7 @@ async function setSigners(sendSigner: PublicKey, receiveSigner: PublicKey) {
  * @param tokenKeypair - The keypair representing the token mint to be created.
  * @param isSynthetic - Optional flag indicating if the token should be synthetic (default is false).
  */
-async function createToken(tokenKeypair: Keypair, isSynthetic = false) {
+async function createToken(tokenKeypair: Keypair, isSynthetic = false, decimals = 6) {
   if (isSynthetic) {
     // mint authority should be bridge token PDA for synthetic tokens
     const [bridgeTokenPDA] = getBridgeTokenAccounts(
@@ -120,7 +120,7 @@ async function createToken(tokenKeypair: Keypair, isSynthetic = false) {
       admin,
       bridgeTokenPDA,
       undefined,
-      6,
+      decimals,
       tokenKeypair
     );
   } else {
@@ -129,7 +129,7 @@ async function createToken(tokenKeypair: Keypair, isSynthetic = false) {
       admin,
       admin.publicKey,
       undefined,
-      6,
+      decimals,
       tokenKeypair
     );
     // also mint some tokens to user
@@ -144,7 +144,7 @@ async function createToken(tokenKeypair: Keypair, isSynthetic = false) {
       tokenKeypair.publicKey,
       userATA,
       admin,
-      1000000 * 10 ** 6
+      1000000 * 10 ** decimals
     );
   }
 }

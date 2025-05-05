@@ -16,13 +16,13 @@
       "logo": "https://media-exp1.licdn.com/dms/image/C560BAQFuR2Fncbgbtg/company-logo_200_200/0/1636390910839?e=2159024400&v=beta&t=W0WA5w02tIEH859mVypmzB_FPn29tS5JqTEYr4EYvps",
       "networks": {
         "22040": {
-          "address": "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b",
+          "address": "0x8D3e03889bFCb859B2dBEB65C60a52Ad9523512c",
           "denomination": 18,
           "isPrimary": true,
           "nativeCoin": "AMB"
         },
         "6003100671677645902": {
-          "address": "samb9vCFCTEvoi3eWDErSCb5GvTq8Kgv6VKSqvt7pgi",
+          "address": "sambVQruQ3kJcs7RW7z5BvT8nGHer5xbFTKnuJ1cvcB",
           "denomination": 6,
           "isPrimary": false
         }
@@ -36,12 +36,12 @@
       "logo": "https://etherscan.io/token/images/centre-usdc_28.png",
       "networks": {
         "22040": {
-          "address": "0xB547f613B72928d4F62BCAc6Cc0d28C721f8D6bF",
+          "address": "0xF7c8f345Ac1d29F13c16d8Ae34f534D9056E3FF2",
           "denomination": 18,
           "isPrimary": false
         },
         "6003100671677645902": {
-          "address": "usdc3xpQ18NLAumSUvadS62srrkxQWrvQHugk8Nv7MA",
+          "address": "usdcfEkwfCV5owknRwdZGWVSnaZjCdTmjLtmiG6P1GF",
           "denomination": 6,
           "isPrimary": true
         }

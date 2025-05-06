@@ -28,7 +28,7 @@
         }
       }
     },
-    "SAMB": {
+    "SAMB_old": {
       "isActive": false,
       "name": "Synthetic Amber",
       "symbol": "SAMB",
@@ -67,7 +67,7 @@
         }
       }
     },
-    "USDC": {
+    "USDC_old": {
       "isActive": false,
       "name": "USD Coin",
       "symbol": "USDC",
@@ -106,7 +106,7 @@
         }
       }
     },
-    "wSOL": {
+    "wSOL_old": {
       "isActive": false,
       "name": "Wrapped Solana",
       "symbol": "wSOL",

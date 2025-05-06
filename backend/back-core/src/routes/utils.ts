@@ -742,7 +742,7 @@ export const TokenConfigSchema = z.object({
           logo: "https://en.wikipedia.org/wiki/File:Solana_logo.png#/media/File:Solana_logo.png",
           networks: {
             "22040": {
-              address: "0x5B9E2BD997bc8f6aE97145cE0a8dEE075653f1AA",
+              address: "0x56Fd3B5C152750772bE0c24aAd3C66f7d386e0b7",
               denomination: 18,
               isPrimary: false,
             },

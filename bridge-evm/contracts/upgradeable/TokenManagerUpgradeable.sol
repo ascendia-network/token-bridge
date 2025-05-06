@@ -199,6 +199,9 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
             revert TokenZeroAddress();
         }
         TokenManagerStorage storage $ = _getTokenManagerStorage();
+        if (externalToken_.chainId == block.chainid) {
+            revert WrongChainId();
+        }
         if ($.bridgableTokens[token]) {
             revert TokenAlreadyAdded(token);
         }
@@ -212,8 +215,9 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         $.bridgableTokens[token] = true;
         $.externalTokens[extTAdrKey] = ExternalToken({
             externalTokenAddress: externalToken_.externalTokenAddress,
+            tokenAddress: token,
             decimals: externalToken_.decimals,
-            tokenAddress: token
+            chainId: externalToken_.chainId
         });
         emit TokenMapped(token, extTAdrKey);
         emit TokenAdded(token);
@@ -238,6 +242,9 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         if (!$.bridgableTokens[token]) {
             revert TokenNotBridgable(token);
         }
+        if (externalToken_.chainId == block.chainid) {
+            revert WrongChainId();
+        }
         bytes32 extTAdrKey = externalToken_.externalTokenAddress;
         if (
             $.externalTokens[extTAdrKey].externalTokenAddress != bytes32(0)
@@ -247,8 +254,9 @@ abstract contract TokenManagerUpgradeable is ITokenManager, Initializable {
         }
         $.externalTokens[extTAdrKey] = ExternalToken({
             externalTokenAddress: externalToken_.externalTokenAddress,
+            tokenAddress: token,
             decimals: externalToken_.decimals,
-            tokenAddress: token
+            chainId: externalToken_.chainId
         });
         emit TokenMapped(token, extTAdrKey);
         return true;

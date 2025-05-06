@@ -38,8 +38,10 @@ contract ReceiptUtilsTest is Test {
         runJsInputs[2] = "--full";
         runJsInputs[3] = Strings.toHexString(uint256(receipt.from), 32);
         runJsInputs[4] = Strings.toHexString(uint256(receipt.to), 32);
-        runJsInputs[5] = Strings.toHexString(uint256(receipt.tokenAddressFrom), 32);
-        runJsInputs[6] = Strings.toHexString(uint256(receipt.tokenAddressTo), 32);
+        runJsInputs[5] =
+            Strings.toHexString(uint256(receipt.tokenAddressFrom), 32);
+        runJsInputs[6] =
+            Strings.toHexString(uint256(receipt.tokenAddressTo), 32);
         runJsInputs[7] = Strings.toHexString(receipt.amountFrom, 32);
         runJsInputs[8] = Strings.toHexString(receipt.amountTo, 32);
         runJsInputs[9] = Strings.toHexString(receipt.chainFrom, 32);
@@ -72,7 +74,8 @@ contract ReceiptUtilsTest is Test {
         runJsInputs[1] = jsPath;
         runJsInputs[2] = "--mini";
         runJsInputs[3] = Strings.toHexString(uint256(receipt.to), 32);
-        runJsInputs[4] = Strings.toHexString(uint256(receipt.tokenAddressTo), 32);
+        runJsInputs[4] =
+            Strings.toHexString(uint256(receipt.tokenAddressTo), 32);
         runJsInputs[5] = Strings.toHexString(receipt.amountTo, 32);
         runJsInputs[6] = Strings.toHexString(receipt.chainFrom, 32);
         runJsInputs[7] = Strings.toHexString(receipt.chainTo, 32);
@@ -94,7 +97,8 @@ contract ReceiptUtilsTest is Test {
         assertEq(expectedHash, jsGenerated);
     }
 
-    string constant JS_RECEIPT_HASH_ETHERS_PATH = "./test/differential_testing/receipt2hashEthers.js";
+    string constant JS_RECEIPT_HASH_ETHERS_PATH =
+        "./test/differential_testing/receipt2hashEthers.js";
 
     function test_fuzz_fullReceipt2hash_ethers(
         bytes32 from, // source address (bytes32 because of cross-chain compatibility)
@@ -127,7 +131,7 @@ contract ReceiptUtilsTest is Test {
             flags: flags,
             data: data
         });
-        
+
         fullReceipt2hash_check(JS_RECEIPT_HASH_ETHERS_PATH, receipt);
     }
 
@@ -159,7 +163,8 @@ contract ReceiptUtilsTest is Test {
         miniReceipt2hash_check(JS_RECEIPT_HASH_ETHERS_PATH, receipt);
     }
 
-    string constant JS_RECEIPT_HASH_VIEM_PATH = "./test/differential_testing/receipt2hashViem.js";
+    string constant JS_RECEIPT_HASH_VIEM_PATH =
+        "./test/differential_testing/receipt2hashViem.js";
 
     function test_fuzz_fullReceipt2hash_viem(
         bytes32 from, // source address (bytes32 because of cross-chain compatibility)

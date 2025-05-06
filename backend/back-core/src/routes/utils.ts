@@ -570,7 +570,7 @@ export const TokenConfigSchema = z.object({
             description:
               "Bridge address from source to destination network in source network",
             examples: [
-              "0x5Bcb9233DfEbcec502C1aCce6fc94FefF8c037C3",
+              "0xfdbBEc1347B64c6eAc2cbabfc98D908AC2A91570",
               "ambZMSUBvU8bLfxop5uupQd9tcafeJKea1KoyTv2yM1",
             ],
           })
@@ -580,7 +580,7 @@ export const TokenConfigSchema = z.object({
       description: "Bridges for different networks",
       example: {
         "22040": {
-          "6003100671677645902": "0x5Bcb9233DfEbcec502C1aCce6fc94FefF8c037C3",
+          "6003100671677645902": "0xfdbBEc1347B64c6eAc2cbabfc98D908AC2A91570",
         },
         "6003100671677645902": {
           "22040": "ambZMSUBvU8bLfxop5uupQd9tcafeJKea1KoyTv2yM1",
@@ -665,7 +665,7 @@ export const TokenConfigSchema = z.object({
             examples: [
               {
                 "22040": {
-                  address: "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b",
+                  address: "0x8D3e03889bFCb859B2dBEB65C60a52Ad9523512c",
                   denomination: 18,
                   isPrimary: true,
                   nativeCoin: "AMB",
@@ -703,7 +703,7 @@ export const TokenConfigSchema = z.object({
           logo: "https://media-exp1.licdn.com/dms/image/C560BAQFuR2Fncbgbtg/company-logo_200_200/0/1636390910839?e=2159024400&v=beta&t=W0WA5w02tIEH859mVypmzB_FPn29tS5JqTEYr4EYvps",
           networks: {
             "22040": {
-              address: "0x2Cf845b49e1c4E5D657fbBF36E97B7B5B7B7b74b",
+              address: "0x8D3e03889bFCb859B2dBEB65C60a52Ad9523512c",
               denomination: 18,
               isPrimary: true,
               nativeCoin: "AMB",

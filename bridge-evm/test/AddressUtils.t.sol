@@ -9,7 +9,8 @@ import {AddressUtils} from "../contracts/utils/AddressUtils.sol";
 
 contract AddressUtilsTest is Test {
 
-    string constant JS_ADDRESS_PATH = "./test/differential_testing/bytes2address.js";
+    string constant JS_ADDRESS_PATH =
+        "./test/differential_testing/bytes2address.js";
 
     function bytesToAddress(
         bytes memory bys
@@ -88,7 +89,7 @@ contract AddressUtilsTest is Test {
         // Run command and capture output
         bytes memory jsResult = vm.ffi(runJsInputs);
         address jsGenerated = bytesToAddress(jsResult);
-        
+
         address expected = AddressUtils.toAddress(dataStr);
         assertEq(expected, jsGenerated);
     }

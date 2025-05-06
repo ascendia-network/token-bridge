@@ -46,7 +46,9 @@ contract SendTokens is DeployerBase {
             });
             return payload;
         } catch (bytes memory) {
-            revert("Payload file read or parse error. Check file path or JSON formatting.");
+            revert(
+                "Payload file read or parse error. Check file path or JSON formatting."
+            );
         }
     }
 

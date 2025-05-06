@@ -15,8 +15,11 @@ contract DeployExternalToken is DeployerBase {
         getBridgeSolana();
         address token = bridgeSolana.deployExternalTokenERC20(
             ITokenManager.ExternalTokenUnmapped({
-                externalTokenAddress: bytes32(0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001),
-                decimals: 6
+                externalTokenAddress: bytes32(
+                    0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001
+                ),
+                decimals: 6,
+                chainId: uint64(bytes8("SOLANADN"))
             }),
             "Wrapped Solana",
             "wSOL",

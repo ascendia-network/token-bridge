@@ -27,6 +27,7 @@ import {ReceiptUtils} from "../../contracts/utils/ReceiptUtils.sol";
 
 import {SigUtils} from "../SigUtils.sol";
 import {BridgeTestBase} from "./BridgeBase.t.sol";
+import {MockERC20Permit} from "../mocks/MockERC20.sol";
 
 // Huge mess cuz Stack too deep error
 abstract contract BridgeSolanaSendTest is BridgeTestBase {
@@ -177,7 +178,8 @@ abstract contract BridgeSolanaSendTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("PMT_EXT"),
-            decimals: permittableToken.decimals()
+            decimals: permittableToken.decimals(),
+            chainId: SOLANA_DEVNET
         });
         bridgeInstance.addToken(address(permittableToken), extToken, false);
         vm.startPrank(signer.Address);
@@ -194,7 +196,8 @@ abstract contract BridgeSolanaSendTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("PMT_EXT"),
-            decimals: permittableToken.decimals()
+            decimals: permittableToken.decimals(),
+            chainId: SOLANA_DEVNET
         });
         try bridgeInstance.addToken(address(permittableToken), extToken, false)
         {} catch (bytes memory lowLevelData) {
@@ -223,7 +226,8 @@ abstract contract BridgeSolanaSendTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory extToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("AMB_EXT"),
-            decimals: permittableToken.decimals()
+            decimals: permittableToken.decimals(),
+            chainId: SOLANA_DEVNET
         });
         bridgeInstance.addToken(address(wrappedToken), extToken, false);
         vm.startPrank(signer.Address);
@@ -336,7 +340,7 @@ abstract contract BridgeSolanaSendTest is BridgeTestBase {
             amountToSend,
             address(bridgeInstance)
         );
-        uint256 destinationChain = uint256(bytes32("SOLANA"));
+        uint256 destinationChain = SOLANA_DEVNET;
         uint256 feeAmount = 1000 wei;
         uint256 flag = isPermit ? BridgeFlags.SEND_WITH_PERMIT : 0;
         (
@@ -370,7 +374,7 @@ abstract contract BridgeSolanaSendTest is BridgeTestBase {
             amountToSend * 2,
             address(bridgeInstance)
         );
-        uint256 destinationChain = uint256(bytes32("SOLANA"));
+        uint256 destinationChain = SOLANA_DEVNET;
         uint256 feeAmount = 1000 wei;
         (
             BridgeTypes.SendPayload memory payload,
@@ -436,7 +440,7 @@ abstract contract BridgeSolanaSendTest is BridgeTestBase {
     ) public {
         vm.assume(amountToSend > 0 && amountToSend < 1000 ether);
         Signer memory signer = prepareSendNative(amountToSend);
-        uint256 destinationChain = uint256(bytes32("SOLANA"));
+        uint256 destinationChain = SOLANA_DEVNET;
         uint256 feeAmount = 1000 wei;
         (
             BridgeTypes.SendPayload memory payload,
@@ -459,7 +463,7 @@ abstract contract BridgeSolanaSendTest is BridgeTestBase {
     ) public {
         vm.assume(amountToSend > 0 && amountToSend < 1000 ether);
         Signer memory signer = prepareSendNative(amountToSend);
-        uint256 destinationChain = uint256(bytes32("SOLANA"));
+        uint256 destinationChain = SOLANA_DEVNET;
         uint256 feeAmount = 1000 wei;
         (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)
         = generateSendingValues(
@@ -493,7 +497,7 @@ abstract contract BridgeSolanaSendTest is BridgeTestBase {
             amountToSend,
             address(bridgeInstance)
         );
-        uint256 destinationChain = uint256(bytes32("SOLANA"));
+        uint256 destinationChain = SOLANA_DEVNET;
         uint256 feeAmount = 1000 wei;
         uint256 flag = 0;
         (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)
@@ -528,7 +532,7 @@ abstract contract BridgeSolanaSendTest is BridgeTestBase {
             amountToSend,
             address(bridgeInstance)
         );
-        uint256 destinationChain = uint256(bytes32("SOLANA"));
+        uint256 destinationChain = SOLANA_DEVNET;
         uint256 feeAmount = 1000 wei;
         uint256 flag = 0;
         (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)
@@ -586,7 +590,7 @@ abstract contract BridgeSolanaSendTest is BridgeTestBase {
             amountToSend,
             address(bridgeInstance)
         );
-        uint256 destinationChain = uint256(bytes32("SOLANA"));
+        uint256 destinationChain = SOLANA_DEVNET;
         uint256 feeAmount = 1000 wei;
         uint256 flag = 0;
         (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)
@@ -622,7 +626,7 @@ abstract contract BridgeSolanaSendTest is BridgeTestBase {
             amountToSend,
             address(bridgeInstance)
         );
-        uint256 destinationChain = uint256(bytes32("SOLANA"));
+        uint256 destinationChain = SOLANA_DEVNET;
         uint256 feeAmount = 1000 wei;
         uint256 flag = 0;
         (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)
@@ -657,7 +661,7 @@ abstract contract BridgeSolanaSendTest is BridgeTestBase {
             amountToSend,
             address(bridgeInstance)
         );
-        uint256 destinationChain = uint256(bytes32("SOLANA"));
+        uint256 destinationChain = SOLANA_DEVNET;
         uint256 feeAmount = 1000 wei;
         uint256 flag = 0;
         (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)
@@ -676,6 +680,65 @@ abstract contract BridgeSolanaSendTest is BridgeTestBase {
         );
     }
 
+    function test_revertWhen_send_BadChainId() public {
+        uint256 amountToSend = 100 ether;
+        Signer memory signer = prepareSend(amountToSend);
+        approveOrPermit(
+            true,
+            address(permittableToken),
+            signer,
+            amountToSend,
+            address(bridgeInstance)
+        );
+        uint256 destinationChain = uint64(1);
+        uint256 feeAmount = 1000 wei;
+        uint256 flag = 0;
+        (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)
+        = generateSendingValues(
+            address(permittableToken),
+            amountToSend,
+            feeAmount,
+            flag,
+            signer.Address,
+            bytes32("SOLANA_ADDRESS"),
+            destinationChain
+        );
+        vm.expectRevert(IBridge.InvalidChain.selector);
+        bridgeInstance.send{value: payload.feeAmount}(
+            bytes32("SOLANA_ADDRESS"), payload, payloadSignature
+        );
+    }
+
+    function test_revertWhen_send_SelfChainId() public {
+        
+        uint256 amountToSend = 100 ether;
+        Signer memory signer = prepareSend(amountToSend);
+        approveOrPermit(
+            true,
+            address(permittableToken),
+            signer,
+            amountToSend,
+            address(bridgeInstance)
+        );
+        uint256 destinationChain = block.chainid;
+        uint256 feeAmount = 1000 wei;
+        uint256 flag = 0;
+        (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)
+        = generateSendingValues(
+            address(permittableToken),
+            amountToSend,
+            feeAmount,
+            flag,
+            signer.Address,
+            bytes32("SOLANA_ADDRESS"),
+            destinationChain
+        );
+        vm.expectRevert(IBridge.InvalidChain.selector);
+        bridgeInstance.send{value: payload.feeAmount}(
+            bytes32("SOLANA_ADDRESS"), payload, payloadSignature
+        );
+    }
+
     function test_revertWhen_send_ERC20TransferFailed() public {
         uint256 amountToSend = 100 ether;
         Signer memory signer = prepareSend(amountToSend);
@@ -686,7 +749,7 @@ abstract contract BridgeSolanaSendTest is BridgeTestBase {
             amountToSend,
             address(bridgeInstance)
         );
-        uint256 destinationChain = uint256(bytes32("SOLANA"));
+        uint256 destinationChain = SOLANA_DEVNET;
         uint256 feeAmount = 1000 wei;
         uint256 flag = 0;
         (BridgeTypes.SendPayload memory payload,, bytes memory payloadSignature)

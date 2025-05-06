@@ -32,7 +32,8 @@ abstract contract TokenManagerTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: externalTokenAddress,
-            decimals: decimals
+            decimals: decimals,
+            chainId: SOLANA_DEVNET
         });
         vm.expectEmit(address(bridgeInstance));
         emit ITokenManager.TokenAdded(token);
@@ -51,7 +52,8 @@ abstract contract TokenManagerTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: externalTokenAddress,
-            decimals: decimals
+            decimals: decimals,
+            chainId: SOLANA_DEVNET
         });
 
         vm.expectEmit(address(bridgeInstance));
@@ -86,7 +88,8 @@ abstract contract TokenManagerTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: externalTokenAddress,
-            decimals: decimals
+            decimals: decimals,
+            chainId: SOLANA_DEVNET
         });
         vm.expectEmit(address(bridgeInstance));
         emit ITokenManager.TokenMapped(token, externalTokenAddress);
@@ -114,7 +117,8 @@ abstract contract TokenManagerTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: externalTokenAddress,
-            decimals: decimals
+            decimals: decimals,
+            chainId: SOLANA_DEVNET
         });
         vm.expectEmit(false, true, false, false, address(bridgeInstance));
         emit ITokenManager.TokenMapped(address(0), externalTokenAddress);
@@ -156,9 +160,22 @@ abstract contract TokenManagerTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("sAMB"),
-            decimals: 6
+            decimals: 6,
+            chainId: SOLANA_DEVNET
         });
         bridgeInstance.addToken(address(0), externalToken);
+    }
+
+    function test_revertIf_addToken_SelfChain() public {
+        address token = address(wrappedToken);
+        ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
+            .ExternalTokenUnmapped({
+            externalTokenAddress: bytes32("sAMB"),
+            decimals: 6,
+            chainId: uint64(block.chainid)
+        });
+        vm.expectRevert(ITokenManager.WrongChainId.selector);
+        bridgeInstance.addToken(token, externalToken);
     }
 
     function test_revertIf_addToken_not_authority() public {
@@ -171,7 +188,8 @@ abstract contract TokenManagerTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("sAMB"),
-            decimals: 6
+            decimals: 6,
+            chainId: SOLANA_DEVNET
         });
         bridgeInstance.addToken(address(wrappedToken), externalToken);
         vm.stopPrank();
@@ -185,7 +203,8 @@ abstract contract TokenManagerTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: externalTokenAddress,
-            decimals: decimals
+            decimals: decimals,
+            chainId: SOLANA_DEVNET
         });
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -267,7 +286,8 @@ abstract contract TokenManagerTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: bytes32("sAMB2"),
-            decimals: 6
+            decimals: 6,
+            chainId: SOLANA_DEVNET
         });
         address token = address(wrappedToken);
         vm.expectRevert(
@@ -275,6 +295,21 @@ abstract contract TokenManagerTest is BridgeTestBase {
                 ITokenManager.TokenNotBridgable.selector, address(wrappedToken)
             )
         );
+        bridgeInstance.mapExternalToken(externalToken, token);
+    }
+
+    function test_revertIf_mapExternalToken_WrongChainID() public {
+        address token = address(wrappedToken);
+        bytes32 externalTokenAddress = bytes32("sAMB");
+        uint8 decimals = 6;
+        addToken(token, externalTokenAddress, decimals);
+        ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
+            .ExternalTokenUnmapped({
+            externalTokenAddress: bytes32("sAMB2"),
+            decimals: 6,
+            chainId: uint64(block.chainid)
+        });
+        vm.expectRevert(ITokenManager.WrongChainId.selector);
         bridgeInstance.mapExternalToken(externalToken, token);
     }
 
@@ -287,7 +322,8 @@ abstract contract TokenManagerTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: newExternalTokenAddress,
-            decimals: decimals
+            decimals: decimals,
+            chainId: SOLANA_DEVNET
         });
         vm.startPrank(bob);
         vm.expectRevert(
@@ -314,7 +350,8 @@ abstract contract TokenManagerTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: newExternalTokenAddress,
-            decimals: decimals
+            decimals: decimals,
+            chainId: SOLANA_DEVNET
         });
         bridgeInstance.mapExternalToken(externalToken, token);
     }
@@ -387,7 +424,8 @@ abstract contract TokenManagerTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: externalTokenAddress,
-            decimals: decimals
+            decimals: decimals,
+            chainId: SOLANA_DEVNET
         });
         vm.startPrank(bob);
         vm.expectRevert(
@@ -407,7 +445,8 @@ abstract contract TokenManagerTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: externalTokenAddress,
-            decimals: decimals
+            decimals: decimals,
+            chainId: SOLANA_DEVNET
         });
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -495,7 +534,8 @@ abstract contract TokenManagerTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: externalTokenAddress,
-            decimals: decimals
+            decimals: decimals,
+            chainId: SOLANA_DEVNET
         });
 
         vm.startPrank(bob);
@@ -519,7 +559,8 @@ abstract contract TokenManagerTest is BridgeTestBase {
         ITokenManager.ExternalTokenUnmapped memory externalToken = ITokenManager
             .ExternalTokenUnmapped({
             externalTokenAddress: externalTokenAddress,
-            decimals: decimals
+            decimals: decimals,
+            chainId: SOLANA_DEVNET
         });
         vm.expectRevert(
             abi.encodeWithSelector(

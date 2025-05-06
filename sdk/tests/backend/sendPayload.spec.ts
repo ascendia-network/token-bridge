@@ -23,7 +23,7 @@ const sendPayloadResponse = {
     flags: "0",
     flagData: "0x",
   },
-  signedBy: "0x5B9E2BD997bc8f6aE97145cE0a8dEE075653f1AA",
+  signedBy: "0x56Fd3B5C152750772bE0c24aAd3C66f7d386e0b7",
   signature:
     "0x1a5d0d6e835ebfeeb58b3914b994032dc5646f71fa17970b40a2bdd26a9cff582c4b560c6c3012d18ccdb5416b5d49f45a39265039b6b5877354fe4238599804",
 };
@@ -112,7 +112,7 @@ describe("Test getting send payload from backend", () => {
         22040n,
         "0x069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001",
         1000000000000000000n,
-        "0x5B9E2BD997bc8f6aE97145cE0a8dEE075653f1AA",
+        "0x56Fd3B5C152750772bE0c24aAd3C66f7d386e0b7",
         0n,
         "0x",
       ),

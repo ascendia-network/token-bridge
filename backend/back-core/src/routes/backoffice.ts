@@ -35,7 +35,7 @@ backofficeRoutes.get(
 
       const resultPromises = data.map(async ({ receipt, receiptMeta }) => {
         const tokenFrom = getToken(receipt.chainFrom, receipt.tokenAddressFrom);
-        const tokenTo = tokens.getToken(receipt.chainTo, receipt.tokenAddressTo);
+        const tokenTo = getToken(receipt.chainTo, receipt.tokenAddressTo);
 
         const metaMap: Record<string, typeof receiptMeta[number]> = {};
         receiptMeta.forEach((meta) => metaMap[meta.eventChain] = meta);

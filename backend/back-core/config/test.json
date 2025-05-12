@@ -6,7 +6,7 @@
     "base": "https://mainnet.base.org"
   },
   "contracts": {
-    "ambsol": "0x90D91059AafA06060214871258f6A4d780A22B8F"
+    "ambsol": "0xfdbBEc1347B64c6eAc2cbabfc98D908AC2A91570"
   },
   "validators": {
     "6003100671677628416": [

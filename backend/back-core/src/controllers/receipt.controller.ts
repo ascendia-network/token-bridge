@@ -43,7 +43,7 @@ export class ReceiptController {
     try {
       await this.db.refreshMaterializedView(receipt);
       const filterUser = userAddress
-        ? or(eq(receipt.to, userAddress), eq(receipt.from, userAddress))
+        ? or(eq(receipt.to, userAddress.toLowerCase()), eq(receipt.from, userAddress.toLowerCase()))
         : undefined;
       const filterChainFrom = chainFrom
         ? eq(receipt.chainFrom, chainFrom.toString())
@@ -125,7 +125,7 @@ export class ReceiptController {
       const metaEvm = await this.db
         .select({ receiptId: receiptsMetaInIndexerEvm.receiptId })
         .from(receiptsMetaInIndexerEvm)
-        .where(eq(receiptsMetaInIndexerEvm.transactionHash, transactionHash))
+        .where(eq(receiptsMetaInIndexerEvm.transactionHash, transactionHash.toLowerCase()))
         .limit(1);
 
       if (metaEvm.length > 0) {

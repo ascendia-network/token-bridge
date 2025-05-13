@@ -66,7 +66,7 @@
       "0x9d8F622e103902867cf134a32daFf2bCc2eb088C"
     ]
   },
-  "tokensConfigUrl": "https://raw.githubusercontent.com/ascendia-network/token-bridge/37b98bf41177aba542c76290cfefc438bf0e0a48/backend/back-core/config/tokens/test.json",
+  "tokensConfigUrl": "https://raw.githubusercontent.com/ascendia-network/token-bridge/refs/heads/main/backend/back-core/config/tokens/test.json",
   "fees": {
     "networks": {
       "16718": {

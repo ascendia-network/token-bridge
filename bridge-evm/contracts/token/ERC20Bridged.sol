@@ -97,7 +97,9 @@ contract ERC20Bridged is
         __ERC20Permit_init(name_);
         BridgedERC20Storage storage $ = _getERC20AdditionalStorage();
         $._decimals = decimals_;
-        $._bridges[bridge_] = BridgeEntry({active: true, amountOfTokens: 0});
+        if (bridge_ != address(0)) {
+            $._bridges[bridge_] = BridgeEntry({active: true, amountOfTokens: 0});
+        }
     }
 
     /**
@@ -120,8 +122,7 @@ contract ERC20Bridged is
     function addBridge(
         address account
     ) public restricted {
-        BridgedERC20Storage storage $ = _getERC20AdditionalStorage();
-        $._bridges[account] = BridgeEntry({active: true, amountOfTokens: 0});
+        addBridge(account, 0);
     }
 
     /**
@@ -132,6 +133,13 @@ contract ERC20Bridged is
      */
     function addBridge(address account, uint256 amount) public restricted {
         BridgedERC20Storage storage $ = _getERC20AdditionalStorage();
+        if (account == address(0)) {
+            revert NotABridge(account);
+        }
+        require(
+            $._bridges[account].active == false,
+            "Bridge already exists"
+        );
         $._bridges[account] =
             BridgeEntry({active: true, amountOfTokens: amount});
     }
@@ -249,19 +257,6 @@ contract ERC20Bridged is
         }
         // perform the transfer as usual
         super._update(from, to, value);
-    }
-
-    /**
-     * @dev Returns true if the address is the bridge contract.
-     * This address is used to mint and burn tokens.
-     * @param candidate the address to check
-     * @return isBridge_ true if the address is the bridge contract
-     */
-    function _isBridge(
-        address candidate
-    ) private view returns (bool isBridge_) {
-        BridgedERC20Storage storage $ = _getERC20AdditionalStorage();
-        return $._bridges[candidate].active;
     }
 
     function _getOperationAmount(

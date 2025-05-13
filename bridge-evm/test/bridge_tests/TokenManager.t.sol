@@ -135,7 +135,7 @@ abstract contract TokenManagerTest is BridgeTestBase {
         assertEq(bridgedTokenInstance.name(), name);
         assertEq(bridgedTokenInstance.symbol(), symbol);
         assertEq(bridgedTokenInstance.decimals(), decimals);
-        assertEq(bridgedTokenInstance.bridge(), address(bridgeInstance));
+        assertEq(bridgedTokenInstance.bridgeEntry(address(bridgeInstance)).active, true);
         return bridgedTokenInstance;
     }
 

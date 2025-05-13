@@ -68,7 +68,7 @@ contract ERC20BridgedTest is Test {
         assertEq(token.name(), "Test");
         assertEq(token.symbol(), "TST");
         assertEq(token.decimals(), 18);
-        assertEq(token.bridge(), fakeBridge);
+        assertEq(token.bridgeEntry(fakeBridge).active, true);
     }
 
     function test_fuzz_send_from_bridge(uint256 amount, address to) public {
@@ -78,6 +78,7 @@ contract ERC20BridgedTest is Test {
         vm.stopPrank();
         assertEq(token.balanceOf(to), amount);
         assertEq(token.totalSupply(), amount);
+        assertEq(token.bridgeBalanceOf(fakeBridge), amount);
     }
 
     function test_revertIf_send_from_bridge_to_bridge() public {
@@ -108,11 +109,13 @@ contract ERC20BridgedTest is Test {
         token.transfer(from, initialBalance);
         vm.stopPrank();
         assertEq(token.totalSupply(), initialBalance);
+        assertEq(token.bridgeBalanceOf(fakeBridge), initialBalance);
         vm.startPrank(from);
         token.transfer(fakeBridge, amount);
         vm.stopPrank();
         assertEq(token.balanceOf(from), initialBalance - amount);
         assertEq(token.totalSupply(), initialBalance - amount);
+        assertEq(token.bridgeBalanceOf(fakeBridge), initialBalance - amount);
     }
 
     function test_fuzz_send_user_to_user(
@@ -130,12 +133,14 @@ contract ERC20BridgedTest is Test {
         token.transfer(from, initialBalance);
         vm.stopPrank();
         assertEq(token.totalSupply(), initialBalance);
+        assertEq(token.bridgeBalanceOf(fakeBridge), initialBalance);
         vm.startPrank(from);
         token.transfer(to, amount);
         vm.stopPrank();
         assertEq(token.balanceOf(from), initialBalance - amount);
         assertEq(token.balanceOf(to), amount);
         assertEq(token.totalSupply(), initialBalance);
+        assertEq(token.bridgeBalanceOf(fakeBridge), initialBalance);
     }
 
     function test_blacklist() public {

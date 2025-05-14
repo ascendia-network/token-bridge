@@ -759,3 +759,91 @@ export const TokenConfigSchema = z.object({
 });
 
 export type TokenConfig = z.infer<typeof TokenConfigSchema>;
+
+const TokenDataSchema = z.object({
+  address: z.string().openapi({
+    description: "Token address",
+    examples: [
+      "0xB547f613B72928d4F62BCAc6Cc0d28C721f8D6bF",
+      "0x8D3e03889bFCb859B2dBEB65C60a52Ad9523512c",
+    ],
+  }),
+  name: z
+    .string()
+    .optional()
+    .openapi({
+      description: "Token name",
+      examples: ["USD Coin", "Synthetic Amber", "Wrapped SOL"],
+    }),
+  symbol: z
+    .string()
+    .optional()
+    .openapi({
+      description: "Token symbol",
+      examples: ["USDC", "SAMB", "wSOL"],
+    }),
+  denomination: z
+    .number()
+    .optional()
+    .openapi({
+      description: "Token denomination (decimals)",
+      examples: [18, 6],
+    }),
+  isNative: z
+    .boolean()
+    .optional()
+    .openapi({
+      description: "If token is native on this network",
+      examples: [false, true],
+    }),
+  network: z
+    .string()
+    .optional()
+    .openapi({
+      description: "Network chain ID",
+      examples: ["22040", "6003100671677645902"],
+    }),
+});
+
+export const BackofficeReceipt = z.object({
+  eventId: z.coerce.number().nonnegative().openapi({
+    example: 3,
+    description: "Event ID",
+  }),
+  receiptId: z.string().regex(receiptIdRegex).openapi({
+    example: "1_22040_3",
+    description: "Receipt ID as 'chainFrom_chainTo_eventId'",
+  }),
+  addressFrom: z.string().openapi({
+    example: "0xC6542eF81b2EE80f0bAc1AbEF6d920C92A590Ec7",
+    description: "Sender address",
+  }),
+  addressTo: z.string().openapi({
+    example: "FMYR5BFh3JapZS1cfwYViiBMYJxFGwKdchnghBnBtxkk",
+    description: "Receiver address",
+  }),
+  tokenFrom: TokenDataSchema,
+  tokenTo: TokenDataSchema,
+  amount: z.coerce.bigint().openapi({
+    example: 1000000000000000000n,
+    description: "Amount of tokens to send",
+  }),
+  denominatedAmount: z.string().openapi({
+    example: "1000",
+    description: "Amount of tokens to send in denominated format",
+  }),
+  status: z.coerce.number().openapi({
+    examples: [1.1, 1.2, 1.3, 1.4, 1.5, 5],
+    description: "Status of the transaction",
+  }),
+  sendTx: z.union([receiptMetaEvmSchema, receiptMetaSolanaSchema]).optional(),
+  receiveTx: z
+    .union([receiptMetaEvmSchema, receiptMetaSolanaSchema])
+    .optional(),
+});
+
+export type BackofficeReceipt = z.infer<typeof BackofficeReceipt>;
+export const BackofficeReceiptResponse = z.array(BackofficeReceipt);
+export type BackofficeReceiptResponse = z.infer<
+  typeof BackofficeReceiptResponse
+>;

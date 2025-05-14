@@ -27,8 +27,8 @@ export class ReceiptController {
     offset: number = 0,
     ordering: "asc" | "desc" = "desc",
     userAddress?: string,
-    chainFrom?: number,
-    chainTo?: number
+    chainFrom?: bigint,
+    chainTo?: bigint
   ): Promise<
     Array<{
       receipt: typeof receipt.$inferSelect & {

@@ -12,7 +12,6 @@ import {
   toHex,
   toHexFromBytes
 } from "./utils";
-import { eq } from "drizzle-orm";
 
 const CHAIN_NAME_TO_CHAIN_ID = {
   "devnet": "6003100671677645902",

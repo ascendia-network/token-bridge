@@ -24,7 +24,7 @@ export async function signReceiptForEVM(
       BigInt(receipt.chainFrom),
       BigInt(receipt.chainTo),
       BigInt(receipt.eventId),
-      BigInt(receipt.flags),
+      BigInt(receipt.flags >> 65n),
       receipt.data === "" ? "0x" : receipt.data as `0x${string}`,
     ]
   );

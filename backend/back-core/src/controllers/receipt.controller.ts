@@ -318,7 +318,7 @@ export class ReceiptController {
         BigInt(receiptToSign.chainFrom),
         BigInt(receiptToSign.chainTo),
         BigInt(receiptToSign.eventId),
-        BigInt(receiptToSign.flags),
+        BigInt(receiptToSign.flags >> 65n),
         receiptToSign.data as `0x${string}`,
       ]
     );

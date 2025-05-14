@@ -1,7 +1,7 @@
 {
   "bridges": {
     "22040": {
-      "6003100671677645902": "0xfdbBEc1347B64c6eAc2cbabfc98D908AC2A91570"
+      "6003100671677645902": "0xF8493e24ca466442fA285ACfAFE2faa50B1AeF8d"
     },
     "6003100671677645902": {
       "22040": "ambZMSUBvU8bLfxop5uupQd9tcafeJKea1KoyTv2yM1"
@@ -94,7 +94,7 @@
       "logo": "https://en.wikipedia.org/wiki/File:Solana_logo.png#/media/File:Solana_logo.png",
       "networks": {
         "22040": {
-          "address": "0x5B9E2BD997bc8f6aE97145cE0a8dEE075653f1AA",
+          "address": "0x28559D10F1C1E0D74F7Cfbb0Bf48e75F605b73Ac",
           "denomination": 18,
           "isPrimary": false
         },

@@ -83,6 +83,13 @@ contract AddTokensToBridge is DeployerBase {
                 if (tokensInfo[i].unpaused) {
                     bridgeSolana.unpauseToken(token);
                 }
+                addDeployment(
+                    Deployment({
+                        contractName: string.concat("Token-", tokensInfo[i].symbol),
+                        proxyAddress: address(0),
+                        implementationAddress: address(token)
+                    })
+                );
                 console.log("Token deployed", token);
             }
             console.log("-------------------");

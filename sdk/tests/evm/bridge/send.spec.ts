@@ -427,7 +427,7 @@ const sAMBAbi: Abi = [
       });
     });
     const mockedBridgeAddress: Address =
-      "0xfdbBEc1347B64c6eAc2cbabfc98D908AC2A91570";
+      "0xF8493e24ca466442fA285ACfAFE2faa50B1AeF8d";
     const mockedRecipient: Hex = toHex("Bob", { size: 32 });
     const mockedSignature: Hex =
       "0x4c5908107ce8fe51ac8c09188bb817c070ffed724b52bc8b29baf9905b76efe314392dbf9ace7e23aa3be2113ffb97fe9af438c4ff393d5a0de37b1ba2a28e211b";

@@ -63,23 +63,27 @@ export const program = new Program(idl as AmbSolBridge, provider);
 export async function main() {
   // await initialize()
 
-  await createToken(sambKeypair, true, 9);
+  // await createToken(sambKeypair, true, 9);
   // await createToken(usdcKeypair);
 
   console.log(sambKeypair.publicKey.toBase58());
   const sambAmb = "0x8D3e03889bFCb859B2dBEB65C60a52Ad9523512c";
-  const wsolAmb = "0x56Fd3B5C152750772bE0c24aAd3C66f7d386e0b7";
+  const wsolAmb = "0x28559D10F1C1E0D74F7Cfbb0Bf48e75F605b73Ac";
   const usdcAmb = "0xc251fce04dE83A95119009F4a0B851843206486e";
 
-  await initializeToken(program, admin, sambKeypair.publicKey, sambAmb, 18, true);
+  // await initializeToken(program, admin, sambKeypair.publicKey, sambAmb, 18, true);
   // await initializeToken(program, admin, NATIVE_MINT, wsolAmb, 18, false);
   // await initializeToken(program, admin, usdcKeypair.publicKey, usdcAmb, 18, false);
   //
   //
+
   const expectedNonce = await getUserNonceValue(program, admin.publicKey);
   console.log("expectedNonce", expectedNonce);
   console.log("sendSigner", sendSigner.publicKey.toBase58());
   console.log("receiveSigner", receiveSigner.toString());
+  const stateAccount = getBridgeStateAccount(program.programId);
+  console.log("state account", stateAccount)
+  console.log("fee balance", await connection.getBalance(stateAccount));
   const globalState = await program.account.globalState.fetch(getBridgeStateAccount(program.programId));
   console.log(globalState);
 

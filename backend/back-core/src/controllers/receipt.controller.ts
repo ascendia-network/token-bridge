@@ -297,7 +297,7 @@ export class ReceiptController {
     }));
   }
 
-  hashedMsgEVM(
+  encodedEVMMsg(
     receiptToSign: typeof receipt.$inferSelect
   ): `0x${string}` {
     const message = encodePacked(
@@ -322,8 +322,8 @@ export class ReceiptController {
         receiptToSign.data as `0x${string}`,
       ]
     );
-    const messageHash = keccak256(message);
-    return messageHash;
+    // const messageHash = keccak256(message);
+    return message;
   }
 
   hashedMsgSolana(
@@ -349,9 +349,9 @@ export class ReceiptController {
     signer: `0x${string}`,
     signature: `0x${string}`
   ): Promise<`0x${string}`> {
-    const messageHash = this.hashedMsgEVM(receiptToSign);
+    const message = this.encodedEVMMsg(receiptToSign);
     const signerRecovered = await recoverMessageAddress({
-      message: { raw: messageHash },
+      message: { raw: message }, // hashing is done in recoverMessageAddress
       signature,
     });
 

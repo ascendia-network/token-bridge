@@ -28,7 +28,7 @@ export async function send(
   const tokenFrom = new PublicKey(payload.tokenAddressFrom)
   const { isMintable } = await getBridgeTokenInfo(bridgeProgram, tokenFrom);
 
-  const wrapInstructions = (tokenFrom == NATIVE_MINT) ?
+  const wrapInstructions = (tokenFrom.equals(NATIVE_MINT)) ?
     await wrapSolInstructions(connection, userFrom, Number(payload.amountToSend)) : [];
 
   const sendInstruction = await bridgeProgram.methods

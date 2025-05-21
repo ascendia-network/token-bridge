@@ -81,7 +81,10 @@ backofficeRoutes.get(
           const signs = await receiptController.getReceiptSignatures(
             receipt.receiptId as `${number}_${number}_${number}`
           );
-          status = +`1.${signs.length}`;
+          if (signs.length === 5)
+            status = 4; // all signatures ready, but not claimed
+          else
+            status = +`3.${signs.length}`;
         }
 
         return BackofficeReceipt.parse({

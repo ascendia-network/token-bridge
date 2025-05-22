@@ -56,10 +56,4 @@ pub mod amb_sol_bridge {
     ) -> Result<()> {
         instructions::receive(ctx, amount_to, event_id, flags, flag_data)
     }
-
-
-
-    pub fn change_mint_authority(ctx: Context<ChangeMintAuthority>, new_authority: Pubkey) -> Result<()> {
-        instructions::change_mint_authority(ctx, new_authority)
-    }
 }

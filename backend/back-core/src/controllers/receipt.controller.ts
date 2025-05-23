@@ -2,7 +2,7 @@ import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
 import { receipt, signatures } from "../db/schema/core.schema";
 import { receiptsMetaInIndexerEvm } from "../db/schema/evm.schema";
 import { receiptsMetaInIndexerSolana } from "../db/schema/solana.schema";
-import { eq, or, asc, desc, ne, and, notInArray, inArray } from "drizzle-orm";
+import { eq, or, asc, desc, ne, and, notInArray, inArray, count } from "drizzle-orm";
 import { toBytes, keccak256, recoverMessageAddress, encodePacked } from "viem";
 import { consoleLogger } from "../utils";
 import { serializeReceivePayload, ReceivePayload } from "../utils/solana";
@@ -63,7 +63,7 @@ export class ReceiptController {
         .offset(offset);
 
       const [{ count: totalCount }] = await this.db
-          .select({ count: this.db.$count(receipt) })
+          .select({ count: count() })
           .from(receipt)
           .where(and(filterUser, filterChainFrom, filterChainTo));
       const metasEvm = await this.db

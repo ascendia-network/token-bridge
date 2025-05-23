@@ -29,15 +29,19 @@ async function getReceipts(
   limit: number,
   offset: number,
   ordering: "asc" | "desc",
-  userAddress: string | undefined = undefined
+  userAddress: string | undefined = undefined,
+  chainFrom: bigint | undefined = undefined,
+  chainTo: bigint | undefined = undefined,
 ) {
   const data = await receiptController.getAllReceipts(
     limit,
     offset,
     ordering,
-    userAddress
+    userAddress,
+    chainFrom,
+    chainTo
   );
-  return z.array(receiptResponseSchema).parse(data);
+  return paginatedResponseSchema.parse(data);
 }
 
 receiptRoutes.get(
@@ -139,6 +143,8 @@ receiptRoutes.get(
   zValidator(
     "query",
     z.object({
+      chainFrom: z.coerce.bigint().optional(),
+      chainTo: z.coerce.bigint().optional(),
       limit: z.coerce.number().optional().default(50),
       offset: z.coerce.number().optional().default(0),
       ordering: z.enum(["asc", "desc"]).optional().default("desc"),
@@ -147,7 +153,7 @@ receiptRoutes.get(
   receiptControllerMiddleware.middleware("receiptController"),
   async (c) => {
     const { userAddress } = c.req.valid("param");
-    const { limit, offset, ordering } = c.req.valid("query");
+    const { limit, offset, ordering, chainFrom, chainTo } = c.req.valid("query");
     const { receiptController } = c.var;
     try {
       const data = await getReceipts(
@@ -155,7 +161,9 @@ receiptRoutes.get(
         limit,
         offset,
         ordering,
-        userAddress
+        userAddress,
+        chainFrom,
+        chainTo
       );
       return c.json(data, 200);
     } catch (error) {

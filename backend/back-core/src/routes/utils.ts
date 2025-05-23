@@ -445,6 +445,16 @@ export const receiptResponseSchema = z.object({
   receiptMeta: z.array(ReceiptMetaSchema),
 });
 
+export const paginatedResponseSchema = z.object({
+  data: z.array(receiptResponseSchema),
+  pagination: z.object({
+    total: z.number().nonnegative().openapi({ description: "Total objects" }),
+    totalPages: z.number().nonnegative().openapi({ description: "Total pages" }),
+    page: z.number().nonnegative().openapi({ description: "Current page" }),
+    hasNextPage: z.boolean().openapi({ description: "Boolean if has next page" }),
+  }),
+});
+
 export const signaturesResponseSchema = z.object({
   receiptId: z.string().regex(receiptIdRegex).openapi({
     example: "6003100671677646000_22040_3",

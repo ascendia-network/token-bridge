@@ -30,7 +30,7 @@ export class ReceiptController {
     chainFrom?: bigint,
     chainTo?: bigint
   ): Promise<
-    Array<{
+      {data: Array<{
       receipt: typeof receipt.$inferSelect & {
         signaturesRequired: number;
       };
@@ -38,7 +38,7 @@ export class ReceiptController {
         | typeof receiptsMetaInIndexerEvm.$inferSelect
         | typeof receiptsMetaInIndexerSolana.$inferSelect
       >;
-    }>
+    }>, pagination: {total: number, totalPages: number, page: number, hasNextPage: boolean}}
   > {
     try {
       await this.db.refreshMaterializedView(receipt);
@@ -61,6 +61,11 @@ export class ReceiptController {
         )
         .limit(limit)
         .offset(offset);
+
+      const [{ count: totalCount }] = await this.db
+          .select({ count: this.db.$count(receipt) })
+          .from(receipt)
+          .where(and(filterUser, filterChainFrom, filterChainTo));
       const metasEvm = await this.db
         .select({
           receiptId: receiptsMetaInIndexerEvm.receiptId,
@@ -95,19 +100,27 @@ export class ReceiptController {
             result.map((r) => r.receiptId)
           )
         );
-      return result.map((r) => {
-        const metaEvm = metasEvm.filter((m) => m.receiptId === r.receiptId);
-        const metaSolana = metasSolana.filter(
-          (m) => m.receiptId === r.receiptId
-        );
-        return {
-          receipt: {
-            ...r,
-            signaturesRequired: bridgeValidators[r.chainTo].length,
-          },
-          receiptMeta: [...metaEvm, ...metaSolana],
-        };
-      });
+      return {
+        data: result.map((r) => {
+          const metaEvm = metasEvm.filter((m) => m.receiptId === r.receiptId);
+          const metaSolana = metasSolana.filter(
+              (m) => m.receiptId === r.receiptId
+          );
+          return {
+            receipt: {
+              ...r,
+              signaturesRequired: bridgeValidators[r.chainTo].length,
+            },
+            receiptMeta: [...metaEvm, ...metaSolana],
+          };
+        }),
+        pagination: {
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / limit),
+          page: Math.floor(offset / limit) + 1,
+          hasNextPage: Math.floor(offset / limit) + 1 < Math.ceil(totalCount / limit),
+        },
+      };
     } catch (error) {
       consoleLogger(
         "Error selecting receipts",

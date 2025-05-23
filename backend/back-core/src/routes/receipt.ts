@@ -8,6 +8,7 @@ import {
   receiptResponseSchema,
   signaturesResponseSchema,
   svmAddressBytes32Hex,
+  paginatedResponseSchema,
 } from "./utils";
 import { Hono } from "hono";
 import { receiptControllerMiddleware } from "../middleware/receiptController";
@@ -48,7 +49,7 @@ receiptRoutes.get(
         description: "Returns receipts",
         content: {
           "application/json": {
-            schema: resolver(z.array(receiptResponseSchema)),
+            schema: resolver(paginatedResponseSchema),
           },
         },
       },
@@ -106,7 +107,7 @@ receiptRoutes.get(
         description: "Returns receipts",
         content: {
           "application/json": {
-            schema: resolver(z.array(receiptResponseSchema)),
+            schema: resolver(z.array(paginatedResponseSchema)),
           },
         },
       },

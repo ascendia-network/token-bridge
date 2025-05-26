@@ -67,6 +67,8 @@ backofficeRoutes.get(
         chainTo
       );
 
+      console.log("DATA!!!", data)
+
       const resultPromises = data.map(async ({ receipt, receiptMeta }) => {
         const tokenFrom = getToken(receipt.chainFrom, receipt.tokenAddressFrom);
         const tokenTo = getToken(receipt.chainTo, receipt.tokenAddressTo);

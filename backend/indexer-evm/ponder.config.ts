@@ -56,13 +56,13 @@ export default createConfig({
     bridge: {
       abi: bridgeAbi,
       network: {
-        // amb: {
-        //   address: [
-        //     // "0xFILL_ME", // bridgeAmbSolana
-        //     // "0xFILL_ME", // bridgeAmbBase
-        //   ],
-        //   startBlock: Number("FILL_ME"),
-        // },
+        amb: {
+          address: [
+            "0x338c7EF1d18B9F8b9Bb2B5b97CB6A179907fBeF7", // bridgeAmbSolana
+            // "0xFILL_ME", // bridgeAmbBase
+          ],
+          startBlock: Number("36552997"),
+        },
         // base: {
         //   address: "0xFILL_ME", // bridgeBaseAmb
         //   startBlock: Number("FILL_ME"),

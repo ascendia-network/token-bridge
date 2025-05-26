@@ -1,7 +1,8 @@
 import { getTokenUSDPriceByAddress } from "./token-prices";
 import Decimal from "decimal.js";
-import { getBridgeFeeInNative } from "./bridgeFee";
+import { getBridgeFeeUSD } from "./bridgeFee";
 import { stageConfig } from "../../config";
+import { usd2Coin } from "./utils";
 
 
 export async function getFees(
@@ -10,7 +11,7 @@ export async function getFees(
   tokenAddr: string,
   amount: bigint,
   isMaxAmount: boolean
-): Promise<{ feeAmount: bigint; amountToSend: bigint }> {
+): Promise<{ feeAmountUsd: bigint; feeAmount: bigint; amountToSend: bigint }> {
 
   let amountDecimal = new Decimal(amount.toString());
 
@@ -19,7 +20,8 @@ export async function getFees(
 
   const networkFeeConfig = stageConfig.fees.networks[networkFrom.toString()];
 
-  let bridgeFeeNative = getBridgeFeeInNative(fromCoinPrice, tokenPrice, amountDecimal, networkFeeConfig.minBridgeFeeUSD);
+  let bridgeFeeUSD = getBridgeFeeUSD(tokenPrice, amountDecimal, networkFeeConfig.minBridgeFeeUSD);
+  let bridgeFeeNative = usd2Coin(bridgeFeeUSD, fromCoinPrice);
 
   // try to calculate max amount of native coins that can be transferred considering fees
   if (isMaxAmount) {
@@ -29,12 +31,16 @@ export async function getFees(
     if (amountDecimal.lte(0)) {
       throw new Error("Amount to send is too small");
     }
-    bridgeFeeNative = getBridgeFeeInNative(fromCoinPrice, tokenPrice, amountDecimal, networkFeeConfig.minBridgeFeeUSD);
+    bridgeFeeUSD = getBridgeFeeUSD(tokenPrice, amountDecimal, networkFeeConfig.minBridgeFeeUSD);
   }
 
+
+  bridgeFeeNative = usd2Coin(bridgeFeeUSD, fromCoinPrice);
   bridgeFeeNative = bridgeFeeNative.ceil();
 
+
   return {
+    feeAmountUsd: BigInt(bridgeFeeUSD.toHex()),
     feeAmount: BigInt(bridgeFeeNative.toHex()),
     amountToSend: BigInt(amountDecimal.toHex())
   };

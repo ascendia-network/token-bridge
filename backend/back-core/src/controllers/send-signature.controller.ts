@@ -54,7 +54,7 @@ export class SendSignatureController {
     if (!Networks.isSupportedNetwork(networkTo)) {
       throw new Error(`Network To (${networkTo}) is not supported`);
     }
-    const { feeAmount, amountToSend } = await getFees(
+    const { feeAmount, feeAmountUsd, amountToSend } = await getFees(
       networkFrom, networkTo, addressToUserFriendly(tokenAddress), amount, isMaxAmount
     );
     const timestamp = Math.floor(Date.now() / 1000);
@@ -97,6 +97,7 @@ export class SendSignatureController {
     }
 
     return {
+      feeAmountUsd,
       sendPayload,
       ...signResult,
     };

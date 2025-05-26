@@ -58,7 +58,7 @@ backofficeRoutes.get(
     const { receiptController } = c.var;
 
     try {
-      const data = await receiptController.getAllReceipts(
+      const { data } = await receiptController.getAllReceipts(
         limit,
         offset,
         ordering,

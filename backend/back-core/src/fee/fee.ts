@@ -1,4 +1,4 @@
-import { getTokenUSDPriceByAddress } from "./token-prices";
+import { convertFromDecimals, getTokenUSDPriceByAddress } from "./token-prices";
 import Decimal from "decimal.js";
 import { getBridgeFeeUSD } from "./bridgeFee";
 import { stageConfig } from "../../config";
@@ -11,7 +11,7 @@ export async function getFees(
   tokenAddr: string,
   amount: bigint,
   isMaxAmount: boolean
-): Promise<{ feeAmountUsd: bigint; feeAmount: bigint; amountToSend: bigint }> {
+): Promise<{ feeAmountUsd: Decimal; feeAmount: bigint; amountToSend: bigint }> {
 
   let amountDecimal = new Decimal(amount.toString());
 
@@ -38,9 +38,11 @@ export async function getFees(
   bridgeFeeNative = usd2Coin(bridgeFeeUSD, fromCoinPrice);
   bridgeFeeNative = bridgeFeeNative.ceil();
 
-
+  console.log(
+    `[USD] Bridge fee in USD: ${bridgeFeeUSD.toString()}`
+  );
   return {
-    feeAmountUsd: BigInt(bridgeFeeUSD.toHex()),
+    feeAmountUsd: await convertFromDecimals(bridgeFeeUSD, networkFrom.toString(), tokenAddr),
     feeAmount: BigInt(bridgeFeeNative.toHex()),
     amountToSend: BigInt(amountDecimal.toHex())
   };

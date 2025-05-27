@@ -14,6 +14,33 @@ export async function getTokenUSDPrice(tokenSymbol: string) {
   return new Decimal(price);
 }
 
+export async function convertFromDecimals(
+  amount: Decimal | bigint | number,
+  networkName: string,
+  tokenAddr?: string
+) {
+  const token = tokens.getToken(networkName, tokenAddr);
+  if (!token)
+    throw new Error(`Token ${tokenAddr} not found in ${networkName} network`);
+  const decimals = token.denomination;
+  return new Decimal(typeof amount === "bigint" ? amount.toString() : amount).dividedBy(
+    new Decimal(10).pow(decimals)
+  );
+}
+
+export async function convertToDecimals(
+  amount: Decimal,
+  networkName: string,
+  tokenAddr?: string
+) {
+  const token = tokens.getToken(networkName, tokenAddr);
+  if (!token)
+    throw new Error(`Token ${tokenAddr} not found in ${networkName} network`);
+  const decimals = token.denomination;
+  return new Decimal(amount).mul(
+    new Decimal(10).pow(decimals)
+  );
+}
 
 class CachedPrice {
   prices: { [symbol: string]: Decimal } = {};

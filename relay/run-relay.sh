@@ -38,16 +38,18 @@ set -e
 
 IMAGE=ghcr.io/ascendia-network/token-bridge/relay
 POLLING_INTERVAL=60000
-BACKEND_URL=https://bridge-v2-api.ambrosus-test.io
 RPC_URL_22040=https://network.ambrosus-test.io
 RPC_URL_16718=https://network.ambrosus.io/
 STAGE=${STAGE:-prod}
-if [ $STAGE == "prod" ]; then
+if [ "$STAGE" == "prod" ]; then
   TAG=main
-elif [ $STAGE == "test" ]; then
+  BACKEND_URL=https://bridge-v2-api.ascendia.network
+elif [ "$STAGE" == "test" ]; then
   TAG=dev
-elif [ $STAGE == "dev" ]; then
+  BACKEND_URL=https://bridge-v2-api.ambrosus-test.io
+elif [ "$STAGE" == "dev" ]; then
   TAG=dev
+  BACKEND_URL=https://bridge-v2-api.ambrosus-test.io
 fi
 
 CONTAINER_NAME=$IMAGE:$TAG
@@ -60,7 +62,7 @@ docker run -d \
 --restart unless-stopped \
 -e STAGE="$STAGE" \
 -e MNEMONIC="$MNEMONIC" \
--e BACKEND_URL=$BACKEND_URL \
+-e BACKEND_URL="$BACKEND_URL" \
 -e POLLING_INTERVAL=$POLLING_INTERVAL \
 -e RPC_URL_22040=$RPC_URL_22040 \
 -e RPC_URL_16718=$RPC_URL_16718 \

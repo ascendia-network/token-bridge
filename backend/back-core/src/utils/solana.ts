@@ -66,7 +66,7 @@ export const serializeReceivePayload = (value: ReceivePayload) =>
   serialize(value, receiveSchema);
 
 export function getSolanaAccount(mnemonic: string) {
-  const path = "m/44'/501'/1'/0'";
+  const path = "m/44'/501'/0'/0'";
   const seed = bip39.mnemonicToSeedSync(mnemonic, "");
   const hd = HDKey.fromMasterSeed(seed.toString("hex"));
   const keypair = Keypair.fromSeed(hd.derive(path).privateKey);

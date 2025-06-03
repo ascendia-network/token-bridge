@@ -29,7 +29,7 @@ export class SendSignatureController {
     const emvPK =
       "0x" +
       Buffer.from(
-        mnemonicToAccount(mnemonic, { addressIndex: 1 }).getHdKey().privateKey!
+        mnemonicToAccount(mnemonic).getHdKey().privateKey!
       ).toString("hex");
     this.solanaSigner = Keypair.fromSecretKey(solanaPK);
     this.evmSigner = privateKeyToAccount(emvPK as `0x${string}`);

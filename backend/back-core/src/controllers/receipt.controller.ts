@@ -2,7 +2,17 @@ import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
 import { receipt, signatures } from "../db/schema/core.schema";
 import { receiptsMetaInIndexerEvm } from "../db/schema/evm.schema";
 import { receiptsMetaInIndexerSolana } from "../db/schema/solana.schema";
-import { eq, or, asc, desc, ne, and, notInArray, inArray, count } from "drizzle-orm";
+import {
+  eq,
+  or,
+  asc,
+  desc,
+  ne,
+  and,
+  notInArray,
+  inArray,
+  count,
+} from "drizzle-orm";
 import { toBytes, keccak256, recoverMessageAddress, encodePacked } from "viem";
 import { consoleLogger } from "../utils";
 import { serializeReceivePayload, ReceivePayload } from "../utils/solana";
@@ -10,6 +20,7 @@ import {
   bridgeValidators,
   SOLANA_CHAIN_ID,
   SOLANA_DEV_CHAIN_ID,
+  stageConfig,
 } from "../../config";
 import nacl from "tweetnacl";
 import { PublicKey } from "@solana/web3.js";
@@ -29,8 +40,8 @@ export class ReceiptController {
     userAddress?: string,
     chainFrom?: bigint,
     chainTo?: bigint
-  ): Promise<
-      {data: Array<{
+  ): Promise<{
+    data: Array<{
       receipt: typeof receipt.$inferSelect & {
         signaturesRequired: number;
       };
@@ -38,12 +49,25 @@ export class ReceiptController {
         | typeof receiptsMetaInIndexerEvm.$inferSelect
         | typeof receiptsMetaInIndexerSolana.$inferSelect
       >;
-    }>, pagination: {total: number, totalPages: number, page: number, hasNextPage: boolean}}
-  > {
+    }>;
+    pagination: {
+      total: number;
+      totalPages: number;
+      page: number;
+      hasNextPage: boolean;
+    };
+  }> {
     try {
       await this.db.refreshMaterializedView(receipt);
+      const filterStage = inArray(
+        receipt.bridgeAddress,
+        Object.values(stageConfig.contracts).map((c) => c.toLowerCase())
+      );
       const filterUser = userAddress
-        ? or(eq(receipt.to, userAddress.toLowerCase()), eq(receipt.from, userAddress.toLowerCase()))
+        ? or(
+            eq(receipt.to, userAddress.toLowerCase()),
+            eq(receipt.from, userAddress.toLowerCase())
+          )
         : undefined;
       const filterChainFrom = chainFrom
         ? eq(receipt.chainFrom, chainFrom.toString())
@@ -55,7 +79,7 @@ export class ReceiptController {
       const result = await this.db
         .select()
         .from(receipt)
-        .where(and(filterUser, filterChainFrom, filterChainTo))
+        .where(and(filterUser, filterChainFrom, filterChainTo, filterStage))
         .orderBy(
           ordering === "asc" ? asc(receipt.timestamp) : desc(receipt.timestamp)
         )
@@ -63,9 +87,9 @@ export class ReceiptController {
         .offset(offset);
 
       const [{ count: totalCount }] = await this.db
-          .select({ count: count() })
-          .from(receipt)
-          .where(and(filterUser, filterChainFrom, filterChainTo));
+        .select({ count: count() })
+        .from(receipt)
+        .where(and(filterUser, filterChainFrom, filterChainTo, filterStage));
       const metasEvm = await this.db
         .select({
           receiptId: receiptsMetaInIndexerEvm.receiptId,
@@ -104,7 +128,7 @@ export class ReceiptController {
         data: result.map((r) => {
           const metaEvm = metasEvm.filter((m) => m.receiptId === r.receiptId);
           const metaSolana = metasSolana.filter(
-              (m) => m.receiptId === r.receiptId
+            (m) => m.receiptId === r.receiptId
           );
           return {
             receipt: {
@@ -118,7 +142,8 @@ export class ReceiptController {
           total: totalCount,
           totalPages: Math.ceil(totalCount / limit),
           page: Math.floor(offset / limit) + 1,
-          hasNextPage: Math.floor(offset / limit) + 1 < Math.ceil(totalCount / limit),
+          hasNextPage:
+            Math.floor(offset / limit) + 1 < Math.ceil(totalCount / limit),
         },
       };
     } catch (error) {
@@ -138,7 +163,12 @@ export class ReceiptController {
       const metaEvm = await this.db
         .select({ receiptId: receiptsMetaInIndexerEvm.receiptId })
         .from(receiptsMetaInIndexerEvm)
-        .where(eq(receiptsMetaInIndexerEvm.transactionHash, transactionHash.toLowerCase()))
+        .where(
+          eq(
+            receiptsMetaInIndexerEvm.transactionHash,
+            transactionHash.toLowerCase()
+          )
+        )
         .limit(1);
 
       if (metaEvm.length > 0) {
@@ -233,7 +263,7 @@ export class ReceiptController {
 
   async getReceiptSignatures(
     receiptId: `${number}_${number}_${number}`
-  ): Promise<Array<Omit<typeof signatures.$inferSelect, "id"| "receiptId">>> {
+  ): Promise<Array<Omit<typeof signatures.$inferSelect, "id" | "receiptId">>> {
     try {
       await this.db.refreshMaterializedView(receipt);
       const signaturesData = await this.db
@@ -274,13 +304,18 @@ export class ReceiptController {
       chainEnum === "svm"
         ? receiptsMetaInIndexerEvm
         : receiptsMetaInIndexerSolana;
+    const signerNetworks = Object.entries(bridgeValidators)
+      .filter(([_, keys]) =>
+        keys.map((k) => k.toLowerCase()).includes(pubkey.toLowerCase())
+      )
+      .map(([net, _]) => net);
     const receipts = await this.db
       .select()
       .from(receipt)
       .where(
         and(
-          inArray(receipt.chainFrom, Object.keys(bridgeValidators)),
-          inArray(receipt.chainTo, Object.keys(bridgeValidators)),
+          inArray(receipt.chainFrom, signerNetworks),
+          inArray(receipt.chainTo, signerNetworks),
           eq(receipt.claimed, false),
           chainEnum === "svm"
             ? or(
@@ -310,9 +345,7 @@ export class ReceiptController {
     }));
   }
 
-  hashedMsgEVM(
-    receiptToSign: typeof receipt.$inferSelect
-  ): `0x${string}` {
+  hashedMsgEVM(receiptToSign: typeof receipt.$inferSelect): `0x${string}` {
     const message = encodePacked(
       [
         "bytes32",
@@ -339,9 +372,7 @@ export class ReceiptController {
     return messageHash;
   }
 
-  hashedMsgSolana(
-    receiptToSign: typeof receipt.$inferSelect
-  ): `0x${string}` {
+  hashedMsgSolana(receiptToSign: typeof receipt.$inferSelect): `0x${string}` {
     const value: ReceivePayload = ReceivePayload.parse({
       to: toBytes(receiptToSign.to, { size: 32 }),
       tokenAddressTo: toBytes(receiptToSign.tokenAddressTo, { size: 32 }),

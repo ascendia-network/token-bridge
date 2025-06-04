@@ -314,8 +314,10 @@ export class ReceiptController {
       .from(receipt)
       .where(
         and(
-          inArray(receipt.chainFrom, signerNetworks),
-          inArray(receipt.chainTo, signerNetworks),
+          or(
+            inArray(receipt.chainFrom, signerNetworks),
+            inArray(receipt.chainTo, signerNetworks)
+          ),
           eq(receipt.claimed, false),
           chainEnum === "svm"
             ? or(

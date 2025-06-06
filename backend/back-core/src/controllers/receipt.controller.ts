@@ -58,12 +58,11 @@ export class ReceiptController {
     };
   }> {
     try {
-      console.log("Filters stage part: ", Object.values(stageConfig.contracts).map(c => c.startsWith("0x") ? c.toLowerCase() : c));
       await this.db.refreshMaterializedView(receipt);
-      const filterStage = inArray(
-        receipt.bridgeAddress,
-        Object.values(stageConfig.contracts).map(c => c.startsWith("0x") ? c.toLowerCase() : c)
-      );
+      // const filterStage = inArray(
+      //   receipt.bridgeAddress,
+      //   Object.values(stageConfig.contracts).map(c => c.startsWith("0x") ? c.toLowerCase() : c)
+      // );
       const filterUser = userAddress
         ? or(
           eq(receipt.to, userAddress.toLowerCase()),
@@ -80,7 +79,7 @@ export class ReceiptController {
       const result = await this.db
         .select()
         .from(receipt)
-        .where(and(filterUser, filterChainFrom, filterChainTo, filterStage))
+        .where(and(filterUser, filterChainFrom, filterChainTo))
         .orderBy(
           ordering === "asc" ? asc(receipt.timestamp) : desc(receipt.timestamp)
         )
@@ -90,7 +89,7 @@ export class ReceiptController {
       const [{ count: totalCount }] = await this.db
         .select({ count: count() })
         .from(receipt)
-        .where(and(filterUser, filterChainFrom, filterChainTo, filterStage));
+        .where(and(filterUser, filterChainFrom, filterChainTo));
       const metasEvm = await this.db
         .select({
           receiptId: receiptsMetaInIndexerEvm.receiptId,

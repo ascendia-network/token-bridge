@@ -58,6 +58,7 @@ export class ReceiptController {
     };
   }> {
     try {
+      console.log("Filters stage part: ", Object.values(stageConfig.contracts).map(c => c.startsWith("0x") ? c.toLowerCase() : c));
       await this.db.refreshMaterializedView(receipt);
       const filterStage = inArray(
         receipt.bridgeAddress,

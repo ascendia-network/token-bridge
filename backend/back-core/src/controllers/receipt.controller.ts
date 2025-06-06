@@ -11,7 +11,7 @@ import {
   and,
   notInArray,
   inArray,
-  count,
+  count
 } from "drizzle-orm";
 import { toBytes, keccak256, recoverMessageAddress, encodePacked } from "viem";
 import { consoleLogger } from "../utils";
@@ -20,7 +20,7 @@ import {
   bridgeValidators,
   SOLANA_CHAIN_ID,
   SOLANA_DEV_CHAIN_ID,
-  stageConfig,
+  stageConfig
 } from "../../config";
 import nacl from "tweetnacl";
 import { PublicKey } from "@solana/web3.js";
@@ -61,13 +61,13 @@ export class ReceiptController {
       await this.db.refreshMaterializedView(receipt);
       const filterStage = inArray(
         receipt.bridgeAddress,
-        Object.values(stageConfig.contracts).map((c) => c.toLowerCase())
+        Object.values(stageConfig.contracts).map(c => c.startsWith("0x") ? c.toLowerCase() : c)
       );
       const filterUser = userAddress
         ? or(
-            eq(receipt.to, userAddress.toLowerCase()),
-            eq(receipt.from, userAddress.toLowerCase())
-          )
+          eq(receipt.to, userAddress.toLowerCase()),
+          eq(receipt.from, userAddress.toLowerCase())
+        )
         : undefined;
       const filterChainFrom = chainFrom
         ? eq(receipt.chainFrom, chainFrom.toString())
@@ -98,7 +98,7 @@ export class ReceiptController {
           blockNumber: receiptsMetaInIndexerEvm.blockNumber,
           timestamp: receiptsMetaInIndexerEvm.timestamp,
           transactionHash: receiptsMetaInIndexerEvm.transactionHash,
-          transactionIndex: receiptsMetaInIndexerEvm.transactionIndex,
+          transactionIndex: receiptsMetaInIndexerEvm.transactionIndex
         })
         .from(receiptsMetaInIndexerEvm)
         .where(
@@ -115,7 +115,7 @@ export class ReceiptController {
           blockNumber: receiptsMetaInIndexerSolana.blockNumber,
           timestamp: receiptsMetaInIndexerSolana.timestamp,
           transactionHash: receiptsMetaInIndexerSolana.transactionHash,
-          transactionIndex: receiptsMetaInIndexerSolana.transactionIndex,
+          transactionIndex: receiptsMetaInIndexerSolana.transactionIndex
         })
         .from(receiptsMetaInIndexerSolana)
         .where(
@@ -133,9 +133,9 @@ export class ReceiptController {
           return {
             receipt: {
               ...r,
-              signaturesRequired: bridgeValidators[r.chainTo].length,
+              signaturesRequired: bridgeValidators[r.chainTo].length
             },
-            receiptMeta: [...metaEvm, ...metaSolana],
+            receiptMeta: [...metaEvm, ...metaSolana]
           };
         }),
         pagination: {
@@ -143,8 +143,8 @@ export class ReceiptController {
           totalPages: Math.ceil(totalCount / limit),
           page: Math.floor(offset / limit) + 1,
           hasNextPage:
-            Math.floor(offset / limit) + 1 < Math.ceil(totalCount / limit),
-        },
+            Math.floor(offset / limit) + 1 < Math.ceil(totalCount / limit)
+        }
       };
     } catch (error) {
       consoleLogger(
@@ -214,7 +214,7 @@ export class ReceiptController {
           blockNumber: receiptsMetaInIndexerEvm.blockNumber,
           timestamp: receiptsMetaInIndexerEvm.timestamp,
           transactionHash: receiptsMetaInIndexerEvm.transactionHash,
-          transactionIndex: receiptsMetaInIndexerEvm.transactionIndex,
+          transactionIndex: receiptsMetaInIndexerEvm.transactionIndex
         })
         .from(receiptsMetaInIndexerEvm)
         .where(eq(receiptsMetaInIndexerEvm.receiptId, receiptId));
@@ -226,7 +226,7 @@ export class ReceiptController {
           blockNumber: receiptsMetaInIndexerSolana.blockNumber,
           timestamp: receiptsMetaInIndexerSolana.timestamp,
           transactionHash: receiptsMetaInIndexerSolana.transactionHash,
-          transactionIndex: receiptsMetaInIndexerSolana.transactionIndex,
+          transactionIndex: receiptsMetaInIndexerSolana.transactionIndex
         })
         .from(receiptsMetaInIndexerSolana)
         .where(eq(receiptsMetaInIndexerSolana.receiptId, receiptId));
@@ -247,9 +247,9 @@ export class ReceiptController {
       return {
         receipt: {
           ...result,
-          signaturesRequired: bridgeValidators[result.chainTo].length,
+          signaturesRequired: bridgeValidators[result.chainTo].length
         },
-        receiptMeta: [...metaEvm, ...metaSolana],
+        receiptMeta: [...metaEvm, ...metaSolana]
       };
     } catch (error) {
       consoleLogger(
@@ -269,7 +269,7 @@ export class ReceiptController {
       const signaturesData = await this.db
         .select({
           signedBy: signatures.signedBy,
-          signature: signatures.signature,
+          signature: signatures.signature
         })
         .from(signatures)
         .where(eq(signatures.receiptId, receiptId))
@@ -321,13 +321,13 @@ export class ReceiptController {
           eq(receipt.claimed, false),
           chainEnum === "svm"
             ? or(
-                eq(receipt.chainTo, SOLANA_CHAIN_ID.toString()),
-                eq(receipt.chainTo, SOLANA_DEV_CHAIN_ID.toString())
-              )
+              eq(receipt.chainTo, SOLANA_CHAIN_ID.toString()),
+              eq(receipt.chainTo, SOLANA_DEV_CHAIN_ID.toString())
+            )
             : and(
-                ne(receipt.chainTo, SOLANA_CHAIN_ID.toString()),
-                ne(receipt.chainTo, SOLANA_DEV_CHAIN_ID.toString())
-              ),
+              ne(receipt.chainTo, SOLANA_CHAIN_ID.toString()),
+              ne(receipt.chainTo, SOLANA_DEV_CHAIN_ID.toString())
+            ),
           notInArray(
             receipt.receiptId,
             this.db
@@ -341,9 +341,9 @@ export class ReceiptController {
     return receipts.map((r) => ({
       receipts: {
         ...r.receipts,
-        signaturesRequired: bridgeValidators[r.receipts.chainTo].length,
+        signaturesRequired: bridgeValidators[r.receipts.chainTo].length
       },
-      receiptsMeta: r.receiptsMeta,
+      receiptsMeta: r.receiptsMeta
     }));
   }
 
@@ -357,7 +357,7 @@ export class ReceiptController {
         "uint256",
         "uint256",
         "uint256",
-        "bytes",
+        "bytes"
       ],
       [
         receiptToSign.to as `0x${string}`,
@@ -367,7 +367,7 @@ export class ReceiptController {
         BigInt(receiptToSign.chainTo),
         BigInt(receiptToSign.eventId),
         BigInt(receiptToSign.flags) >> 65n,
-        receiptToSign.data as `0x${string}`,
+        receiptToSign.data as `0x${string}`
       ]
     );
     const messageHash = keccak256(message);
@@ -383,7 +383,7 @@ export class ReceiptController {
       chainTo: BigInt(receiptToSign.chainTo),
       eventId: BigInt(receiptToSign.eventId),
       flags: toBytes(BigInt(receiptToSign.flags), { size: 32 }),
-      flagData: toBytes(receiptToSign.data),
+      flagData: toBytes(receiptToSign.data)
     });
     const payload = serializeReceivePayload(value);
     const messageHash = keccak256(payload);
@@ -398,7 +398,7 @@ export class ReceiptController {
     const messageHash = this.hashedMsgEVM(receiptToSign);
     const signerRecovered = await recoverMessageAddress({
       message: { raw: messageHash },
-      signature,
+      signature
     });
 
     if (signerRecovered !== signer) throw new Error("Invalid signature");

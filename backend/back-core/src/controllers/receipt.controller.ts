@@ -20,7 +20,8 @@ import {
   bridgeValidators,
   SOLANA_CHAIN_ID,
   SOLANA_DEV_CHAIN_ID,
-  stageConfig
+  stageConfig,
+  tokensConfig
 } from "../../config";
 import nacl from "tweetnacl";
 import { PublicKey } from "@solana/web3.js";
@@ -59,10 +60,17 @@ export class ReceiptController {
   }> {
     try {
       await this.db.refreshMaterializedView(receipt);
-      // const filterStage = inArray(
-      //   receipt.bridgeAddress,
-      //   Object.values(stageConfig.contracts).map(c => c.startsWith("0x") ? c.toLowerCase() : c)
-      // );
+      const filterStage = inArray(
+        receipt.bridgeAddress,
+        [
+          ...Object.values(stageConfig.contracts).map(c => c.startsWith("0x") ? c.toLowerCase() : c),
+          ...Object.values(tokensConfig.bridges).flatMap(network => 
+            Object.values(network as Record<string, string>).map(addr => 
+              addr.startsWith("0x") ? addr.toLowerCase() : addr
+            )
+          )
+        ]
+      );
       const filterUser = userAddress
         ? or(
           eq(receipt.to, userAddress.toLowerCase()),
@@ -79,7 +87,7 @@ export class ReceiptController {
       const result = await this.db
         .select()
         .from(receipt)
-        .where(and(filterUser, filterChainFrom, filterChainTo))
+        .where(and(filterUser, filterChainFrom, filterChainTo, filterStage))
         .orderBy(
           ordering === "asc" ? asc(receipt.timestamp) : desc(receipt.timestamp)
         )
@@ -89,7 +97,7 @@ export class ReceiptController {
       const [{ count: totalCount }] = await this.db
         .select({ count: count() })
         .from(receipt)
-        .where(and(filterUser, filterChainFrom, filterChainTo));
+        .where(and(filterUser, filterChainFrom, filterChainTo, filterStage));
       const metasEvm = await this.db
         .select({
           receiptId: receiptsMetaInIndexerEvm.receiptId,

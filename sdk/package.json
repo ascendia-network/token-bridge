@@ -1,6 +1,6 @@
 {
   "name": "bridge-v2-sdk",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "SDK for bridge iteractions",
   "repository": {
     "type": "git",

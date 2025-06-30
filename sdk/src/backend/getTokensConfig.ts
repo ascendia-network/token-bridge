@@ -1,5 +1,5 @@
 import { backendUrl } from "../config";
-import { TokenConfig } from "../types/tokenConfig";
+import { TokenConfig } from "../types";
 
 /**
  * Fetches the tokens configuration from the backend API.
@@ -10,7 +10,7 @@ import { TokenConfig } from "../types/tokenConfig";
  */
 
 export async function getTokensConfig(): Promise<TokenConfig> {
-  const tokensConfigUrl: URL = URL.parse("/api/tokens", backendUrl)!;
+  const tokensConfigUrl: URL = new URL("/api/tokens", backendUrl)!;
   const response = await fetch(tokensConfigUrl);
   if (!response.ok) {
     throw new Error(

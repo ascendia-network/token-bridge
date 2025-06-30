@@ -2,14 +2,26 @@ import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
 import { receipt, signatures } from "../db/schema/core.schema";
 import { receiptsMetaInIndexerEvm } from "../db/schema/evm.schema";
 import { receiptsMetaInIndexerSolana } from "../db/schema/solana.schema";
-import { eq, or, asc, desc, ne, and, notInArray, inArray, count } from "drizzle-orm";
+import {
+  eq,
+  or,
+  asc,
+  desc,
+  ne,
+  and,
+  notInArray,
+  inArray,
+  count
+} from "drizzle-orm";
 import { toBytes, keccak256, recoverMessageAddress, encodePacked } from "viem";
 import { consoleLogger } from "../utils";
 import { serializeReceivePayload, ReceivePayload } from "../utils/solana";
 import {
   bridgeValidators,
   SOLANA_CHAIN_ID,
-  SOLANA_DEV_CHAIN_ID, stageConfig, tokensConfig
+  SOLANA_DEV_CHAIN_ID,
+  stageConfig,
+  tokensConfig
 } from "../../config";
 import nacl from "tweetnacl";
 import { PublicKey } from "@solana/web3.js";
@@ -160,7 +172,12 @@ export class ReceiptController {
       const metaEvm = await this.db
         .select({ receiptId: receiptsMetaInIndexerEvm.receiptId })
         .from(receiptsMetaInIndexerEvm)
-        .where(eq(receiptsMetaInIndexerEvm.transactionHash, transactionHash.toLowerCase()))
+        .where(
+          eq(
+            receiptsMetaInIndexerEvm.transactionHash,
+            transactionHash.toLowerCase()
+          )
+        )
         .limit(1);
 
       if (metaEvm.length > 0) {
@@ -296,13 +313,20 @@ export class ReceiptController {
       chainEnum === "svm"
         ? receiptsMetaInIndexerEvm
         : receiptsMetaInIndexerSolana;
+    const signerNetworks = Object.entries(bridgeValidators)
+      .filter(([_, keys]) =>
+        keys.map((k) => k.toLowerCase()).includes(pubkey.toLowerCase())
+      )
+      .map(([net, _]) => net);
     const receipts = await this.db
       .select()
       .from(receipt)
       .where(
         and(
-          inArray(receipt.chainFrom, Object.keys(bridgeValidators)),
-          inArray(receipt.chainTo, Object.keys(bridgeValidators)),
+          or(
+            inArray(receipt.chainFrom, signerNetworks),
+            inArray(receipt.chainTo, signerNetworks)
+          ),
           eq(receipt.claimed, false),
           chainEnum === "svm"
             ? or(
@@ -332,9 +356,7 @@ export class ReceiptController {
     }));
   }
 
-  hashedMsgEVM(
-    receiptToSign: typeof receipt.$inferSelect
-  ): `0x${string}` {
+  hashedMsgEVM(receiptToSign: typeof receipt.$inferSelect): `0x${string}` {
     const message = encodePacked(
       [
         "bytes32",
@@ -361,9 +383,7 @@ export class ReceiptController {
     return messageHash;
   }
 
-  hashedMsgSolana(
-    receiptToSign: typeof receipt.$inferSelect
-  ): `0x${string}` {
+  hashedMsgSolana(receiptToSign: typeof receipt.$inferSelect): `0x${string}` {
     const value: ReceivePayload = ReceivePayload.parse({
       to: toBytes(receiptToSign.to, { size: 32 }),
       tokenAddressTo: toBytes(receiptToSign.tokenAddressTo, { size: 32 }),

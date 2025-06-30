@@ -532,6 +532,10 @@ export const SendPayload = z.object({
 export type SendPayload = z.infer<typeof SendPayload>;
 
 export const sendPayloadResponseSchema = z.object({
+  feeAmountUsd: z.coerce.number().positive().openapi({
+    example: 100,
+    description: "Amount of fee in usd",
+  }),
   sendPayload: SendPayload,
   signedBy: z
     .string()

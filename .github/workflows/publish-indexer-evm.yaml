@@ -2,7 +2,7 @@ name: Create and publish image indexer-evm
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, fee-amount-usd ]
   workflow_dispatch:
 
 env:

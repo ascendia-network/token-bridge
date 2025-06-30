@@ -2,7 +2,7 @@ name: Create and publish image bridge-core
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, fee-amount-usd ]
   workflow_dispatch:
 
 env:

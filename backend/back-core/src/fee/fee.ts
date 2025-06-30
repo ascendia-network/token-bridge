@@ -1,16 +1,17 @@
-import { getTokenUSDPriceByAddress } from "./token-prices";
+import { convertFromDecimals, getTokenUSDPriceByAddress } from "./token-prices";
 import Decimal from "decimal.js";
-import { getBridgeFeeInNative } from "./bridgeFee";
+import { getBridgeFeeUSD } from "./bridgeFee";
 import { stageConfig } from "../../config";
+import { usd2Coin } from "./utils";
 
 
 export async function getFees(
-    networkFrom: bigint,
-    networkTo: bigint,
-    tokenAddr: string,
-    amount: bigint,
-    isMaxAmount: boolean
-): Promise<{ feeAmount: bigint; amountToSend: bigint }> {
+  networkFrom: bigint,
+  networkTo: bigint,
+  tokenAddr: string,
+  amount: bigint,
+  isMaxAmount: boolean
+): Promise<{ feeAmountUsd: Decimal; feeAmount: bigint; amountToSend: bigint }> {
 
   console.log("getFees called with:", {
     networkFrom,
@@ -31,9 +32,9 @@ export async function getFees(
 
   const networkFeeConfig = stageConfig.fees.networks[networkFrom.toString()];
   console.log("networkFeeConfig:", networkFeeConfig);
-
-  let bridgeFeeNative = getBridgeFeeInNative(fromCoinPrice, tokenPrice, amountDecimal, networkFeeConfig.minBridgeFeeUSD);
-  console.log("bridgeFeeNative (initial):", bridgeFeeNative.toString());
+  
+  let bridgeFeeUSD = getBridgeFeeUSD(tokenPrice, amountDecimal, networkFeeConfig.minBridgeFeeUSD);
+  let bridgeFeeNative = usd2Coin(bridgeFeeUSD, fromCoinPrice);
 
   // try to calculate max amount of native coins that can be transferred considering fees
   if (isMaxAmount) {
@@ -44,14 +45,19 @@ export async function getFees(
     if (amountDecimal.lte(0)) {
       throw new Error("Amount to send is too small");
     }
-    bridgeFeeNative = getBridgeFeeInNative(fromCoinPrice, tokenPrice, amountDecimal, networkFeeConfig.minBridgeFeeUSD);
-    console.log("bridgeFeeNative (recalculated):", bridgeFeeNative.toString());
+    bridgeFeeUSD = getBridgeFeeUSD(tokenPrice, amountDecimal, networkFeeConfig.minBridgeFeeUSD);
   }
 
+
+  bridgeFeeNative = usd2Coin(bridgeFeeUSD, fromCoinPrice);
   bridgeFeeNative = bridgeFeeNative.ceil();
   console.log("bridgeFeeNative (ceiled):", bridgeFeeNative.toString());
 
+  console.log(
+    `[USD] Bridge fee in USD: ${bridgeFeeUSD.toString()}`
+  );
   const result = {
+    feeAmountUsd: await convertFromDecimals(bridgeFeeUSD, networkFrom.toString(), tokenAddr),
     feeAmount: BigInt(bridgeFeeNative.toHex()),
     amountToSend: BigInt(amountDecimal.toHex())
   };

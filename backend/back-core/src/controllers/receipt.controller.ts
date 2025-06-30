@@ -64,8 +64,8 @@ export class ReceiptController {
         receipt.bridgeAddress,
         [
           ...Object.values(stageConfig.contracts).map(c => c.startsWith("0x") ? c.toLowerCase() : c),
-          ...Object.values(tokensConfig.bridges).flatMap(network => 
-            Object.values(network as Record<string, string>).map(addr => 
+          ...Object.values(tokensConfig.bridges).flatMap(network =>
+            Object.values(network as Record<string, string>).map(addr =>
               addr.startsWith("0x") ? addr.toLowerCase() : addr
             )
           )
@@ -163,6 +163,7 @@ export class ReceiptController {
       throw error as Error;
     }
   }
+
 
   async getReceiptIdByTransactionHash(
     transactionHash: string

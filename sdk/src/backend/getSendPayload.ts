@@ -1,6 +1,6 @@
 import { Hex } from "viem";
 import { backendUrl } from "../config";
-import { SendPayloadResponse } from "../types/payload";
+import { SendPayloadResponse } from "../types";
 import { addressToBytes32 } from "../evm/bridge/helpers";
 
 /**
@@ -28,7 +28,7 @@ export async function getSendPayload(
   flags: bigint = 0n,
   flagData: Hex = "0x",
 ): Promise<SendPayloadResponse> {
-  const sendPayloadUrl: URL = URL.parse("/api/send", backendUrl)!;
+  const sendPayloadUrl: URL = new URL("/api/send", backendUrl)!;
   sendPayloadUrl.searchParams.set("networkFrom", networkFrom.toString());
   sendPayloadUrl.searchParams.set("networkTo", networkTo.toString());
   if (tokenAddress.length !== 66 && tokenAddress.startsWith("0x")) {

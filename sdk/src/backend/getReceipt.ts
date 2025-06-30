@@ -1,5 +1,5 @@
 import { backendUrl } from "../config";
-import { ReceiptSignatures, ReceiptWithMeta } from "../types/receipt";
+import { ReceiptSignatures, ReceiptWithMeta } from "../types";
 
 /**
  * Parse a receipt with meta returned from the backend into a ReceiptWithMeta.
@@ -53,7 +53,7 @@ export function parseReceiptWithMeta(receiptWithMeta: {
  * @throws Will throw an error if the network request fails or the receipt is not found.
  */
 export async function getReceiptIdByTxHash(txHash: string): Promise<string> {
-  const receiptIdByTxHashUrl: URL = URL.parse(
+  const receiptIdByTxHashUrl: URL = new URL(
     `/api/receipts/transaction/${txHash}`,
     backendUrl,
   )!;
@@ -82,7 +82,7 @@ export async function getAllReceipts(
   offset: number = 0,
   ordering: "asc" | "desc" = "desc",
 ): Promise<Array<ReceiptWithMeta>> {
-  const receiptsUrl: URL = URL.parse("/api/receipts", backendUrl)!;
+  const receiptsUrl: URL = new URL("/api/receipts", backendUrl)!;
   receiptsUrl.searchParams.set("limit", limit.toString());
   receiptsUrl.searchParams.set("offset", offset.toString());
   receiptsUrl.searchParams.set("ordering", ordering);
@@ -115,7 +115,7 @@ export async function getReceiptsByAddress(
   offset: number = 0,
   ordering: "asc" | "desc" = "desc",
 ): Promise<Array<ReceiptWithMeta>> {
-  const receiptsByAddressUrl: URL = URL.parse(
+  const receiptsByAddressUrl: URL = new URL(
     `/api/receipts/user/${address}`,
     backendUrl,
   )!;
@@ -143,7 +143,7 @@ export async function getReceiptsByAddress(
  */
 
 export async function getReceipt(receiptId: string): Promise<ReceiptWithMeta> {
-  const receiptByIdUrl: URL = URL.parse(
+  const receiptByIdUrl: URL = new URL(
     `/api/receipts/${receiptId}`,
     backendUrl,
   )!;
@@ -169,7 +169,7 @@ export async function getReceipt(receiptId: string): Promise<ReceiptWithMeta> {
 export async function getReceiptSignature(
   receiptId: string,
 ): Promise<ReceiptSignatures> {
-  const receiptByIdUrl: URL = URL.parse(
+  const receiptByIdUrl: URL = new URL(
     `/api/receipts/signatures/${receiptId}`,
     backendUrl,
   )!;

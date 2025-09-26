@@ -34,7 +34,7 @@ COPY --from=builder --chown=hono:nodejs /app/dist /app/dist
 COPY --from=builder --chown=hono:nodejs /app/config /app/config
 COPY --from=builder --chown=hono:nodejs /app/abis /app/abis
 COPY --from=builder --chown=hono:nodejs /app/package.json /app/package.json
-COPY --from=builder --chown=hono:nodejs drizzle*config.ts /app/
+COPY --from=builder --chown=hono:nodejs /app/drizzle*config.ts /app/
 
 
 USER hono

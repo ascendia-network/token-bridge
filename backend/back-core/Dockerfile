@@ -15,6 +15,7 @@ COPY --chown=builder:nodejs tsconfig.json /app/
 COPY --chown=builder:nodejs src /app/src
 COPY --chown=builder:nodejs config /app/config
 COPY --chown=builder:nodejs abis /app/abis
+COPY --chown=builder:nodejs drizzle /app/drizzle
 COPY --chown=builder:nodejs drizzle*config.ts /app/
 
 RUN npm ci
@@ -33,9 +34,10 @@ COPY --from=builder --chown=hono:nodejs /app/node_modules /app/node_modules
 COPY --from=builder --chown=hono:nodejs /app/dist /app/dist
 COPY --from=builder --chown=hono:nodejs /app/config /app/config
 COPY --from=builder --chown=hono:nodejs /app/abis /app/abis
+COPY --from=builder --chown=hono:nodejs /app/drizzle /app/drizzle
 COPY --from=builder --chown=hono:nodejs /app/package.json /app/package.json
+COPY --from=builder --chown=hono:nodejs /app/package-lock.json /app/package-lock.json
 COPY --from=builder --chown=hono:nodejs /app/drizzle*config.ts /app/
-
 
 USER hono
 

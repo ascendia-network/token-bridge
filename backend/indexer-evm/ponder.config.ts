@@ -67,12 +67,6 @@ export default createConfig({
         //   address: "0xFILL_ME", // bridgeBaseAmb
         //   startBlock: Number("FILL_ME"),
         // },
-        amb_test: {
-          address: [
-            "0xF8493e24ca466442fA285ACfAFE2faa50B1AeF8d", // bridgeAmbSolana
-          ],
-          startBlock: Number(4497280),
-        },
         // base_sepolia_test: {
         //   address: "0xFILL_ME", // bridgeBaseAmb
         //   startBlock: Number("FILL_ME"),

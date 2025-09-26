@@ -34,6 +34,7 @@ COPY --from=builder --chown=hono:nodejs /app/node_modules /app/node_modules
 COPY --from=builder --chown=hono:nodejs /app/dist /app/dist
 COPY --from=builder --chown=hono:nodejs /app/config /app/config
 COPY --from=builder --chown=hono:nodejs /app/abis /app/abis
+COPY --from=builder --chown=hono:nodejs /app/src /app/src
 COPY --from=builder --chown=hono:nodejs /app/drizzle /app/drizzle
 COPY --from=builder --chown=hono:nodejs /app/package.json /app/package.json
 COPY --from=builder --chown=hono:nodejs /app/package-lock.json /app/package-lock.json

@@ -6,7 +6,7 @@ const percentFromAmount: { [key: number]: number } = {
 };
 
 
-export function getBridgeFeeInNative(nativeUsdPrice: Decimal, tokenUsdPrice: Decimal, amount: Decimal, minBridgeFeeUSD: number): Decimal {
+export function getBridgeFeeUSD(tokenUsdPrice: Decimal, amount: Decimal, minBridgeFeeUSD: number): Decimal {
   // Get fee in USD
   const amountUsd = coin2Usd(amount, tokenUsdPrice);
   const feePercent = getFeePercent(amountUsd);
@@ -16,9 +16,7 @@ export function getBridgeFeeInNative(nativeUsdPrice: Decimal, tokenUsdPrice: Dec
   if (feeUsd.lessThan(minBridgeFeeUSD))
     feeUsd = new Decimal(minBridgeFeeUSD);
 
-
-  // Calculate fee in native token
-  return usd2Coin(feeUsd, nativeUsdPrice);
+  return feeUsd;
 }
 
 function getFeePercent(amountInUsdt: Decimal): number {

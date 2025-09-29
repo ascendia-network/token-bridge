@@ -1,13 +1,13 @@
 CREATE SCHEMA "bridge";
 --> statement-breakpoint
-CREATE TABLE "bridge"."signatures" (
+CREATE TABLE IF NOT EXISTS "bridge"."signatures" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"receipt_id" text NOT NULL,
 	"signed_by" text NOT NULL,
 	"signature" text NOT NULL
 );
 --> statement-breakpoint
-CREATE MATERIALIZED VIEW "bridge"."receipts" AS (
+CREATE MATERIALIZED VIEW IF NOT EXISTS "bridge"."receipts" AS (
 	select "unioned"."receipt_id",
 		"unioned"."timestamp",
 		"unioned"."bridge_address",

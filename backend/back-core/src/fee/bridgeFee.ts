@@ -1,5 +1,6 @@
 import { Decimal } from "decimal.js";
 import { coin2Usd, usd2Coin } from "./utils";
+import { parseEther } from "viem";
 
 const percentFromAmount: { [key: number]: number } = {
   0: 0.1 * 100 // 0.. ...$ => 0%
@@ -17,7 +18,7 @@ export function getBridgeFeeInNative(nativeUsdPrice: Decimal, tokenUsdPrice: Dec
   //   feeUsd = new Decimal(minBridgeFeeUSD);
 
   // temporary add 1$ to 1% fee
-  feeUsd = feeUsd.add(new Decimal(minBridgeFeeUSD));
+  feeUsd = feeUsd.add(new Decimal(minBridgeFeeUSD).mul("1000000000000000000"));
 
   // Calculate fee in native token
   return usd2Coin(feeUsd, nativeUsdPrice);

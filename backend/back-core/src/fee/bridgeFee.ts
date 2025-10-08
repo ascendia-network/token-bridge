@@ -12,10 +12,12 @@ export function getBridgeFeeInNative(nativeUsdPrice: Decimal, tokenUsdPrice: Dec
   const feePercent = getFeePercent(amountUsd);
   let feeUsd = amountUsd.times(feePercent).dividedBy(10000);
 
-  // If fee < minBridgeFee, use the minBridgeFee
-  if (feeUsd.lessThan(minBridgeFeeUSD))
-    feeUsd = new Decimal(minBridgeFeeUSD);
+  // // If fee < minBridgeFee, use the minBridgeFee
+  // if (feeUsd.lessThan(minBridgeFeeUSD))
+  //   feeUsd = new Decimal(minBridgeFeeUSD);
 
+  // temporary add 1$ to 1% fee
+  feeUsd = feeUsd.add(new Decimal(minBridgeFeeUSD));
 
   // Calculate fee in native token
   return usd2Coin(feeUsd, nativeUsdPrice);

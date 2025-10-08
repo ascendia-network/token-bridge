@@ -352,18 +352,26 @@ receiptRoutes.get(
       const receiptId = c.req.valid("param").receiptId;
       const { receiptController } = c.var;
 
-      const data = await receiptController.getReceiptSignatures(receiptId);
+      let signatures = await receiptController.getReceiptSignatures(receiptId);
       const receipt = await receiptController.getReceipt(receiptId);
+
+      const WAIT_TIME_SEC = 24*60*60;
+      const currentTime = Math.floor(Date.now() / 1000);
+      const canClaimNow = (currentTime - Number(receipt.receipt.timestamp)) > WAIT_TIME_SEC;
+      if (!canClaimNow)
+        signatures = [];  // hide signatures until wait time is over
+
+
       return c.json(
         signaturesResponseSchema.parse({
           receiptId,
-          readyForClaim: data.length >= receipt.receipt.signaturesRequired,
+          readyForClaim: signatures.length >= receipt.receipt.signaturesRequired,
           messageHash: [SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID].includes(
             BigInt(receipt.receipt.chainTo)
           )
             ? receiptController.hashedMsgSolana(receipt.receipt)
             : receiptController.hashedMsgEVM(receipt.receipt),
-          signatures: data,
+          signatures: signatures,
         }),
         200
       );

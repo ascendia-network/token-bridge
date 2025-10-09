@@ -3,7 +3,7 @@ import { coin2Usd, usd2Coin } from "./utils";
 import { parseEther } from "viem";
 
 const percentFromAmount: { [key: number]: number } = {
-  0: 0.1 * 100 // 0.. ...$ => 0%
+  0: 10 // 0.. ...$ => 1%
 };
 
 

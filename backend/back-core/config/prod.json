@@ -70,22 +70,22 @@
   "fees": {
     "networks": {
       "16718": {
-        "minBridgeFeeUSD": 1
+        "minBridgeFeeUSD": 6
       },
       "22040": {
-        "minBridgeFeeUSD": 1
+        "minBridgeFeeUSD": 6
       },
       "6003100671677628416": {
-        "minBridgeFeeUSD": 1
+        "minBridgeFeeUSD": 6
       },
       "6003100671677645902": {
-        "minBridgeFeeUSD": 1
+        "minBridgeFeeUSD": 6
       },
       "8453": {
-        "minBridgeFeeUSD": 1
+        "minBridgeFeeUSD": 6
       },
       "84532": {
-        "minBridgeFeeUSD": 1
+        "minBridgeFeeUSD": 6
       }
     }
   }

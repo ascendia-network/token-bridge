@@ -12,7 +12,7 @@ import {
 } from "./utils";
 import { Hono } from "hono";
 import { receiptControllerMiddleware } from "../middleware/receiptController";
-import { SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID } from "../../config";
+import { bridgeValidators, SOLANA_CHAIN_ID, SOLANA_DEV_CHAIN_ID } from "../../config";
 
 export const receiptRoutes = new Hono<{
   Bindings: {
@@ -352,8 +352,11 @@ receiptRoutes.get(
       const receiptId = c.req.valid("param").receiptId;
       const { receiptController } = c.var;
 
-      let signatures = await receiptController.getReceiptSignatures(receiptId);
       const receipt = await receiptController.getReceipt(receiptId);
+
+      const expectedSigners = bridgeValidators[receipt.receipt.chainTo]
+      let signatures = await receiptController.getReceiptSignatures(receiptId);
+      signatures = signatures.filter((s) => expectedSigners.includes(s.signedBy));
 
       const WAIT_TIME_SEC = 24*60*60;
       const currentTime = Math.floor(Date.now() / 1000);

@@ -14,6 +14,56 @@ export type AmbSolBridge = {
   },
   "instructions": [
     {
+      "name": "changeMintAuthority",
+      "discriminator": [
+        162,
+        51,
+        245,
+        195,
+        101,
+        186,
+        14,
+        221
+      ],
+      "accounts": [
+        {
+          "name": "mint",
+          "writable": true
+        },
+        {
+          "name": "bridgeToken",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "newAuthority",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
       "name": "initialize",
       "discriminator": [
         175,

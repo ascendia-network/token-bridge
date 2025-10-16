@@ -20,7 +20,6 @@ export const receiveSigners = [
   getSolanaAccount("flower hurdle marriage hand track spawn exhibit ketchup cradle glove domain absent couple churn round"),
   getSolanaAccount("length need emerge identify plunge target ensure symbol discover copy spare cloud pact pyramid cloth"),
   getSolanaAccount("build suggest habit chase chat text want slogan liar finger bulk vast cost consider evil"),
-  getSolanaAccount("assault egg legend trick beyond benefit adjust recall dry grit stick under swarm figure exile"),
   getSolanaAccount("hood animal fancy camera twist marriage group travel flag six chalk grit lecture burst scissors"),
 ].sort((a, b) => a.publicKey.toBase58().localeCompare(b.publicKey.toBase58()));
 
@@ -42,7 +41,7 @@ export async function getReceivePayload(user: PublicKey, token: PublicKey, amoun
     chainTo: SOLANA_CHAIN_ID,
     eventId,
     flags: new Uint8Array(32),  // todo
-    flagData: numberToUint8Array(nonce, 8),  // todo
+    flagData: numberToUint8Array(Number(nonce), 8),  // todo
   };
 
   const serializedPayload = serializeReceivePayload(payload);

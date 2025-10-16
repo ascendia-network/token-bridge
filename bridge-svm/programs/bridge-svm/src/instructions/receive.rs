@@ -89,12 +89,15 @@ pub fn receive(
     let args_hash = hash(&serialized_args);
 
     // check signature
-    let num_signatures = 5;
     let ix = get_instruction_relative(-1, &ctx.accounts.ix_sysvar.to_account_info())?;
     require!(ix.program_id == ED25519_ID, CustomError::InvalidSignature);
-    let signed_message = &ix.data[ix.data.len().saturating_sub(32)..];
-    let signer_pubkeys = &ix.data
-        [ix.data.len().saturating_sub(32 * num_signatures + 32)..ix.data.len().saturating_sub(32)];
+
+    let ix_data_len = ix.data.len();
+    let num_signatures = (ix_data_len - 32 - 2) / (64+32+14);  // each signature block is 64+32+14 bytes, plus 32 bytes message, plus 2 bytes header
+
+    let signed_message = &ix.data[ix_data_len.saturating_sub(32)..];
+    let signer_pubkeys = &ix.data[ix_data_len.saturating_sub(32 * num_signatures + 32)..ix_data_len.saturating_sub(32)];
+
     let signer_pubkey = hash(signer_pubkeys);
 
     require!(

@@ -18,9 +18,8 @@ const receiveSigners = [
   new PublicKey("p6TKDQs2jPDiTERL7GkdvjG3AfRSs6DR5ajeEXbTXup"), // Andrii m
   new PublicKey("6BegtaF1aEi2cZNozDsCipLDMJZofUtKCz7DWu2zHcgd"), // rwxrxrx
   new PublicKey("F7tGeffguqexTiVhai2Y9aGWeYuVLk1cuM8YcAU471g6"), // valar999
-  new PublicKey("5Ffq8JcieVCf5LBzgkv6airLpJ1GoTFFYfN4e7HDfWkk"), // kuroneko
   new PublicKey("8aW9wCS6nCRSHR7k3XkYk9uAcseywc6cH7N6hwL6eVsZ"), // Andrii R
-]
+].sort((a, b) => a.toBase58().localeCompare(b.toBase58()));
 const sendSigner = new PublicKey("FMYR5BFh3JapZS1cfwYViiBMYJxFGwKdchnghBnBtxkk");  // svin
 
 const receiveSignersBuffer = Buffer.alloc(32 * receiveSigners.length);
@@ -50,7 +49,17 @@ export async function main() {
   // await initializeToken(program, admin, sambSol, sambAmb, 18, true);
   // await initializeToken(program, admin, NATIVE_MINT, wsolAmb, 18, false);
   // await initializeToken(program, admin, usdcSol, usdcAmb, 18, false);
-  
+
+
+  console.log("receiveSigner", receiveSigner.toString());
+  const stateAccount = getBridgeStateAccount(program.programId);
+  console.log("state account", stateAccount)
+  console.log("fee balance", await connection.getBalance(stateAccount));
+  const globalState = await program.account.globalState.fetch(getBridgeStateAccount(program.programId));
+  console.log(globalState);
+
+  await setSigners(sendSigner, receiveSigner);
+
 }
 
 

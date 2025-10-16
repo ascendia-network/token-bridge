@@ -53,8 +53,8 @@ async function metadata() {
   const mint = publicKey(sambKeypair.publicKey);
 
   const tokenMetadata = {
-    name: "SAMB",
-    symbol: "SAMB",
+    name: "AMB",
+    symbol: "AMB",
     uri: "https://raw.githubusercontent.com/ascendia-network/token-bridge/main/bridge-svm/tokens/SAMB-metadata.json",
   };
 

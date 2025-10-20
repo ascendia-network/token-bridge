@@ -324,6 +324,14 @@ const ReceiptSchema = createSelectSchema(receipt, {
     example: 5,
     description: "Number of signatures required",
   }),
+  canClaimAt: z.number().openapi({
+    example: 1633635600,
+    description: "Timestamp when the receipt can be claimed",
+  }),
+  canClaimNow: z.boolean().openapi({
+    example: true,
+    description: "waiting time has passed",
+  }),
 });
 
 export const receiptMetaEvmSchema = createSelectSchema(

@@ -206,6 +206,7 @@ export class ReceiptController {
   async getReceipt(receiptId: `${number}_${number}_${number}`): Promise<{
     receipt: typeof receipt.$inferSelect & {
       signaturesRequired: number;
+      canClaimAt: number;
       canClaimNow: boolean;
     };
     receiptMeta: Array<
@@ -253,11 +254,16 @@ export class ReceiptController {
         throw new Error("Receipt chainFrom not supported");
       if (!Object.keys(bridgeValidators).includes(result.chainTo))
         throw new Error("Receipt chainTo not supported");
+
+      const canClaimAt = Number(receipt.timestamp) + WAIT_TIME_SEC;
+      const canClaimNow = Math.floor(Date.now() / 1000) >= canClaimAt;
+
       return {
         receipt: {
           ...result,
           signaturesRequired: bridgeValidators[result.chainTo].length,
-          canClaimNow: (Math.floor(Date.now() / 1000) - Number(receipt.timestamp)) > WAIT_TIME_SEC,
+          canClaimAt,
+          canClaimNow,
         },
         receiptMeta: [...metaEvm, ...metaSolana]
       };

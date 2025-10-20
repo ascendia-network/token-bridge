@@ -358,10 +358,7 @@ receiptRoutes.get(
       let signatures = await receiptController.getReceiptSignatures(receiptId);
       signatures = signatures.filter((s) => expectedSigners.includes(s.signedBy));
 
-      const WAIT_TIME_SEC = 1*60*60;
-      const currentTime = Math.floor(Date.now() / 1000);
-      const canClaimNow = (currentTime - Number(receipt.receipt.timestamp)) > WAIT_TIME_SEC;
-      if (!canClaimNow)
+      if (!receipt.receipt.canClaimNow)
         signatures = [];  // hide signatures until wait time is over
 
 

@@ -21,7 +21,7 @@ import {
   SOLANA_CHAIN_ID,
   SOLANA_DEV_CHAIN_ID,
   stageConfig,
-  tokensConfig
+  tokensConfig, WAIT_TIME_SEC
 } from "../../config";
 import nacl from "tweetnacl";
 import { PublicKey } from "@solana/web3.js";
@@ -64,8 +64,8 @@ export class ReceiptController {
         receipt.bridgeAddress,
         [
           ...Object.values(stageConfig.contracts).map(c => c.startsWith("0x") ? c.toLowerCase() : c),
-          ...Object.values(tokensConfig.bridges).flatMap(network => 
-            Object.values(network as Record<string, string>).map(addr => 
+          ...Object.values(tokensConfig.bridges).flatMap(network =>
+            Object.values(network as Record<string, string>).map(addr =>
               addr.startsWith("0x") ? addr.toLowerCase() : addr
             )
           )
@@ -206,6 +206,7 @@ export class ReceiptController {
   async getReceipt(receiptId: `${number}_${number}_${number}`): Promise<{
     receipt: typeof receipt.$inferSelect & {
       signaturesRequired: number;
+      canClaimNow: boolean;
     };
     receiptMeta: Array<
       | typeof receiptsMetaInIndexerEvm.$inferSelect
@@ -255,7 +256,8 @@ export class ReceiptController {
       return {
         receipt: {
           ...result,
-          signaturesRequired: bridgeValidators[result.chainTo].length
+          signaturesRequired: bridgeValidators[result.chainTo].length,
+          canClaimNow: (Math.floor(Date.now() / 1000) - Number(receipt.timestamp)) > WAIT_TIME_SEC,
         },
         receiptMeta: [...metaEvm, ...metaSolana]
       };

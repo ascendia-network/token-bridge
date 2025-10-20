@@ -45,6 +45,8 @@ export class ReceiptController {
     data: Array<{
       receipt: typeof receipt.$inferSelect & {
         signaturesRequired: number;
+        canClaimAt: number;
+        canClaimNow: boolean;
       };
       receiptMeta: Array<
         | typeof receiptsMetaInIndexerEvm.$inferSelect
@@ -138,10 +140,16 @@ export class ReceiptController {
           const metaSolana = metasSolana.filter(
             (m) => m.receiptId === r.receiptId
           );
+
+          const canClaimAt = Number(r.timestamp) + WAIT_TIME_SEC;
+          const canClaimNow = Math.floor(Date.now() / 1000) >= canClaimAt;
+
           return {
             receipt: {
               ...r,
-              signaturesRequired: bridgeValidators[r.chainTo].length
+              signaturesRequired: bridgeValidators[r.chainTo].length,
+              canClaimAt,
+              canClaimNow,
             },
             receiptMeta: [...metaEvm, ...metaSolana]
           };

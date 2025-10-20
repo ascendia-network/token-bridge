@@ -255,7 +255,7 @@ export class ReceiptController {
       if (!Object.keys(bridgeValidators).includes(result.chainTo))
         throw new Error("Receipt chainTo not supported");
 
-      const canClaimAt = Number(receipt.timestamp) + WAIT_TIME_SEC;
+      const canClaimAt = Number(result.timestamp) + WAIT_TIME_SEC;
       const canClaimNow = Math.floor(Date.now() / 1000) >= canClaimAt;
 
       return {

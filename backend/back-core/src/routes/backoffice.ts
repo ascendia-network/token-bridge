@@ -7,6 +7,7 @@ import { formatUnits } from "viem";
 import { addressToUserFriendly } from "../utils/addresses";
 import { receiptControllerMiddleware } from "../middleware/receiptController";
 import { describeRoute } from "hono-openapi";
+import { bridgeValidators } from "../../config";
 
 export const backofficeRoutes = new Hono();
 
@@ -83,7 +84,8 @@ backofficeRoutes.get(
           const signs = await receiptController.getReceiptSignatures(
             receipt.receiptId as `${number}_${number}_${number}`
           );
-          if (signs.length === 5)
+          const signaturesRequired = bridgeValidators[receipt.chainTo].length;
+          if (signs.length === signaturesRequired)
             status = 4; // all signatures ready, but not claimed
           else
             status = +`3.${signs.length}`;

@@ -38,5 +38,5 @@ export const SOLANA_DEV_CHAIN_ID = bytesToBigInt(
   stringToBytes("SOLANADN", { size: 8 })
 );
 
-export const WAIT_TIME_SEC = 1*60*60;
+export const WAIT_TIME_SEC = 30*60;
 
